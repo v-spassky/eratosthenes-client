@@ -1,25 +1,32 @@
-import logo from './logo.svg';
-import './App.css';
+import PlayScreen from "./pages/PlayScreen.js";
+import HomeScreen from "./pages/HomeScreen.js";
+import NoMatchScreen from "./pages/NoMatchScreen.js";
+import { NextUIProvider } from "@nextui-org/react";
+import { Routes, Route, Outlet } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <NextUIProvider>
+            <Routes>
+                <Route path="/" element={<HomeScreen />} />
+                <Route path="/room/:id" element={<PlayScreen />} />
+                <Route path="*" element={<NoMatchScreen />} />
+            </Routes>
+            <Outlet />
+            <ToastContainer
+                position="bottom-left"
+                autoClose={5000}
+                hideProgressBar
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
+        </NextUIProvider>
+    );
 }
 
 export default App;
