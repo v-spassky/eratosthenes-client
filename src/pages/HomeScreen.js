@@ -14,10 +14,10 @@ const emojis = [
 ];
 
 function HomeScreen() {
+    const [selectedEmoji, setSelectedEmoji] = useState("");
     const [username, setUsername] = useState("");
     const [apiKey, setApiKey] = useState("");
-    const [selectedEmoji, setSelectedEmoji] = useState("");
-    const [TargetRoomID, setTargetRoomID] = useState("");
+    const [targetRoomID, setTargetRoomID] = useState("");
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const navigate = useNavigate();
 
@@ -53,8 +53,28 @@ function HomeScreen() {
         }
     };
 
-    const handleConnectToRoom = (emoji) => {
-        navigate(`/room/${TargetRoomID}`);
+    const handleConnectToRoom = () => {
+        if (!targetRoomID.trim()) {
+            toast.error("Введи айди комнаты", {
+                position: "bottom-left",
+                autoClose: 2000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Slide,
+            });
+        } else {
+            // TODO: API call to check if the room exists and if there is no user with such username
+            navigate(`/room/${targetRoomID}`);
+        }
+    };
+
+    const handleCreateRoom = () => {
+        // TODO: API call to create a new room that returns a room ID
+        navigate(`/room/dhn7Bf437ygf`);
     };
 
     const handleEmojiSelect = (emoji) => {
@@ -64,6 +84,14 @@ function HomeScreen() {
     useEffect(() => {
         handleLoad();
     }, []);
+
+    const canCreateRoom = () => {
+        return username.trim() !== "";
+    }
+
+    const canJoinToRoom = () => {
+        return username.trim() !== "" && targetRoomID.trim() !== "";
+    }
 
     return (
         <div
@@ -115,15 +143,21 @@ function HomeScreen() {
                 <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>Подключиться к сушествующей комнате</h1>
                 <Input
                     isRequired
-                    value={TargetRoomID}
+                    value={targetRoomID}
                     onChange={(e) => setTargetRoomID(e.target.value)}
                     label="Айди комнаты"
                     placeholder="Идентификатор комнаты"
                 />
-                <Button onPress={handleConnectToRoom} color="primary" style={{ width: "120px" }}>Подключиться</Button>
+                {canJoinToRoom()
+                    ? <Button onPress={handleConnectToRoom} color="primary" style={{ width: "120px" }}>Подключиться</Button>
+                    : <Button isDisabled color="primary" style={{ width: "120px" }}>Подключиться</Button>
+                }
                 <Divider />
                 <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>Создать новую комнату</h1>
-                <Button color="primary" style={{ width: "120px" }}>Создать</Button>
+                {canCreateRoom()
+                    ? <Button onPress={handleCreateRoom} color="primary" style={{ width: "120px" }}>Создать</Button>
+                    : <Button isDisabled color="primary" style={{ width: "120px" }}>Создать</Button>
+                }
             </div>
 
             <Modal size={"4xl"} isOpen={isOpen} onOpenChange={onOpenChange}>
