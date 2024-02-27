@@ -3,7 +3,6 @@ import { Button } from "@nextui-org/react";
 import { FaRegMessage } from "react-icons/fa6";
 import { Textarea } from "@nextui-org/react";
 import { Tooltip } from "@nextui-org/react";
-import { ScrollShadow } from "@nextui-org/react";
 
 const messages_stub = [
     { id: 1, author: "Влад", content: "Где это...", dateTime: "2021-01-01 12:00:00" },
@@ -112,90 +111,97 @@ const prompts = [
     "Давай вместе создадим уникальную беседу, которая будет интересна именно тебе.",
 ]
 
+const reallyBigScrollValue = 10000;
+
 function Chat() {
     const [messages, setMessages] = useState(messages_stub);
     const [message, setMessage] = useState('');
-    const socketRef = useRef(null); // Create a ref to store the WebSocket object
-    const isFocused = useRef(false); // Track textarea focus state
-    const messageListRef = useRef(null);
+    const socketRef = useRef(null);
+    const textInputIsFocused = useRef(false);
+    const chatContainerRef = useRef(null);
 
     useEffect(() => {
-        socketRef.current = new WebSocket('ws://127.0.0.1:3030/chat'); // Initialize WebSocket
-
+        socketRef.current = new WebSocket('ws://127.0.0.1:3030/chat');
         socketRef.current.onopen = () => {
             console.log('WebSocket connection established.');
         };
-
         socketRef.current.onmessage = (event) => {
             const receivedMessage = event.data;
             setMessages(
-                [...messages, { id: 1, author: "dunno", content: receivedMessage, dateTime: "2025-01-01 22:00:00" }]
+                messages => [
+                    ...messages,
+                    { id: 1, author: "dunno", content: receivedMessage, dateTime: "2025-01-01 22:00:00" },
+                ]
             );
         };
-
+        setTimeout(() => {
+            chatContainerRef.current.scrollTop = reallyBigScrollValue;
+        }, 100);
         return () => {
-            socketRef.current.close(); // Close the WebSocket on cleanup
+            socketRef.current.close();
         };
+    }, []);
+
+    useEffect(() => {
+        console.log('chatContainerRef.current.scrollTop:', chatContainerRef.current.scrollTop);
+        console.log('chatContainerRef.current.clientHeight:', chatContainerRef.current.clientHeight);
+        console.log('chatContainerRef.current.scrollHeight:', chatContainerRef.current.scrollHeight);
+        if (
+            chatContainerRef.current.scrollHeight
+            - chatContainerRef.current.scrollTop
+            - chatContainerRef.current.clientHeight
+            < 50
+        ) {
+            chatContainerRef.current.scrollTop = reallyBigScrollValue;
+        }
     }, [messages]);
 
     const handleSendMessage = (event) => {
-        event.preventDefault(); // Prevent default form submission behavior
-
+        event.preventDefault();
         if (message.trim() === '') {
-            return; // Avoid sending empty messages
+            return;
         }
-
-        socketRef.current.send(message); // Send the message to the WebSocket server
-
+        socketRef.current.send(message);
         setMessages([...messages, { id: 1, author: "you", content: message, dateTime: new Date().toISOString() }]);
-        setMessage(''); // Clear the state variable instead of modifying DOM directly
+        setMessage('');
     };
 
     const handleKeyDown = (event) => {
-        if (event.ctrlKey && event.key === 'Enter' && isFocused.current && message.trim() !== '') {
+        if (event.ctrlKey && event.key === 'Enter' && textInputIsFocused.current && message.trim() !== '') {
             handleSendMessage(event);
         }
     };
 
     const prompt = prompts[Math.floor(Math.random() * prompts.length)];
 
-    useEffect(() => {
-        const messageList = messageListRef.current;
-        if (messageList) {
-            const handleScroll = () => {
-                const isScrolledToBottom = messageList.scrollHeight - messageList.scrollTop === messageList.clientHeight;
-                if (isScrolledToBottom) {
-                    return;
-                }
-                const threshold = 0; // Adjust the threshold as needed
-                if (messageList.scrollHeight - messageList.scrollTop - messageList.clientHeight < threshold) {
-                    messageList.scrollTop = messageList.scrollHeight;
-                }
-            };
-
-            messageList.addEventListener('scroll', handleScroll);
-
-            return () => messageList.removeEventListener('scroll', handleScroll);
-        }
-    }, [messages]); // Update scroll on message change
-
     return (
         <div
             id="chat"
             style={{
-                display: "flex", flexDirection: "column", justifyContent: "flex-end", height: "100%", padding: 10,
-                paddingRight: 20
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-end",
+                height: "100%",
+                padding: 10,
+                paddingRight: 20,
+                overflow: "hidden",
             }}
         >
-            <ScrollShadow hideScrollBar ref={messageListRef}>
+            <div
+                id="chat-container"
+                ref={chatContainerRef}
+                style={{
+                    flex: "1 1 auto",
+                    overflowY: "auto",
+                    // marginBottom: "10px",
+                }}
+            >
                 {messages.map((message, index) => (
-                    <div key={message.id} style={{ marginBottom: 4 }}>
-                        <div style={{ wordWrap: "break-word" }}>
-                            <span style={{ fontWeight: "bold" }}>{message.author}:</span> {message.content}
-                        </div>
+                    <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word" }}>
+                        <span style={{ fontWeight: "bold" }}>{message.author}:</span> {message.content}
                     </div>
                 ))}
-            </ScrollShadow>
+            </div>
             <form onSubmit={handleSendMessage} style={{ position: "relative" }}>
                 <Textarea
                     name="message"
@@ -204,8 +210,8 @@ function Chat() {
                     placeholder={prompt}
                     style={{ height: "100px" }}
                     onKeyDown={handleKeyDown}
-                    onFocus={() => (isFocused.current = true)}
-                    onBlur={() => (isFocused.current = false)}
+                    onFocus={() => (textInputIsFocused.current = true)}
+                    onBlur={() => (textInputIsFocused.current = false)}
                 />
                 <Tooltip content="Отправить сообщение">
                     <Button
