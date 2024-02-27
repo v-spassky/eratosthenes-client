@@ -84,7 +84,7 @@ function medalOfIndex(index) {
 
 function UserList() {
     return (
-        <div id="userList" style={{ height: "100%", flexGrow: 1, padding: 10 }}>
+        <div id="userList" style={{ height: "100%", flexGrow: 1, padding: 10, overflow: "auto" }}>
             <ScrollShadow>
                 <Table removeWrapper hideHeader aria-label="Example static collection table">
                     <TableHeader>
