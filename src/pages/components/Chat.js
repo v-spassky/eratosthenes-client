@@ -178,23 +178,14 @@ function Chat() {
         <div
             id="chat"
             style={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "flex-end",
-                height: "100%",
-                padding: 10,
-                paddingRight: 20,
-                overflow: "hidden",
+                display: "flex", flexDirection: "column", justifyContent: "flex-end", height: "100%", padding: 10,
+                paddingRight: 20, overflow: "hidden",
             }}
         >
             <div
                 id="chat-container"
                 ref={chatContainerRef}
-                style={{
-                    flex: "1 1 auto",
-                    overflowY: "auto",
-                    // marginBottom: "10px",
-                }}
+                style={{ flex: "1 1 auto", overflowY: "auto" }}
             >
                 {messages.map((message, index) => (
                     <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word" }}>
