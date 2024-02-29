@@ -53,7 +53,7 @@ function HomeScreen() {
         }
     };
 
-    const handleConnectToRoom = () => {
+    const handleConnectToRoom = async () => {
         if (!targetRoomID.trim()) {
             toast.error("Введи айди комнаты", {
                 position: "bottom-left",
@@ -67,14 +67,55 @@ function HomeScreen() {
                 transition: Slide,
             });
         } else {
-            // TODO: API call to check if the room exists and if there is no user with such username
-            navigate(`/room/${targetRoomID}`);
+            try {
+                const response = await fetch(
+                    `http://127.0.0.1:3030/can-connect/${targetRoomID}?username=${username}`,
+                    { method: 'GET' },
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    if (!data.canConnect) {
+                        toast.error("Такая комната не найдена", {
+                            position: "bottom-left",
+                            autoClose: 2000,
+                            hideProgressBar: true,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                            theme: "light",
+                            transition: Slide,
+                        });
+                        return;
+                    }
+                    navigate(`/room/${targetRoomID}`);
+                } else {
+                    console.error('Failed to create room:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error creating room:', error.message);
+            }
         }
     };
 
-    const handleCreateRoom = () => {
-        // TODO: API call to create a new room that returns a room ID
-        navigate(`/room/dhn7Bf437ygf`);
+    const handleCreateRoom = async () => {
+        try {
+            const response = await fetch(
+                'http://127.0.0.1:3030/create-room',
+                { method: 'POST', headers: { 'Content-Type': 'application/json' } }
+            );
+            if (response.ok) {
+                const data = await response.json();
+                const roomId = data.roomId;
+                console.log('Room created:', roomId);
+                console.log(roomId);
+                navigate(`/room/${roomId}`);
+            } else {
+                console.error('Failed to create room:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error creating room:', error.message);
+        }
     };
 
     const handleEmojiSelect = (emoji) => {

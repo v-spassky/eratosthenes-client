@@ -3,6 +3,8 @@ import { Button } from "@nextui-org/react";
 import { FaRegMessage } from "react-icons/fa6";
 import { Textarea } from "@nextui-org/react";
 import { Tooltip } from "@nextui-org/react";
+import { useParams, useNavigate } from 'react-router-dom';
+import { toast, Slide } from 'react-toastify';
 
 const messages_stub = [
     { id: 1, author: "Влад", content: "Где это...", dateTime: "2021-01-01 12:00:00" },
@@ -119,11 +121,71 @@ function Chat() {
     const socketRef = useRef(null);
     const textInputIsFocused = useRef(false);
     const chatContainerRef = useRef(null);
+    const { id } = useParams();
+    const navigate = useNavigate();
 
     useEffect(() => {
-        socketRef.current = new WebSocket('ws://127.0.0.1:3030/chat');
+        const username = localStorage.getItem('username');
+        if (!username) {
+            navigate('/');
+            toast.error("Установи юзернейм чтобы подключиться к комнате", {
+                position: "bottom-left",
+                autoClose: 2000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Slide,
+            });
+            return;
+        }
+        const fetchData = async () => {
+            try {
+                const response = await fetch(
+                    `http://127.0.0.1:3030/can-connect/${id}?username=${username}`,
+                    { method: 'GET' },
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    if (!data.canConnect) {
+                        let errMsg = "";
+                        switch (data.reason) {
+                            case "Room not found.":
+                                errMsg = "Такая комната не найдена";
+                                break;
+                            // TODO: be more percise here
+                            default:
+                                errMsg = "Кто-то с таким именем уже есть в комнате";
+                        }
+                        navigate('/');
+                        toast.error(errMsg, {
+                            position: "bottom-left",
+                            autoClose: 2000,
+                            hideProgressBar: true,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                            theme: "light",
+                            transition: Slide,
+                        });
+                        return;
+                    }
+                } else {
+                    console.error('Failed to connect to room', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error connecting to room:', error.message);
+            }
+        };
+
+        fetchData();
+
+        socketRef.current = new WebSocket(`ws://127.0.0.1:3030/chat/${id}`);
         socketRef.current.onopen = () => {
-            console.log('WebSocket connection established.');
+            console.log("WebSocket connection established.");
         };
         socketRef.current.onmessage = (event) => {
             const receivedMessage = event.data;
@@ -135,18 +197,19 @@ function Chat() {
             );
         };
         setTimeout(() => {
-            chatContainerRef.current.scrollTop = reallyBigScrollValue;
+            if (chatContainerRef.current !== null) {
+                chatContainerRef.current.scrollTop = reallyBigScrollValue;
+            }
         }, 100);
         return () => {
             socketRef.current.close();
         };
-    }, []);
+    }, [navigate, id]);
 
     useEffect(() => {
-        console.log('chatContainerRef.current.scrollTop:', chatContainerRef.current.scrollTop);
-        console.log('chatContainerRef.current.clientHeight:', chatContainerRef.current.clientHeight);
-        console.log('chatContainerRef.current.scrollHeight:', chatContainerRef.current.scrollHeight);
         if (
+            chatContainerRef.current !== null
+            &&
             chatContainerRef.current.scrollHeight
             - chatContainerRef.current.scrollTop
             - chatContainerRef.current.clientHeight
@@ -167,7 +230,7 @@ function Chat() {
     };
 
     const handleKeyDown = (event) => {
-        if (event.ctrlKey && event.key === 'Enter' && textInputIsFocused.current && message.trim() !== '') {
+        if (event.ctrlKey && event.key === "Enter" && textInputIsFocused.current && message.trim() !== "") {
             handleSendMessage(event);
         }
     };
