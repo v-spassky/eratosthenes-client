@@ -69,7 +69,7 @@ function HomeScreen() {
         } else {
             try {
                 const response = await fetch(
-                    `http://127.0.0.1:3030/can-connect/${targetRoomID}?username=${username}`,
+                    `${process.env.REACT_APP_SERVER_ORIGIN}/can-connect/${targetRoomID}?username=${username}`,
                     { method: 'GET' },
                 );
                 if (response.ok) {
@@ -101,7 +101,7 @@ function HomeScreen() {
     const handleCreateRoom = async () => {
         try {
             const response = await fetch(
-                'http://127.0.0.1:3030/create-room',
+                `${process.env.REACT_APP_SERVER_ORIGIN}/create-room`,
                 { method: 'POST', headers: { 'Content-Type': 'application/json' } }
             );
             if (response.ok) {

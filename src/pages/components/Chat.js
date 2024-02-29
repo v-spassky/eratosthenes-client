@@ -144,7 +144,7 @@ function Chat() {
         const fetchData = async () => {
             try {
                 const response = await fetch(
-                    `http://127.0.0.1:3030/can-connect/${id}?username=${username}`,
+                    `${process.env.REACT_APP_SERVER_ORIGIN}/can-connect/${id}?username=${username}`,
                     { method: 'GET' },
                 );
                 if (response.ok) {
@@ -183,7 +183,7 @@ function Chat() {
 
         fetchData();
 
-        socketRef.current = new WebSocket(`ws://127.0.0.1:3030/chat/${id}`);
+        socketRef.current = new WebSocket(`${process.env.REACT_APP_WS_SERVER_ORIGIN}/chat/${id}`);
         socketRef.current.onopen = () => {
             console.log("WebSocket connection established.");
         };
