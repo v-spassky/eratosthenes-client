@@ -6,50 +6,6 @@ import { Tooltip } from "@nextui-org/react";
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast, Slide } from 'react-toastify';
 
-const messages_stub = [
-    { id: 1, author: "Влад", content: "Где это...", dateTime: "2021-01-01 12:00:00" },
-    { id: 2, author: "шарпомуха", content: "как жи хочется...", dateTime: "2021-01-01 12:00:00" },
-    { id: 3, author: "джеваскуф", content: "тяжело....", dateTime: "2021-01-01 12:00:00" },
-    { id: 4, author: "Александр К", content: "КЕМ", dateTime: "2021-01-01 12:00:00" },
-    { id: 5, author: "Игорь", content: "Привет всем!", dateTime: "2021-01-01 12:01:00" },
-    { id: 6, author: "Наташа", content: "Как дела?", dateTime: "2021-01-01 12:02:00" },
-    { id: 7, author: "Сергей", content: "Нормально, спасибо!", dateTime: "2021-01-01 12:03:00" },
-    { id: 8, author: "Оля", content: "А что это за тема?", dateTime: "2021-01-01 12:04:00" },
-    { id: 9, author: "Влад", content: "Да просто聊天", dateTime: "2021-01-01 12:05:00" },
-    { id: 10, author: "шарпомуха", content: "А я вот думаю...", dateTime: "2021-01-01 12:06:00" },
-    { id: 11, author: "джеваскуф", content: "О чем же?", dateTime: "2021-01-01 12:07:00" },
-    { id: 12, author: "шарпомуха", content: "О жизни...", dateTime: "2021-01-01 12:08:00" },
-    { id: 13, author: "Александр К", content: "О смысле жизни?", dateTime: "2021-01-01 12:09:00" },
-    { id: 14, author: "шарпомуха", content: "Да, о смысле жизни...", dateTime: "2021-01-01 12:10:00" },
-    { id: 15, author: "Игорь", content: "Это сложный вопрос.", dateTime: "2021-01-01 12:11:00" },
-    { id: 16, author: "Наташа", content: "Каждый сам находит свой ответ.", dateTime: "2021-01-01 12:12:00" },
-    { id: 17, author: "Сергей", content: "А что вы думаете?", dateTime: "2021-01-01 12:13:00" },
-    { id: 18, author: "Оля", content: "Я думаю, что смысл жизни - это...", dateTime: "2021-01-01 12:14:00" },
-    { id: 19, author: "Влад", content: "...быть счастливым.", dateTime: "2021-01-01 12:15:00" },
-    { id: 20, author: "шарпомуха", content: "Согласен!", dateTime: "2021-01-01 12:16:00" },
-    { id: 21, author: "джеваскуф", content: "И я!", dateTime: "2021-01-01 12:17:00" },
-    { id: 23, author: "Игорь", content: "А как же любовь?", dateTime: "2021-01-01 12:18:00" },
-    { id: 24, author: "Наташа", content: "Любовь - это часть счастья.", dateTime: "2021-01-01 12:19:00" },
-    { id: 25, author: "Сергей", content: "Но не всё.", dateTime: "2021-01-01 12:20:00" },
-    { id: 26, author: "Оля", content: "Согласна. Счастье - это многогранное понятие.", dateTime: "2021-01-01 12:21:00" },
-    { id: 27, author: "Влад", content: "Это и здоровье, и благополучие, и...", dateTime: "2021-01-01 12:22:00" },
-    { id: 28, author: "шарпомуха", content: "...и любимое дело, и...", dateTime: "2021-01-01 12:23:00" },
-    { id: 29, author: "джеваскуф", content: "...и друзья, и семья.", dateTime: "2021-01-01 12:24:00" },
-    { id: 30, author: "Александр К", content: "И мир в душе.", dateTime: "2021-01-01 12:25:00" },
-    { id: 31, author: "Игорь", content: "А как найти мир в душе?", dateTime: "2021-01-01 12:26:00" },
-    { id: 32, author: "Наташа", content: "Это тоже каждый сам должен найти.", dateTime: "2021-01-01 12:27:00" },
-    { id: 33, author: "Сергей", content: "Но есть разные пути.", dateTime: "2021-01-01 12:28:00" },
-    { id: 34, author: "Оля", content: "Можно медитировать, например.", dateTime: "2021-01-01 12:29:00" },
-    { id: 35, author: "Влад", content: "Или заниматься йогой.", dateTime: "2021-01-01 12:30:00" },
-    { id: 36, author: "шарпомуха", content: "Или просто гулять на природе.", dateTime: "2021-01-01 12:31:00" },
-    { id: 37, author: "джеваскуф", content: "Главное - найти то, что подходит именно вам.", dateTime: "2021-01-01 12:32:00" },
-    { id: 38, author: "Александр К", content: "И не бояться пробовать новое.", dateTime: "2021-01-01 12:33:00" },
-    { id: 39, author: "Игорь", content: "Спасибо за советы!", dateTime: "2021-01-01 12:34:00" },
-    { id: 40, author: "Наташа", content: "Да, мы рады помочь!", dateTime: "2021-01-01 12:35:00" },
-    { id: 41, author: "Сергей", content: "А может, ещё кто-то хочет поделиться своими мыслями о смысле жизни?", dateTime: "2021-01-01 12:36:00" },
-    { id: 42, author: "Оля", content: "Я!", dateTime: "2021-01-01 12:37:00" },
-];
-
 const prompts = [
     "Что нового?",
     "Удиви нас своим отсроумием!",
@@ -115,9 +71,24 @@ const prompts = [
 
 const reallyBigScrollValue = 10000;
 
+function waitForSocketConnection(socket, callback) {
+    setTimeout(() => {
+        if (socket.readyState === 1) {
+            console.log("Connection is made")
+            if (callback != null) {
+                callback();
+            }
+        } else {
+            console.log("wait for connection...")
+            waitForSocketConnection(socket, callback);
+        }
+    }, 50);
+}
+
 function Chat() {
-    const [messages, setMessages] = useState(messages_stub);
+    const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState('');
+    const [prompt, setPrompt] = useState(prompts[Math.floor(Math.random() * prompts.length)]);
     const socketRef = useRef(null);
     const textInputIsFocused = useRef(false);
     const chatContainerRef = useRef(null);
@@ -188,14 +159,26 @@ function Chat() {
             console.log("WebSocket connection established.");
         };
         socketRef.current.onmessage = (event) => {
-            const receivedMessage = event.data;
+            const message = JSON.parse(event.data);
+            if (message.type !== "chatMessage") {
+                return;
+            }
             setMessages(
-                messages => [
-                    ...messages,
-                    { id: 1, author: "dunno", content: receivedMessage, dateTime: "2025-01-01 22:00:00" },
-                ]
+                messages => [...messages, { id: 1, author: message.payload.from, content: message.payload.content }]
             );
         };
+        setTimeout(() => {
+            const payload = {
+                type: "userConnected",
+                payload: {
+                    username: localStorage.getItem('username'),
+                    avatarEmoji: localStorage.getItem('selectedEmoji'),
+                },
+            }
+            waitForSocketConnection(socketRef.current, () => {
+                socketRef.current.send(JSON.stringify(payload));
+            });
+        }, 50);
         setTimeout(() => {
             if (chatContainerRef.current !== null) {
                 chatContainerRef.current.scrollTop = reallyBigScrollValue;
@@ -224,9 +207,18 @@ function Chat() {
         if (message.trim() === '') {
             return;
         }
-        socketRef.current.send(message);
+        const payload = {
+            type: "chatMessage",
+            payload: {
+                from: localStorage.getItem('username'),
+                content: message,
+            },
+        }
+        socketRef.current.send(JSON.stringify(payload));
         setMessages([...messages, { id: 1, author: "you", content: message, dateTime: new Date().toISOString() }]);
         setMessage('');
+        const newPrompt = prompts[Math.floor(Math.random() * prompts.length)];
+        setPrompt(newPrompt);
     };
 
     const handleKeyDown = (event) => {
@@ -234,8 +226,6 @@ function Chat() {
             handleSendMessage(event);
         }
     };
-
-    const prompt = prompts[Math.floor(Math.random() * prompts.length)];
 
     return (
         <div
