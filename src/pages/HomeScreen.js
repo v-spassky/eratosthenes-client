@@ -1,6 +1,6 @@
 import {
-    Accordion, AccordionItem, Avatar, Button, Divider, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,
-    useDisclosure,
+    Accordion, AccordionItem, Avatar, Button, Divider, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input,
+    Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure,
 } from "@nextui-org/react";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ function HomeScreen() {
     const roomIdFromChat = location.state && location.state.roomId;
     const [selectedEmoji, setSelectedEmoji] = useState(localStorage.getItem("selectedEmoji") || "");
     const [username, setUsername] = useState(localStorage.getItem("username") || "");
+    const [apiKeyStrategy, setApiKeyStrategy] = useState(localStorage.getItem("apiKeyStrategy") || "useMyOwn");
     const [apiKey, setApiKey] = useState(localStorage.getItem("apiKey") || "");
     const [targetRoomID, setTargetRoomID] = useState(roomIdFromChat || "");
     const [redraw, setRedraw] = useState(false);
@@ -22,12 +23,21 @@ function HomeScreen() {
     const usernameChangesSaved = localStorage.getItem("username") === username;
     const apiKeyChangesSaved = localStorage.getItem("apiKey") === apiKey;
     const selectedEmojiChangesSaved = localStorage.getItem("selectedEmoji") === selectedEmoji;
-    const allChangesSaved = usernameChangesSaved && apiKeyChangesSaved && selectedEmojiChangesSaved;
+    const apiKeyStrategyChangesSaved = localStorage.getItem("apiKeyStrategy") === apiKeyStrategy;
+    const allChangesSaved =
+        usernameChangesSaved
+        && apiKeyChangesSaved
+        && selectedEmojiChangesSaved
+        && apiKeyStrategyChangesSaved;
+
+    const apiKeyIsValid = apiKey.trim() !== "";
+    const usernameIsValid = username.trim() !== "";
 
     const handleSave = () => {
         localStorage.setItem("username", username);
         localStorage.setItem("apiKey", apiKey);
         localStorage.setItem("selectedEmoji", selectedEmoji);
+        localStorage.setItem("apiKeyStrategy", apiKeyStrategy);
         setRedraw(!redraw);
         toast("Настройки сохранены", {
             position: "bottom-left",
@@ -125,6 +135,48 @@ function HomeScreen() {
         return username.trim() !== "" && targetRoomID.trim() !== "";
     }
 
+    function apiKeyStrategyDisplay(strategyKey) {
+        switch (strategyKey) {
+            case "useMyOwn":
+                return <p>Используем свой.</p>;
+            case "doNotUse":
+                return <p>Не используем вообще.</p>;
+            case "useDefault":
+                return <p>Используем дефолтный.</p>;
+            default:
+                console.error("Unknown API key strategy:", strategyKey);
+                return <p>Случилось что-то не то... попробуй перезагрузить страницу.</p>;
+        }
+    }
+
+    function apiKeyStrategyDescriptionDisplay(strategyKey) {
+        switch (strategyKey) {
+            case "useMyOwn":
+                return <p style={{ fontStyle: "italic", fontSize: "small", color: "gray" }}>
+                    Создай свой ключ в консоли разработчика гугла как описано
+                    <br />
+                    ниже в разделе «Про АПИ ключ» и используй его.
+                </p>;
+            case "doNotUse":
+                return <p style={{ fontStyle: "italic", fontSize: "small", color: "gray" }}>
+                    Карта будет с инвертированными цветами, зато не нужно
+                    <br />
+                    создавать ключ и квота использования ключа разработчика
+                    <br />
+                    этого замечательного сайта тоже не будет тратиться.
+                </p>;
+            case "useDefault":
+                return <p style={{ fontStyle: "italic", fontSize: "small", color: "gray" }}>
+                    Если у тебя совсем нет возможности создать свой ключ а поиграть
+                    <br />
+                    хочется, то не стесняйся использовать эту опцию.
+                </p>;
+            default:
+                console.error("Unknown API key strategy:", strategyKey);
+                return <p>Нет-нет, это что-то не то!</p>;
+        }
+    }
+
     return (
         <div
             id="homeScreen"
@@ -144,28 +196,91 @@ function HomeScreen() {
                             onClick={onOpen}
                         />
                     </div>
-                    <Input
-                        isRequired
-                        label="Юзернейм"
-                        placeholder="Как к тебе обращаться?"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                    />
+                    {usernameIsValid
+                        ? <Input
+                            isRequired
+                            label="Юзернейм"
+                            placeholder="Как к тебе обращаться?"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                        />
+                        : <Input
+                            isRequired
+                            isInvalid
+                            label="Юзернейм"
+                            placeholder="Как к тебе обращаться?"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                        />
+                    }
                 </div>
-                <Input
-                    label="АПИ ключ"
-                    placeholder="Ключик от Google Maps JS API"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                />
+                <p>Что делаем с АПИ ключём?</p>
+                <Dropdown>
+                    <DropdownTrigger>
+                        <div
+                            id="api-key-strategy-selection"
+                            style={{ cursor: "pointer", width: "min-content", whiteSpace: "nowrap" }}
+                        >
+                            {apiKeyStrategyDisplay(apiKeyStrategy)}
+                        </div>
+                    </DropdownTrigger>
+                    <DropdownMenu
+                        aria-label="Single selection example"
+                        variant="flat"
+                        disallowEmptySelection
+                        selectionMode="single"
+                        selectedKeys={[apiKeyStrategy]}
+                        onSelectionChange={(strategyKeys) => setApiKeyStrategy([...strategyKeys][0])}
+                    >
+                        <DropdownItem key="useMyOwn">
+                            {apiKeyStrategyDisplay("useMyOwn")}
+                            {apiKeyStrategyDescriptionDisplay("useMyOwn")}
+                        </DropdownItem>
+                        <DropdownItem key="doNotUse">
+                            {apiKeyStrategyDisplay("doNotUse")}
+                            {apiKeyStrategyDescriptionDisplay("doNotUse")}
+                        </DropdownItem>
+                        <DropdownItem key="useDefault">
+                            {apiKeyStrategyDisplay("useDefault")}
+                            {apiKeyStrategyDescriptionDisplay("useDefault")}
+                        </DropdownItem>
+                    </DropdownMenu>
+                </Dropdown>
+                {apiKeyStrategy === "useMyOwn" &&
+                    (apiKeyIsValid
+                        ? <Input
+                            isRequired
+                            label="АПИ ключ"
+                            placeholder="Ключик от Google Maps JS API"
+                            value={apiKey}
+                            onChange={(e) => setApiKey(e.target.value)}
+                        />
+                        : <Input
+                            isRequired
+                            isInvalid
+                            label="АПИ ключ"
+                            placeholder="Ключик от Google Maps JS API"
+                            value={apiKey}
+                            onChange={(e) => setApiKey(e.target.value)}
+                        />
+                    )
+                }
                 <Accordion>
-                    <AccordionItem key="1" aria-label="Про АПИ ключ" title="Про АПИ ключ">
+                    <AccordionItem
+                        key="1"
+                        aria-label="Про АПИ ключ"
+                        title={<p id="about-api-key-heading"
+                        style={{ width: "min-content", whiteSpace: "nowrap" }}>Про АПИ ключ</p>}
+                    >
                         <p>
                             АПИ ключ не обязателен, но если у тебя есть возможность, то используй, пожалуйста, свой
                             ключ. Вот <a href="https://www.geohub.gg/custom-key-instructions.pdf" target="blank"
                                 style={{ color: "blue", fontStyle: "italic", textDecoration: "underline" }}>
                                 инструкция</a> по созданию и настройке ключа от разработчиков Geohub (требуется гугл
                             аккаунт с подключённой картой в консоли разработчика).
+                            <br /><br />
+                            Если хочется просто осмотреться, то есть опция не использовать ключ вообще. В этом случае
+                            карта будет с инвертированными цветами.
                             <br /><br />
                             АПИ ключ сохраняется только на клиенте и не передаётся на сервер, честное слово. Спасибо!
                         </p>

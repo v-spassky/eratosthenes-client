@@ -6,7 +6,8 @@ import GoogleMapsWrapper from "../../utils/maps/GoogleMapsWrapper.js";
 import GoogleStreetView from "../../utils/maps/GoogleStreetView.js";
 import Map from "./Map.js";
 
-function StreetViewWindow() {
+
+export default function StreetViewWindow({ prevApiKeyRef }) {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const navigate = useNavigate();
 
@@ -16,7 +17,7 @@ function StreetViewWindow() {
 
     return (
         <div id="streetViewWindow" style={{ height: "100%", flexGrow: 1, position: "relative" }}>
-            <GoogleMapsWrapper>
+            <GoogleMapsWrapper prevApiKeyRef={prevApiKeyRef}>
                 <GoogleStreetView />
                 <Map />
                 <Tooltip content="Покинуть комнату">
@@ -48,5 +49,3 @@ function StreetViewWindow() {
         </div>
     );
 }
-
-export default StreetViewWindow;

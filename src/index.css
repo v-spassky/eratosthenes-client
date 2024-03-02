@@ -18,6 +18,16 @@ body {
   outline: 2px solid rgb(0, 112, 240);
 }
 
+#api-key-strategy-selection:hover {
+  background-color: rgb(243 244 246);
+  border-radius: 4px;
+}
+
+#about-api-key-heading:hover {
+  background-color: rgb(243 244 246);
+  border-radius: 4px;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

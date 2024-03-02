@@ -1,4 +1,5 @@
 import { NextUIProvider } from "@nextui-org/react";
+import { useRef } from "react";
 import { Outlet,Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 
@@ -7,11 +8,13 @@ import NoMatchScreen from "./pages/NoMatchScreen.js";
 import PlayScreen from "./pages/PlayScreen.js";
 
 function App() {
+    const prevApiKeyRef = useRef("UNSET");
+
     return (
         <NextUIProvider>
             <Routes>
                 <Route path="/" element={<HomeScreen />} />
-                <Route path="/room/:id" element={<PlayScreen />} />
+                <Route path="/room/:id" element={<PlayScreen prevApiKeyRef={prevApiKeyRef}/>} />
                 <Route path="*" element={<NoMatchScreen />} />
             </Routes>
             <Outlet />

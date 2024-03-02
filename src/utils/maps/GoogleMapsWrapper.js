@@ -1,13 +1,19 @@
 import { Wrapper } from "@googlemaps/react-wrapper";
 
-function GoogleMapsWrapper({ children }) {
-    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+import getMapsApiKey from "./getMapsApiKey.js";
 
-    if (!apiKey) {
-        return <div>Cannot display the map: Google Maps API key missing.</div>;
+export default function GoogleMapsWrapper({ children, prevApiKeyRef }) {
+    const apiKey = getMapsApiKey();
+
+    if (prevApiKeyRef.current === "UNSET") {
+        console.log(`API key is unset. Setting it to ${apiKey}`);
+        prevApiKeyRef.current = apiKey;
+    }
+
+    if (prevApiKeyRef.current !== apiKey) {
+        console.log(`Detected that API key has changed (${prevApiKeyRef.current} -> ${apiKey}). Reloading...`);
+        window.location.reload(false);
     }
 
     return <Wrapper apiKey={apiKey}>{children}</Wrapper>;
 }
-
-export default GoogleMapsWrapper;
