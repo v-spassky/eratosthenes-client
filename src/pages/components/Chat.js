@@ -85,6 +85,8 @@ export default function Chat() {
             if (message.type !== "chatMessage") {
                 return;
             }
+            const newMessageSound = new Audio("new_message_notification.wav");
+            newMessageSound.play();
             setMessages(
                 messages => [...messages, { id: 1, author: message.payload.from, content: message.payload.content }]
             );
