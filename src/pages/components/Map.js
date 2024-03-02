@@ -1,7 +1,7 @@
-import GoogleMap from "../../utils/maps/GoogleMap.js";
-import { Button } from "@nextui-org/react";
+import { Button, Tooltip } from "@nextui-org/react";
 import { FaCheck } from "react-icons/fa6";
-import { Tooltip } from "@nextui-org/react";
+
+import GoogleMap from "../../utils/maps/GoogleMap.js";
 
 function Map() {
     return (

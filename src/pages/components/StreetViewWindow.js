@@ -1,9 +1,10 @@
-import Map from './Map.js';
-import GoogleStreetView from '../../utils/maps/GoogleStreetView.js';
-import GoogleMapsWrapper from "../../utils/maps/GoogleMapsWrapper.js";
+import { Button, Modal, ModalContent, ModalFooter, ModalHeader, Tooltip, useDisclosure } from "@nextui-org/react";
 import { FaArrowRightFromBracket } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
-import { Button, Tooltip, Modal, ModalContent, ModalHeader, ModalFooter, useDisclosure } from "@nextui-org/react";
+
+import GoogleMapsWrapper from "../../utils/maps/GoogleMapsWrapper.js";
+import GoogleStreetView from '../../utils/maps/GoogleStreetView.js';
+import Map from './Map.js';
 
 function StreetViewWindow() {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();

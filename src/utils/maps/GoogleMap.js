@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 const DEFAULT_CENTER = { lat: 0.0, lng: 0.0 };
 const DEFAULT_ZOOM = 1;
@@ -23,6 +23,6 @@ function GoogleMap() {
             style={{ width: "100%", height: "100%" }}
         />
     );
-};
+}
 
 export default GoogleMap;

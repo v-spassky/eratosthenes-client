@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
 import {
-    Avatar, Button, Divider, Input, Modal, ModalContent, ModalBody, ModalHeader, ModalFooter, useDisclosure, Accordion,
-    AccordionItem,
+    Accordion, AccordionItem, Avatar, Button, Divider, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,
+    useDisclosure,
 } from "@nextui-org/react";
-import { toast, Slide } from 'react-toastify';
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Slide, toast } from 'react-toastify';
 
 const emojis = [
     "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐽", "🐸", "🐙", "🐵", "🙈", "🙉",
@@ -144,7 +144,7 @@ function HomeScreen() {
         >
             <div style={{ width: "600px", display: "flex", flexDirection: "column", gap: "16px" }}>
                 <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>Настройки пользователя</h1>
-                <div style={{ width: "600px", display: "flex", flexDirection: "row", gap: "10px" }}>
+                <div style={{ display: "flex", flexDirection: "row", gap: "10px" }}>
                     <div>
                         <Avatar
                             name={selectedEmoji}
@@ -172,16 +172,17 @@ function HomeScreen() {
                         <p>
                             АПИ ключ не обязателен, но если у тебя есть возможность, то используй, пожалуйста, свой
                             ключ. Вот <a href="https://www.geohub.gg/custom-key-instructions.pdf" target="blank"
-                                style={{ color: "blue", fontStyle: "italic", textDecoration: "underline" }}>инструкция</a> по
-                            созданию и настройке ключа от разработчиков Geohub (требуется гугл аккаунт с подключённой
-                            картой в консоли разработчика). АПИ ключ сохраняется только на клиенте и не передаётся на
-                            сервер, честное слово. Спасибо!
+                                style={{ color: "blue", fontStyle: "italic", textDecoration: "underline" }}>
+                                инструкция</a> по созданию и настройке ключа от разработчиков Geohub (требуется гугл
+                            аккаунт с подключённой картой в консоли разработчика).
+                            <br /><br />
+                            АПИ ключ сохраняется только на клиенте и не передаётся на сервер, честное слово. Спасибо!
                         </p>
                     </AccordionItem>
                 </Accordion>
                 <Button color="primary" style={{ width: "120px" }} onClick={handleSave}>Сохранить</Button>
                 <Divider />
-                <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>Подключиться к сушествующей комнате</h1>
+                <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>Подключиться к существующей комнате</h1>
                 <Input
                     isRequired
                     value={targetRoomID}
@@ -190,7 +191,9 @@ function HomeScreen() {
                     placeholder="Идентификатор комнаты"
                 />
                 {canJoinToRoom()
-                    ? <Button onPress={handleConnectToRoom} color="primary" style={{ width: "120px" }}>Подключиться</Button>
+                    ? <Button onPress={handleConnectToRoom} color="primary" style={{ width: "120px" }}>
+                        Подключиться
+                    </Button>
                     : <Button isDisabled color="primary" style={{ width: "120px" }}>Подключиться</Button>
                 }
                 <Divider />

@@ -1,13 +1,12 @@
-import { useEffect, useState, useRef } from 'react';
-import { Button } from "@nextui-org/react";
+import { Button, Textarea, Tooltip } from "@nextui-org/react";
+import { useEffect, useRef, useState } from 'react';
 import { FaRegMessage } from "react-icons/fa6";
-import { Textarea } from "@nextui-org/react";
-import { Tooltip } from "@nextui-org/react";
-import { useParams, useNavigate } from 'react-router-dom';
-import { toast, Slide } from 'react-toastify';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Slide, toast } from 'react-toastify';
+
+import reallyBigScrollValuePx from '../../constants/reallyBigScrollValue.js';
 import randomChatPrompt from '../../utils/randomChatPrompt.js';
 import waitForSocketConnection from '../../utils/waitForSocketConnection.js';
-import reallyBigScrollValuePx from '../../constants/reallyBigScrollValue.js';
 
 export default function Chat() {
     const [messages, setMessages] = useState([]);
@@ -164,7 +163,7 @@ export default function Chat() {
                 ref={chatContainerRef}
                 style={{ flex: "1 1 auto", overflowY: "auto" }}
             >
-                {messages.map((message, index) => (
+                {messages.map(message => (
                     <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word" }}>
                         <span style={{ fontWeight: "bold" }}>{message.author}:</span> {message.content}
                     </div>

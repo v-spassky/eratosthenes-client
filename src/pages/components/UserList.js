@@ -1,5 +1,5 @@
 import {
-    Avatar, Badge, Chip, ScrollShadow, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
+    Avatar, Badge, Chip, ScrollShadow, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow,
 } from "@nextui-org/react";
 
 const users = [

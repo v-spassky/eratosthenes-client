@@ -1,7 +1,8 @@
 
-import StreetViewWindow from './components/StreetViewWindow.js';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+
 import SidePane from './components/SidePane.js';
-import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
+import StreetViewWindow from './components/StreetViewWindow.js';
 
 function PlayScreen() {
     return (
@@ -10,7 +11,7 @@ function PlayScreen() {
                 <Panel minSize={50}>
                     <StreetViewWindow />
                 </Panel>
-                <PanelResizeHandle style={{width: "1px", backgroundColor: "gray"}}/>
+                <PanelResizeHandle style={{ width: "1px", backgroundColor: "gray" }} />
                 <Panel defaultSize={30} minSize={10}>
                     <SidePane />
                 </Panel>

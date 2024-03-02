@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 const DEFAULT_POSITION = { lat: 44.8566, lng: 10.3522 };
 
@@ -22,6 +22,6 @@ function GoogleStreetView() {
             style={{ width: "100%", height: "100%" }}
         />
     );
-};
+}
 
 export default GoogleStreetView;

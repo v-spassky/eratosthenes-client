@@ -1,0 +1,24 @@
+{
+    "plugins": [
+        "react",
+        "simple-import-sort"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:react/recommended"
+    ],
+    "rules": {
+        "simple-import-sort/imports": "error",
+        "simple-import-sort/exports": "error",
+        "react/react-in-jsx-scope": "off",
+        "react/prop-types": "off"
+    },
+    "parserOptions": {
+        "sourceType": "module",
+        "ecmaVersion": "latest"
+    },
+    "env": {
+        "browser": true,
+        "node": true
+    }
+}

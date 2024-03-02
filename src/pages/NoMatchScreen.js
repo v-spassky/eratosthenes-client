@@ -12,9 +12,11 @@ function NoMatchScreen() {
                 alignItems: "center", fontWeight: "bold", fontSize: "20px",
             }}
         >
-            <div style={{width: "500px", display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div style={{ width: "500px", display: "flex", flexDirection: "column", gap: "16px" }}>
                 <h1>Ой-ой, произошло что-то нехорошее!</h1>
-                <Button color="primary" style={{width: "160px"}} onPress={() => navigate("/")}>Вернуться домой</Button>
+                <Button color="primary" style={{ width: "160px" }} onPress={() => navigate("/")}>
+                    Вернуться домой
+                </Button>
             </div>
         </div>
     );

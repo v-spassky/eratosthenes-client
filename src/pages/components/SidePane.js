@@ -1,6 +1,7 @@
-import UserList from "./UserList.js";
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+
 import Chat from "./Chat.js";
-import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
+import UserList from "./UserList.js";
 
 function SidePane() {
     return (
@@ -9,7 +10,7 @@ function SidePane() {
                 <Panel minSize={20}>
                     <UserList />
                 </Panel>
-                <PanelResizeHandle style={{height: "1px", backgroundColor: "gray"}}/>
+                <PanelResizeHandle style={{ height: "1px", backgroundColor: "gray" }} />
                 <Panel defaultSize={60} minSize={20}>
                     <Chat />
                 </Panel>
