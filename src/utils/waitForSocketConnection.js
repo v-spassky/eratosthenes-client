@@ -1,4 +1,4 @@
-import socketConnWaitRetryPeriodMs from '../constants/socketConnWaitRetryPeriod.js';
+import socketConnWaitRetryPeriodMs from "../constants/socketConnWaitRetryPeriod.js";
 
 export default function waitForSocketConnection(socket, callback) {
     setTimeout(() => {

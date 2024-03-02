@@ -3,8 +3,8 @@ import { FaArrowRightFromBracket } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 
 import GoogleMapsWrapper from "../../utils/maps/GoogleMapsWrapper.js";
-import GoogleStreetView from '../../utils/maps/GoogleStreetView.js';
-import Map from './Map.js';
+import GoogleStreetView from "../../utils/maps/GoogleStreetView.js";
+import Map from "./Map.js";
 
 function StreetViewWindow() {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();

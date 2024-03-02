@@ -1,8 +1,8 @@
 
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
-import SidePane from './components/SidePane.js';
-import StreetViewWindow from './components/StreetViewWindow.js';
+import SidePane from "./components/SidePane.js";
+import StreetViewWindow from "./components/StreetViewWindow.js";
 
 function PlayScreen() {
     return (

@@ -1,4 +1,4 @@
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 import Chat from "./Chat.js";
 import UserList from "./UserList.js";

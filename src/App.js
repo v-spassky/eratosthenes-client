@@ -1,6 +1,6 @@
 import { NextUIProvider } from "@nextui-org/react";
 import { Outlet,Route, Routes } from "react-router-dom";
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer } from "react-toastify";
 
 import HomeScreen from "./pages/HomeScreen.js";
 import NoMatchScreen from "./pages/NoMatchScreen.js";
