@@ -2,29 +2,33 @@ import {
     Accordion, AccordionItem, Avatar, Button, Divider, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,
     useDisclosure,
 } from "@nextui-org/react";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Slide, toast } from 'react-toastify';
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Slide, toast } from "react-toastify";
 
-const emojis = [
-    "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐽", "🐸", "🐙", "🐵", "🙈", "🙉",
-    "🙊", "🐒", "🐔", "🐧", "🐦", "🐤", "🐣", "🐥", "🦆", "🦅", "🦉", "🦇", "🐺", "🐗", "🐴", "🦄", "🐝", "🐛", "🦋",
-    "🐌", "🐞", "🐜", "🦗", "🕷", "🦂", "🦟", "🦠", "🐢", "🐍", "🦎", "🦖", "🦕", "🐙", "🦑", "🦐", "🦞", "🦀", "🐡",
-    "🐠", "🐟", "🐬", "🐳", "🐋", "🦈", "🐊", "🐅", "🐆", "🦓", "🦍", "🦧", "🦣", "🐘", "🦛", "🦏", "🐪", "🐫", "🦒",
-];
+import avatarEmojis from "../constants/avatarEmojis";
 
 function HomeScreen() {
-    const [selectedEmoji, setSelectedEmoji] = useState("");
-    const [username, setUsername] = useState("");
-    const [apiKey, setApiKey] = useState("");
-    const [targetRoomID, setTargetRoomID] = useState("");
+    const location = useLocation();
+    const roomIdFromChat = location.state && location.state.roomId;
+    const [selectedEmoji, setSelectedEmoji] = useState(localStorage.getItem("selectedEmoji") || "");
+    const [username, setUsername] = useState(localStorage.getItem("username") || "");
+    const [apiKey, setApiKey] = useState(localStorage.getItem("apiKey") || "");
+    const [targetRoomID, setTargetRoomID] = useState(roomIdFromChat || "");
+    const [redraw, setRedraw] = useState(false);
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const navigate = useNavigate();
+
+    const usernameChangesSaved = localStorage.getItem("username") === username;
+    const apiKeyChangesSaved = localStorage.getItem("apiKey") === apiKey;
+    const selectedEmojiChangesSaved = localStorage.getItem("selectedEmoji") === selectedEmoji;
+    const allChangesSaved = usernameChangesSaved && apiKeyChangesSaved && selectedEmojiChangesSaved;
 
     const handleSave = () => {
         localStorage.setItem("username", username);
         localStorage.setItem("apiKey", apiKey);
         localStorage.setItem("selectedEmoji", selectedEmoji);
+        setRedraw(!redraw);
         toast("Настройки сохранены", {
             position: "bottom-left",
             autoClose: 2000,
@@ -36,21 +40,6 @@ function HomeScreen() {
             theme: "light",
             transition: Slide,
         });
-    };
-
-    const handleLoad = () => {
-        const savedUsername = localStorage.getItem("username");
-        const savedApiKey = localStorage.getItem("apiKey");
-        const savedSelectedEmoji = localStorage.getItem("selectedEmoji");
-        if (savedUsername) {
-            setUsername(savedUsername);
-        }
-        if (savedApiKey) {
-            setApiKey(savedApiKey);
-        }
-        if (savedSelectedEmoji) {
-            setSelectedEmoji(savedSelectedEmoji);
-        }
     };
 
     const handleConnectToRoom = async () => {
@@ -70,7 +59,7 @@ function HomeScreen() {
             try {
                 const response = await fetch(
                     `${process.env.REACT_APP_SERVER_ORIGIN}/can-connect/${targetRoomID}?username=${username}`,
-                    { method: 'GET' },
+                    { method: "GET" },
                 );
                 if (response.ok) {
                     const data = await response.json();
@@ -90,10 +79,10 @@ function HomeScreen() {
                     }
                     navigate(`/room/${targetRoomID}`);
                 } else {
-                    console.error('Failed to create room:', response.statusText);
+                    console.error("Failed to create room:", response.statusText);
                 }
             } catch (error) {
-                console.error('Error creating room:', error.message);
+                console.error("Error creating room:", error.message);
             }
         }
     };
@@ -102,19 +91,19 @@ function HomeScreen() {
         try {
             const response = await fetch(
                 `${process.env.REACT_APP_SERVER_ORIGIN}/create-room`,
-                { method: 'POST', headers: { 'Content-Type': 'application/json' } }
+                { method: "POST", headers: { "Content-Type": "application/json" } }
             );
             if (response.ok) {
                 const data = await response.json();
                 const roomId = data.roomId;
-                console.log('Room created:', roomId);
+                console.log("Room created:", roomId);
                 console.log(roomId);
                 navigate(`/room/${roomId}`);
             } else {
-                console.error('Failed to create room:', response.statusText);
+                console.error("Failed to create room:", response.statusText);
             }
         } catch (error) {
-            console.error('Error creating room:', error.message);
+            console.error("Error creating room:", error.message);
         }
     };
 
@@ -122,15 +111,17 @@ function HomeScreen() {
         setSelectedEmoji(emoji);
     };
 
-    useEffect(() => {
-        handleLoad();
-    }, []);
-
     const canCreateRoom = () => {
+        if (!allChangesSaved) {
+            return false;
+        }
         return username.trim() !== "";
     }
 
     const canJoinToRoom = () => {
+        if (!allChangesSaved) {
+            return false;
+        }
         return username.trim() !== "" && targetRoomID.trim() !== "";
     }
 
@@ -180,7 +171,12 @@ function HomeScreen() {
                         </p>
                     </AccordionItem>
                 </Accordion>
-                <Button color="primary" style={{ width: "120px" }} onClick={handleSave}>Сохранить</Button>
+                {allChangesSaved
+                    ? <Button color="primary" style={{ width: "120px" }} onClick={handleSave}>Сохранить</Button>
+                    : <Button color="primary" style={{ width: "120px" }} onClick={handleSave} variant="shadow">
+                        Сохранить
+                    </Button>
+                }
                 <Divider />
                 <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>Подключиться к существующей комнате</h1>
                 <Input
@@ -211,7 +207,7 @@ function HomeScreen() {
                             <ModalHeader>Выбери себе аватарку</ModalHeader>
                             <ModalBody>
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                                    {emojis.map((emoji) => (
+                                    {avatarEmojis.map((emoji) => (
                                         <span key={emoji} onClick={() => handleEmojiSelect(emoji)}>
                                             <Avatar
                                                 name={emoji}

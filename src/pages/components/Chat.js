@@ -1,16 +1,16 @@
 import { Button, Textarea, Tooltip } from "@nextui-org/react";
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 import { FaRegMessage } from "react-icons/fa6";
-import { useNavigate, useParams } from 'react-router-dom';
-import { Slide, toast } from 'react-toastify';
+import { useNavigate, useParams } from "react-router-dom";
+import { Slide, toast } from "react-toastify";
 
-import reallyBigScrollValuePx from '../../constants/reallyBigScrollValue.js';
-import randomChatPrompt from '../../utils/randomChatPrompt.js';
-import waitForSocketConnection from '../../utils/waitForSocketConnection.js';
+import reallyBigScrollValuePx from "../../constants/reallyBigScrollValue.js";
+import randomChatPrompt from "../../utils/randomChatPrompt.js";
+import waitForSocketConnection from "../../utils/waitForSocketConnection.js";
 
 export default function Chat() {
     const [messages, setMessages] = useState([]);
-    const [message, setMessage] = useState('');
+    const [message, setMessage] = useState("");
     const [chatPrompt, setPrompt] = useState(randomChatPrompt());
     const socketRef = useRef(null);
     const textInputIsFocused = useRef(false);
@@ -19,9 +19,9 @@ export default function Chat() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const username = localStorage.getItem('username');
+        const username = localStorage.getItem("username");
         if (!username) {
-            navigate('/');
+            navigate("/", { state: { roomId: id } });
             toast.error("Установи юзернейм чтобы подключиться к комнате", {
                 position: "bottom-left",
                 autoClose: 2000,
@@ -39,7 +39,7 @@ export default function Chat() {
             try {
                 const response = await fetch(
                     `${process.env.REACT_APP_SERVER_ORIGIN}/can-connect/${id}?username=${username}`,
-                    { method: 'GET' },
+                    { method: "GET" },
                 );
                 if (response.ok) {
                     const data = await response.json();
@@ -53,7 +53,7 @@ export default function Chat() {
                             default:
                                 errMsg = "Кто-то с таким именем уже есть в комнате";
                         }
-                        navigate('/');
+                        navigate("/");
                         toast.error(errMsg, {
                             position: "bottom-left",
                             autoClose: 2000,
@@ -68,10 +68,10 @@ export default function Chat() {
                         return;
                     }
                 } else {
-                    console.error('Failed to connect to room', response.statusText);
+                    console.error("Failed to connect to room", response.statusText);
                 }
             } catch (error) {
-                console.error('Error connecting to room:', error.message);
+                console.error("Error connecting to room:", error.message);
             }
         };
         fetchData();
@@ -93,8 +93,8 @@ export default function Chat() {
             const payload = {
                 type: "userConnected",
                 payload: {
-                    username: localStorage.getItem('username'),
-                    avatarEmoji: localStorage.getItem('selectedEmoji'),
+                    username: localStorage.getItem("username"),
+                    avatarEmoji: localStorage.getItem("selectedEmoji"),
                 },
             }
             waitForSocketConnection(socketRef.current, () => {
@@ -128,19 +128,19 @@ export default function Chat() {
 
     const handleSendMessage = (event) => {
         event.preventDefault();
-        if (message.trim() === '') {
+        if (message.trim() === "") {
             return;
         }
         const payload = {
             type: "chatMessage",
             payload: {
-                from: localStorage.getItem('username'),
+                from: localStorage.getItem("username"),
                 content: message,
             },
         }
         socketRef.current.send(JSON.stringify(payload));
         setMessages([...messages, { id: 1, author: "you", content: message, dateTime: new Date().toISOString() }]);
-        setMessage('');
+        setMessage("");
         setPrompt(randomChatPrompt());
     };
 
