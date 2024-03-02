@@ -7,7 +7,7 @@ import StreetViewWindow from "./components/StreetViewWindow.js";
 function PlayScreen() {
     return (
         <div id="playScreen" style={{ height: "100vh", display: "flex", flexDirection: "row" }}>
-            <PanelGroup direction="horizontal">
+            <PanelGroup autoSaveId="persistence" direction="horizontal">
                 <Panel minSize={50}>
                     <StreetViewWindow />
                 </Panel>

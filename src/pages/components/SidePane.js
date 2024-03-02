@@ -6,7 +6,7 @@ import UserList from "./UserList.js";
 function SidePane() {
     return (
         <div id="sidePane" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-            <PanelGroup direction="vertical">
+            <PanelGroup autoSaveId="persistence" direction="vertical">
                 <Panel minSize={20}>
                     <UserList />
                 </Panel>
