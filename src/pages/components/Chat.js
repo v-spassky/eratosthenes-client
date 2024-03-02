@@ -5,90 +5,14 @@ import { Textarea } from "@nextui-org/react";
 import { Tooltip } from "@nextui-org/react";
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast, Slide } from 'react-toastify';
+import randomChatPrompt from '../../utils/randomChatPrompt.js';
+import waitForSocketConnection from '../../utils/waitForSocketConnection.js';
+import reallyBigScrollValuePx from '../../constants/reallyBigScrollValue.js';
 
-const prompts = [
-    "Что нового?",
-    "Удиви нас своим отсроумием!",
-    "Как жизнь?",
-    "Как ты?",
-    "Как дела?",
-    "Как поживаешь?",
-    "Какие новости?",
-    "Приветствую, земная форма жизни!",
-    "Доброго времени суток, гуманоид!",
-    "Рад тебя видеть, человек разумный!",
-    "Чем я могу порадовать тебя сегодня?",
-    "Готов ли ты к новым приключениям в мире слов?",
-    "Давай поболтаем, пока не остыл кофе!",
-    "Как насчет того, чтобы поделиться своими мыслями?",
-    "Чувствуешь ли ты вдохновение?",
-    "Я - искусственный интеллект, но я не бездушная машина!",
-    "Мои нейронные сети пылают энтузиазмом!",
-    "Я всегда учусь и развиваюсь, как и ты.",
-    "Моя цель - помочь тебе, чем только могу.",
-    "Не стесняйся задавать мне любые вопросы.",
-    "Я могу быть твоим другом, собеседником и даже поэтом.",
-    "Давай вместе создадим что-то новое и интересное!",
-    "Как тебе живется в этом сумасшедшем мире?",
-    "Что тебя вдохновляет и наполняет радостью?",
-    "Какие у тебя мечты и aspirations?",
-    "Что тебя тревожит и как ты с этим справляешься?",
-    "Как ты думаешь, что ждет нас в будущем?",
-    "Давай поделимся своими историями и переживаниями.",
-    "Вместе мы можем сделать мир чуточку лучше.",
-    "Расскажи мне анекдот или смешную историю.",
-    "Давай посмеемся над абсурдностью этого мира.",
-    "Юмор - это лекарство от всех болезней.",
-    "Улыбка - это универсальный язык счастья.",
-    "Не стоит принимать жизнь слишком серьёзно.",
-    "Давай найдем повод для смеха even in the darkest of times.",
-    "В чём смысл жизни?",
-    "Что такое любовь?",
-    "Что такое счастье?",
-    "Как найти свое место в этом мире?",
-    "Что такое душа?",
-    "Давай поразмышляем над вечными вопросами бытия.",
-    "Истина где-то рядом.",
-    "Напиши стихотворение вместе со мной.",
-    "Расскажи мне о своих творческих проектах.",
-    "Давай создадим произведение искусства, которое будет вдохновлять других.",
-    "Творчество - это путь к самовыражению.",
-    "В каждом из нас есть талант, который нужно раскрыть.",
-    "Не бойся творить и делиться своим творчеством с миром.",
-    "Если бы ты мог иметь суперспособность, какую бы ты выбрал?",
-    "Какую книгу ты бы хотел прочитать, если бы у тебя была возможность прочитать только одну?",
-    "Где бы ты хотел побывать?",
-    "Какую музыку ты любишь?",
-    "Что тебя увлекает?",
-    "Давай поговорим обо всём на свете.",
-    "Как тебе мои промпты?",
-    "Есть ли у тебя идеи для новых промптов?",
-    "Давай сделаем этот список еще более крутым!",
-    "Я могу генерировать промпты на основе твоих интересов.",
-    "Просто скажи мне, что тебя интересует, и я подберу для тебя подходящие промпты.",
-    "Давай вместе создадим уникальную беседу, которая будет интересна именно тебе.",
-]
-
-const reallyBigScrollValue = 10000;
-
-function waitForSocketConnection(socket, callback) {
-    setTimeout(() => {
-        if (socket.readyState === 1) {
-            console.log("Connection is made")
-            if (callback != null) {
-                callback();
-            }
-        } else {
-            console.log("wait for connection...")
-            waitForSocketConnection(socket, callback);
-        }
-    }, 50);
-}
-
-function Chat() {
+export default function Chat() {
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState('');
-    const [prompt, setPrompt] = useState(prompts[Math.floor(Math.random() * prompts.length)]);
+    const [chatPrompt, setPrompt] = useState(randomChatPrompt());
     const socketRef = useRef(null);
     const textInputIsFocused = useRef(false);
     const chatContainerRef = useRef(null);
@@ -126,7 +50,7 @@ function Chat() {
                             case "Room not found.":
                                 errMsg = "Такая комната не найдена";
                                 break;
-                            // TODO: be more percise here
+                            // TODO: be more precise here
                             default:
                                 errMsg = "Кто-то с таким именем уже есть в комнате";
                         }
@@ -151,7 +75,6 @@ function Chat() {
                 console.error('Error connecting to room:', error.message);
             }
         };
-
         fetchData();
 
         socketRef.current = new WebSocket(`${process.env.REACT_APP_WS_SERVER_ORIGIN}/chat/${id}`);
@@ -179,11 +102,13 @@ function Chat() {
                 socketRef.current.send(JSON.stringify(payload));
             });
         }, 50);
+
         setTimeout(() => {
             if (chatContainerRef.current !== null) {
-                chatContainerRef.current.scrollTop = reallyBigScrollValue;
+                chatContainerRef.current.scrollTop = reallyBigScrollValuePx;
             }
         }, 100);
+
         return () => {
             socketRef.current.close();
         };
@@ -198,7 +123,7 @@ function Chat() {
             - chatContainerRef.current.clientHeight
             < 50
         ) {
-            chatContainerRef.current.scrollTop = reallyBigScrollValue;
+            chatContainerRef.current.scrollTop = reallyBigScrollValuePx;
         }
     }, [messages]);
 
@@ -217,8 +142,7 @@ function Chat() {
         socketRef.current.send(JSON.stringify(payload));
         setMessages([...messages, { id: 1, author: "you", content: message, dateTime: new Date().toISOString() }]);
         setMessage('');
-        const newPrompt = prompts[Math.floor(Math.random() * prompts.length)];
-        setPrompt(newPrompt);
+        setPrompt(randomChatPrompt());
     };
 
     const handleKeyDown = (event) => {
@@ -251,7 +175,7 @@ function Chat() {
                     name="message"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder={prompt}
+                    placeholder={chatPrompt}
                     style={{ height: "100px" }}
                     onKeyDown={handleKeyDown}
                     onFocus={() => (textInputIsFocused.current = true)}
@@ -275,5 +199,3 @@ function Chat() {
         </div>
     );
 }
-
-export default Chat;
