@@ -106,8 +106,6 @@ function HomeScreen() {
             if (response.ok) {
                 const data = await response.json();
                 const roomId = data.roomId;
-                console.log("Room created:", roomId);
-                console.log(roomId);
                 navigate(`/room/${roomId}`);
             } else {
                 console.error("Failed to create room:", response.statusText);
@@ -167,9 +165,9 @@ function HomeScreen() {
                 </p>;
             case "useDefault":
                 return <p style={{ fontStyle: "italic", fontSize: "small", color: "gray" }}>
-                    Если у тебя совсем нет возможности создать свой ключ а поиграть
+                    Если у тебя совсем нет возможности создать свой ключ,
                     <br />
-                    хочется, то не стесняйся использовать эту опцию.
+                    а поиграть хочется, то не стесняйся использовать эту опцию.
                 </p>;
             default:
                 console.error("Unknown API key strategy:", strategyKey);
@@ -214,7 +212,7 @@ function HomeScreen() {
                         />
                     }
                 </div>
-                <p>Что делаем с АПИ ключём?</p>
+                <p>Что делаем с АПИ ключом?</p>
                 <Dropdown>
                     <DropdownTrigger>
                         <div
@@ -269,8 +267,14 @@ function HomeScreen() {
                     <AccordionItem
                         key="1"
                         aria-label="Про АПИ ключ"
-                        title={<p id="about-api-key-heading"
-                        style={{ width: "min-content", whiteSpace: "nowrap" }}>Про АПИ ключ</p>}
+                        title={
+                            <p
+                                id="about-api-key-heading"
+                                style={{ width: "min-content", whiteSpace: "nowrap" }}
+                            >
+                                Про АПИ ключ
+                            </p>
+                        }
                     >
                         <p>
                             АПИ ключ не обязателен, но если у тебя есть возможность, то используй, пожалуйста, свой

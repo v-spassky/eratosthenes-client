@@ -1,119 +1,23 @@
 import { Button, Textarea, Tooltip } from "@nextui-org/react";
 import { useEffect, useRef, useState } from "react";
 import { FaRegMessage } from "react-icons/fa6";
-import { useNavigate, useParams } from "react-router-dom";
-import { Slide, toast } from "react-toastify";
 
 import reallyBigScrollValuePx from "../../constants/reallyBigScrollValue.js";
 import randomChatPrompt from "../../utils/randomChatPrompt.js";
-import waitForSocketConnection from "../../utils/waitForSocketConnection.js";
 
-export default function Chat() {
-    const [messages, setMessages] = useState([]);
+export default function Chat({ socketRef, messages, setMessages }) {
     const [message, setMessage] = useState("");
     const [chatPrompt, setPrompt] = useState(randomChatPrompt());
-    const socketRef = useRef(null);
     const textInputIsFocused = useRef(false);
     const chatContainerRef = useRef(null);
-    const { id } = useParams();
-    const navigate = useNavigate();
 
     useEffect(() => {
-        const username = localStorage.getItem("username");
-        if (!username) {
-            navigate("/", { state: { roomId: id } });
-            toast.error("Установи юзернейм чтобы подключиться к комнате", {
-                position: "bottom-left",
-                autoClose: 2000,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-                transition: Slide,
-            });
-            return;
-        }
-        const fetchData = async () => {
-            try {
-                const response = await fetch(
-                    `${process.env.REACT_APP_SERVER_ORIGIN}/can-connect/${id}?username=${username}`,
-                    { method: "GET" },
-                );
-                if (response.ok) {
-                    const data = await response.json();
-                    if (!data.canConnect) {
-                        let errMsg = "";
-                        switch (data.reason) {
-                            case "Room not found.":
-                                errMsg = "Такая комната не найдена";
-                                break;
-                            // TODO: be more precise here
-                            default:
-                                errMsg = "Кто-то с таким именем уже есть в комнате";
-                        }
-                        navigate("/");
-                        toast.error(errMsg, {
-                            position: "bottom-left",
-                            autoClose: 2000,
-                            hideProgressBar: true,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            theme: "light",
-                            transition: Slide,
-                        });
-                        return;
-                    }
-                } else {
-                    console.error("Failed to connect to room", response.statusText);
-                }
-            } catch (error) {
-                console.error("Error connecting to room:", error.message);
-            }
-        };
-        fetchData();
-
-        socketRef.current = new WebSocket(`${process.env.REACT_APP_WS_SERVER_ORIGIN}/chat/${id}`);
-        socketRef.current.onopen = () => {
-            console.log("WebSocket connection established.");
-        };
-        socketRef.current.onmessage = (event) => {
-            const message = JSON.parse(event.data);
-            if (message.type !== "chatMessage") {
-                return;
-            }
-            const newMessageSound = new Audio("new_message_notification.wav");
-            newMessageSound.play();
-            setMessages(
-                messages => [...messages, { id: 1, author: message.payload.from, content: message.payload.content }]
-            );
-        };
-        setTimeout(() => {
-            const payload = {
-                type: "userConnected",
-                payload: {
-                    username: localStorage.getItem("username"),
-                    avatarEmoji: localStorage.getItem("selectedEmoji"),
-                },
-            }
-            waitForSocketConnection(socketRef.current, () => {
-                socketRef.current.send(JSON.stringify(payload));
-            });
-        }, 50);
-
         setTimeout(() => {
             if (chatContainerRef.current !== null) {
                 chatContainerRef.current.scrollTop = reallyBigScrollValuePx;
             }
         }, 100);
-
-        return () => {
-            socketRef.current.close();
-        };
-    }, [navigate, id]);
+    }, []);
 
     useEffect(() => {
         if (
@@ -141,7 +45,7 @@ export default function Chat() {
             },
         }
         socketRef.current.send(JSON.stringify(payload));
-        setMessages([...messages, { id: 1, author: "you", content: message, dateTime: new Date().toISOString() }]);
+        setMessages([...messages, { id: 1, author: "you", content: message }]);
         setMessage("");
         setPrompt(randomChatPrompt());
     };
