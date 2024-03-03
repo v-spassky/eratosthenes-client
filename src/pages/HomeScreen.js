@@ -1,6 +1,6 @@
 import {
     Accordion, AccordionItem, Avatar, Button, Divider, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input,
-    Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure,
+    Modal, ModalBody, ModalContent, ModalHeader, useDisclosure,
 } from "@nextui-org/react";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -115,8 +115,9 @@ function HomeScreen() {
         }
     };
 
-    const handleEmojiSelect = (emoji) => {
+    const handleEmojiSelect = (emoji, onClose) => {
         setSelectedEmoji(emoji);
+        onClose();
     };
 
     const canCreateRoom = () => {
@@ -327,7 +328,7 @@ function HomeScreen() {
                             <ModalBody>
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                                     {avatarEmojis.map((emoji) => (
-                                        <span key={emoji} onClick={() => handleEmojiSelect(emoji)}>
+                                        <span key={emoji} onClick={() => handleEmojiSelect(emoji, onClose)}>
                                             <Avatar
                                                 name={emoji}
                                                 className="emoji-avatar"
@@ -339,9 +340,6 @@ function HomeScreen() {
                                     ))}
                                 </div>
                             </ModalBody>
-                            <ModalFooter>
-                                <Button color="primary" onPress={onClose}>Сохранить</Button>
-                            </ModalFooter>
                         </>
                     )}
                 </ModalContent>
