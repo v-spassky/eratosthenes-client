@@ -38,6 +38,30 @@ export default function PlayScreen({ prevApiKeyRef }) {
         });
     }, []);
 
+    const fetchUsers = (retryCount) => {
+        fetch(`${process.env.REACT_APP_SERVER_ORIGIN}/users-of-room/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.error) {
+                    const roomHasCurrentUser = data.users.find(user => user.name === localStorage.getItem("username"));
+                    if (roomHasCurrentUser) {
+                        setUsers(data.users.map(user => ({
+                            name: user.name,
+                            avatarEmoji: user.avatarEmoji,
+                            score: user.score,
+                            isHost: user.isHost,
+                            description: user.description,
+                        })));
+                    } else if (retryCount > 0) {
+                        setTimeout(() => fetchUsers(retryCount - 1), 500);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching users:", error);
+            });
+    };
+
     useEffect(() => {
         const username = localStorage.getItem("username");
         if (!username) {
@@ -175,27 +199,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 socketRef.current.send(JSON.stringify(payload));
             });
 
-            setTimeout(() => {
-                fetch(`${process.env.REACT_APP_SERVER_ORIGIN}/users-of-room/${id}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!data.error) {
-                            setUsers(data.users.map(user => {
-                                return {
-                                    name: user.name,
-                                    avatarEmoji: user.avatarEmoji,
-                                    score: user.score,
-                                    isHost: user.isHost,
-                                    description: user.description,
-                                };
-                            }));
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Error fetching users:", error);
-                    });
-            }, 100);
-        }, 50);
+            fetchUsers(20);
+        }, 500);
 
         return () => {
             const payload = {
