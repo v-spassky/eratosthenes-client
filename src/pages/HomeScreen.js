@@ -137,11 +137,11 @@ function HomeScreen() {
     function apiKeyStrategyDisplay(strategyKey) {
         switch (strategyKey) {
             case "useMyOwn":
-                return <p>Используем свой.</p>;
+                return <p>Используем свой</p>;
             case "doNotUse":
-                return <p>Не используем вообще.</p>;
+                return <p>Не используем вообще</p>;
             case "useDefault":
-                return <p>Используем дефолтный.</p>;
+                return <p>Используем дефолтный</p>;
             default:
                 console.error("Unknown API key strategy:", strategyKey);
                 return <p>Случилось что-то не то... попробуй перезагрузить страницу.</p>;
@@ -184,7 +184,7 @@ function HomeScreen() {
                 alignItems: "center"
             }}
         >
-            <div style={{ width: "600px", display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div style={{ width: "600px", display: "flex", flexDirection: "column", gap: "10px" }}>
                 <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>Настройки пользователя</h1>
                 <div style={{ display: "flex", flexDirection: "row", gap: "10px" }}>
                     <div>
@@ -213,38 +213,37 @@ function HomeScreen() {
                         />
                     }
                 </div>
-                <p>Что делаем с АПИ ключом?</p>
-                <Dropdown>
-                    <DropdownTrigger>
-                        <div
-                            id="api-key-strategy-selection"
-                            style={{ cursor: "pointer", width: "min-content", whiteSpace: "nowrap" }}
+                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "16px" }}>
+                    <p>Что делаем с АПИ ключом?</p>
+                    <Dropdown>
+                        <DropdownTrigger>
+                            <Button variant="bordered" size="sm" style={{ width: "190px" }}>
+                                {apiKeyStrategyDisplay(apiKeyStrategy)}
+                            </Button>
+                        </DropdownTrigger>
+                        <DropdownMenu
+                            aria-label="Single selection example"
+                            variant="flat"
+                            disallowEmptySelection
+                            selectionMode="single"
+                            selectedKeys={[apiKeyStrategy]}
+                            onSelectionChange={(strategyKeys) => setApiKeyStrategy([...strategyKeys][0])}
                         >
-                            {apiKeyStrategyDisplay(apiKeyStrategy)}
-                        </div>
-                    </DropdownTrigger>
-                    <DropdownMenu
-                        aria-label="Single selection example"
-                        variant="flat"
-                        disallowEmptySelection
-                        selectionMode="single"
-                        selectedKeys={[apiKeyStrategy]}
-                        onSelectionChange={(strategyKeys) => setApiKeyStrategy([...strategyKeys][0])}
-                    >
-                        <DropdownItem key="useMyOwn">
-                            {apiKeyStrategyDisplay("useMyOwn")}
-                            {apiKeyStrategyDescriptionDisplay("useMyOwn")}
-                        </DropdownItem>
-                        <DropdownItem key="doNotUse">
-                            {apiKeyStrategyDisplay("doNotUse")}
-                            {apiKeyStrategyDescriptionDisplay("doNotUse")}
-                        </DropdownItem>
-                        <DropdownItem key="useDefault">
-                            {apiKeyStrategyDisplay("useDefault")}
-                            {apiKeyStrategyDescriptionDisplay("useDefault")}
-                        </DropdownItem>
-                    </DropdownMenu>
-                </Dropdown>
+                            <DropdownItem key="useMyOwn">
+                                {apiKeyStrategyDisplay("useMyOwn")}
+                                {apiKeyStrategyDescriptionDisplay("useMyOwn")}
+                            </DropdownItem>
+                            <DropdownItem key="doNotUse">
+                                {apiKeyStrategyDisplay("doNotUse")}
+                                {apiKeyStrategyDescriptionDisplay("doNotUse")}
+                            </DropdownItem>
+                            <DropdownItem key="useDefault">
+                                {apiKeyStrategyDisplay("useDefault")}
+                                {apiKeyStrategyDescriptionDisplay("useDefault")}
+                            </DropdownItem>
+                        </DropdownMenu>
+                    </Dropdown>
+                </div>
                 {apiKeyStrategy === "useMyOwn" &&
                     (apiKeyIsValid
                         ? <Input
@@ -271,7 +270,7 @@ function HomeScreen() {
                         title={
                             <p
                                 id="about-api-key-heading"
-                                style={{ width: "min-content", whiteSpace: "nowrap" }}
+                                style={{ width: "min-content", whiteSpace: "nowrap", padding: "2px 4px 2px 4px" }}
                             >
                                 Про АПИ ключ
                             </p>
