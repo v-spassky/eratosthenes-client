@@ -45,7 +45,7 @@ export default function Chat({ socketRef, messages, setMessages }) {
             },
         }
         socketRef.current.send(JSON.stringify(payload));
-        setMessages([...messages, { id: 1, author: "you", content: message }]);
+        setMessages([...messages, { id: 1, author: "я", content: message }]);
         setMessage("");
         setPrompt(randomChatPrompt());
     };
