@@ -4,14 +4,15 @@ import { useNavigate } from "react-router-dom";
 
 import GoogleMapsWrapper from "../../utils/maps/GoogleMapsWrapper.js";
 import GoogleStreetView from "../../utils/maps/GoogleStreetView.js";
+import CountdownBar from "./CountdownBar.js";
 import Map from "./Map.js";
 
 
-export default function StreetViewWindow({ prevApiKeyRef }) {
+export default function StreetViewWindow({ prevApiKeyRef, showStartGameButton, handleStartGame, progress }) {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const navigate = useNavigate();
 
-    const handleRoomExit = () => {
+    function handleRoomExit() {
         navigate("/");
     }
 
@@ -31,6 +32,21 @@ export default function StreetViewWindow({ prevApiKeyRef }) {
                         <FaArrowRightFromBracket />
                     </Button>
                 </Tooltip>
+                {showStartGameButton &&
+                    <Button
+                        color="primary"
+                        aria-label="Start game"
+                        onClick={handleStartGame}
+                        style={{ position: "absolute", bottom: "10px", left: "50%", transform: "translateX(-50%)", zIndex: 1 }}
+                    >
+                        Начать игру
+                    </Button>
+                }
+                <div
+                    style={{ position: "absolute", top: "10px", left: "50%", transform: "translateX(-50%)", zIndex: 1 }}
+                >
+                    <CountdownBar progress={progress} />
+                </div>
             </GoogleMapsWrapper>
 
             <Modal size={"sm"} isOpen={isOpen} onOpenChange={onOpenChange}>

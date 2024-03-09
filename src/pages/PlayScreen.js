@@ -4,6 +4,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { useNavigate, useParams } from "react-router-dom";
 import { Slide, toast } from "react-toastify";
 
+import userIsHost from "../api/userIsHost.js";
 import waitForSocketConnection from "../utils/waitForSocketConnection.js";
 import SidePane from "./components/SidePane.js";
 import StreetViewWindow from "./components/StreetViewWindow.js";
@@ -11,11 +12,23 @@ import StreetViewWindow from "./components/StreetViewWindow.js";
 export default function PlayScreen({ prevApiKeyRef }) {
     const [messages, setMessages] = useState([]);
     const [users, setUsers] = useState([]);
+    const [roomStatus, setRoomStatus] = useState("waiting");
+    const [progress, setProgress] = useState(0);
+    const intervalRef = useRef(null);
+    const [showStartGameButton, setShowStartGameButton] = useState(false);
     const socketRef = useRef(null);
     const { id } = useParams();
     const navigate = useNavigate();
 
+    async function mustShowStartGameButton(roomId) {
+        return (roomStatus === "waiting") && await userIsHost(roomId);
+    }
+
     useEffect(() => {
+        const switchBtnVisibility = async () => {
+            setShowStartGameButton(await mustShowStartGameButton(id));
+        };
+        switchBtnVisibility();
         if (localStorage.getItem("apiKeyStrategy") !== "useMyOwn") {
             return;
         }
@@ -37,6 +50,44 @@ export default function PlayScreen({ prevApiKeyRef }) {
             transition: Slide,
         });
     }, []);
+
+    useEffect(() => {
+        return () => {
+            clearInterval(intervalRef.current);
+        };
+    }, []);
+
+    useEffect(() => {
+        const switchBtnVisibility = async () => {
+            setShowStartGameButton(await mustShowStartGameButton(id));
+        };
+        switchBtnVisibility();
+    }, [users, roomStatus]);
+
+    function handleStartGame() {
+        if (roomStatus === "playing") {
+            return;
+        }
+        if (intervalRef.current !== null) {
+            clearInterval(intervalRef.current);
+        }
+        setRoomStatus("playing");
+        setProgress(100);
+        const payload = { type: "gameStarted", payload: null };
+        socketRef.current.send(JSON.stringify(payload));
+        intervalRef.current = setInterval(() => {
+            setProgress(prevProgress => {
+                if (prevProgress === 0) {
+                    clearInterval(intervalRef.current);
+                    setRoomStatus("waiting");
+                    const payload = { type: "gameFinished", payload: null };
+                    socketRef.current.send(JSON.stringify(payload));
+                    return 0;
+                }
+                return prevProgress - 5;
+            });
+        }, 1000 * 5);
+    }
 
     const fetchUsers = (retryCount) => {
         fetch(`${process.env.REACT_APP_SERVER_ORIGIN}/users-of-room/${id}`)
@@ -183,6 +234,29 @@ export default function PlayScreen({ prevApiKeyRef }) {
                         });
                     break;
                 }
+                case "gameStarted": {
+                    setRoomStatus("playing");
+                    setProgress(100);
+                    intervalRef.current = setInterval(() => {
+                        setProgress(prevProgress => {
+                            if (prevProgress === 0) {
+                                clearInterval(intervalRef.current);
+                                setRoomStatus("waiting");
+                                return 0;
+                            }
+                            return prevProgress - 5;
+                        });
+                    }, 1000 * 5);
+                    break;
+                }
+                case "gameFinished": {
+                    clearInterval(intervalRef.current);
+                    setRoomStatus("waiting");
+                    setProgress(0);
+                    break;
+                }
+                case "ping":
+                    break;
                 case "pong":
                     break;
                 default:
@@ -225,7 +299,12 @@ export default function PlayScreen({ prevApiKeyRef }) {
         <div id="playScreen" style={{ height: "100vh", display: "flex", flexDirection: "row" }}>
             <PanelGroup autoSaveId="persistence" direction="horizontal">
                 <Panel minSize={50}>
-                    <StreetViewWindow prevApiKeyRef={prevApiKeyRef} />
+                    <StreetViewWindow
+                        prevApiKeyRef={prevApiKeyRef}
+                        showStartGameButton={showStartGameButton}
+                        handleStartGame={handleStartGame}
+                        progress={progress}
+                    />
                 </Panel>
                 <PanelResizeHandle style={{ width: "1px", backgroundColor: "gray" }} />
                 <Panel defaultSize={30} minSize={10}>
