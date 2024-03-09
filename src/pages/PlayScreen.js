@@ -183,6 +183,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
                         });
                     break;
                 }
+                case "pong":
+                    break;
                 default:
                     console.error(`Unknown message type: ${message.type}`);
             }
@@ -201,6 +203,9 @@ export default function PlayScreen({ prevApiKeyRef }) {
 
             fetchUsers(20);
         }, 500);
+        setInterval(() => {
+            socketRef.current.send(JSON.stringify({ type: "ping", payload: null }));
+        }, 1000 * 30);
 
         return () => {
             const payload = {
