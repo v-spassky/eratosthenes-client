@@ -8,7 +8,12 @@ import CountdownBar from "./CountdownBar.js";
 import Map from "./Map.js";
 
 
-export default function StreetViewWindow({ prevApiKeyRef, showStartGameButton, handleStartGame, progress }) {
+export default function StreetViewWindow(
+    {
+        prevApiKeyRef, showStartGameButton, handleStartGame, progress, mapRef, markersRef, roomStatusRef,
+        handleConfirmAnswer, streetViewRef,
+    }
+) {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const navigate = useNavigate();
 
@@ -19,8 +24,13 @@ export default function StreetViewWindow({ prevApiKeyRef, showStartGameButton, h
     return (
         <div id="streetViewWindow" style={{ height: "100%", flexGrow: 1, position: "relative" }}>
             <GoogleMapsWrapper prevApiKeyRef={prevApiKeyRef}>
-                <GoogleStreetView />
-                <Map />
+                <GoogleStreetView streetViewRef={streetViewRef}/>
+                <Map
+                    mapRef={mapRef}
+                    markersRef={markersRef}
+                    handleConfirmAnswer={handleConfirmAnswer}
+                    roomStatusRef={roomStatusRef}
+                />
                 <Tooltip content="Покинуть комнату">
                     <Button
                         isIconOnly
@@ -37,7 +47,9 @@ export default function StreetViewWindow({ prevApiKeyRef, showStartGameButton, h
                         color="primary"
                         aria-label="Start game"
                         onClick={handleStartGame}
-                        style={{ position: "absolute", bottom: "10px", left: "50%", transform: "translateX(-50%)", zIndex: 1 }}
+                        style={{
+                            position: "absolute", bottom: "10px", left: "50%", transform: "translateX(-50%)", zIndex: 1,
+                        }}
                     >
                         Начать игру
                     </Button>

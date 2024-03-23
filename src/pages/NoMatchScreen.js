@@ -1,7 +1,7 @@
 import { Button } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
 
-function NoMatchScreen() {
+export default function NoMatchScreen() {
     const navigate = useNavigate();
 
     return (
@@ -21,5 +21,3 @@ function NoMatchScreen() {
         </div>
     );
 }
-
-export default NoMatchScreen;

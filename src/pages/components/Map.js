@@ -3,7 +3,7 @@ import { FaCheck } from "react-icons/fa6";
 
 import GoogleMap from "../../utils/maps/GoogleMap.js";
 
-function Map() {
+export default function Map({ mapRef, markersRef, handleConfirmAnswer, roomStatusRef }) {
     return (
         <div
             id="map"
@@ -12,14 +12,19 @@ function Map() {
                 borderRadius: "10px", overflow: "hidden"
             }}
         >
-            <GoogleMap />
-            <Tooltip content="Подтвердить ответ">
-                <Button isIconOnly color="primary" style={{ position: "absolute", bottom: "5px", right: "5px" }}>
-                    <FaCheck />
-                </Button>
-            </Tooltip>
+            <GoogleMap mapRef={mapRef} markersRef={markersRef} roomStatusRef={roomStatusRef}/>
+            {roomStatusRef.current === "playing" &&
+                <Tooltip content="Подтвердить ответ">
+                    <Button
+                        onClick={handleConfirmAnswer}
+                        isIconOnly
+                        color="primary"
+                        style={{ position: "absolute", bottom: "5px", right: "5px" }}
+                    >
+                        <FaCheck />
+                    </Button>
+                </Tooltip>
+            }
         </div>
     );
 }
-
-export default Map;

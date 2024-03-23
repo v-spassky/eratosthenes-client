@@ -3,7 +3,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import Chat from "./Chat.js";
 import UserList from "./UserList.js";
 
-function SidePane({ socketRef, messages, setMessages, users }) {
+export default function SidePane({ socketRef, messages, setMessages, users }) {
     return (
         <div id="sidePane" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
             <PanelGroup autoSaveId="persistence" direction="vertical">
@@ -18,5 +18,3 @@ function SidePane({ socketRef, messages, setMessages, users }) {
         </div>
     );
 }
-
-export default SidePane;

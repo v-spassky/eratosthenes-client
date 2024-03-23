@@ -8,7 +8,7 @@ import { Slide, toast } from "react-toastify";
 
 import avatarEmojis from "../constants/avatarEmojis";
 
-function HomeScreen() {
+export default function HomeScreen() {
     const location = useLocation();
     const roomIdFromChat = location.state && location.state.roomId;
     const [selectedEmoji, setSelectedEmoji] = useState(localStorage.getItem("selectedEmoji") || "");
@@ -346,5 +346,3 @@ function HomeScreen() {
         </div >
     );
 }
-
-export default HomeScreen;

@@ -15,7 +15,7 @@ function medalOfIndex(index) {
     }
 }
 
-function UserList({ users }) {
+export default function UserList({ users }) {
     return (
         <div id="userList" style={{ height: "100%", flexGrow: 1, overflow: "auto" }}>
             <ScrollShadow>
@@ -58,5 +58,3 @@ function UserList({ users }) {
         </div>
     );
 }
-
-export default UserList;

@@ -1,10 +1,11 @@
-
 import { useEffect, useRef, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { useNavigate, useParams } from "react-router-dom";
 import { Slide, toast } from "react-toastify";
 
 import userIsHost from "../api/userIsHost.js";
+import defaultStreetViewPosition from "../constants/defaultStreetViewPosition.js";
+import mapMarkSvg from "../constants/mapMarkSvg.js";
 import waitForSocketConnection from "../utils/waitForSocketConnection.js";
 import SidePane from "./components/SidePane.js";
 import StreetViewWindow from "./components/StreetViewWindow.js";
@@ -13,6 +14,11 @@ export default function PlayScreen({ prevApiKeyRef }) {
     const [messages, setMessages] = useState([]);
     const [users, setUsers] = useState([]);
     const [roomStatus, setRoomStatus] = useState("waiting");
+    const streetViewRef = useRef(null);
+    const [streetViewPosition, setStreetViewPosition] = useState(defaultStreetViewPosition);
+    const mapRef = useRef(null);
+    const markersRef = useRef([]);
+    const roomStatusRef = useRef("waiting");
     const [progress, setProgress] = useState(0);
     const intervalRef = useRef(null);
     const [showStartGameButton, setShowStartGameButton] = useState(false);
@@ -62,7 +68,60 @@ export default function PlayScreen({ prevApiKeyRef }) {
             setShowStartGameButton(await mustShowStartGameButton(id));
         };
         switchBtnVisibility();
+        if (mapRef.current) {
+            markersRef.current.forEach((marker) => {
+                marker.setMap(null);
+            });
+            markersRef.current = [];
+            const svgMarker = {
+                path: mapMarkSvg,
+                fillColor: "#0070F0",
+                fillOpacity: 1,
+                strokeWeight: 0,
+                rotation: 0,
+                scale: 2,
+                anchor: new window.google.maps.Point(0, 20),
+                labelOrigin: new window.google.maps.Point(0, 7),
+            };
+            users.forEach(user => {
+                if (user.lastGuess) {
+                    markersRef.current.push(
+                        new window.google.maps.Marker({
+                            position: {
+                                lat: user.lastGuess.lat,
+                                lng: user.lastGuess.lng,
+                            },
+                            map: mapRef.current,
+                            label: user.avatarEmoji,
+                            icon: svgMarker,
+                            username: user.name,
+                        }))
+                }
+            });
+            if (roomStatus === "waiting") {
+                markersRef.current.push(
+                    new window.google.maps.Marker({
+                        position: streetViewPosition,
+                        map: mapRef.current,
+                        label: "🏠",
+                        icon: svgMarker,
+                        username: "host",
+                    })
+                );
+            }
+        }
     }, [users, roomStatus]);
+
+    useEffect(() => {
+        fetchUsers(20);
+    }, [roomStatus]);
+
+    useEffect(() => {
+        if (streetViewRef.current) {
+            const newPosition = new window.google.maps.LatLng(streetViewPosition);
+            streetViewRef.current.setPosition(newPosition);
+        }
+    }, [streetViewPosition]);
 
     function handleStartGame() {
         if (roomStatus === "playing") {
@@ -72,21 +131,80 @@ export default function PlayScreen({ prevApiKeyRef }) {
             clearInterval(intervalRef.current);
         }
         setRoomStatus("playing");
+        roomStatusRef.current = "playing";
         setProgress(100);
         const payload = { type: "gameStarted", payload: null };
         socketRef.current.send(JSON.stringify(payload));
         intervalRef.current = setInterval(() => {
             setProgress(prevProgress => {
+                if (prevProgress === 5) {
+                    const username = localStorage.getItem("username");
+                    let found = false;
+                    let markerToSubmit = null;
+                    markersRef.current.forEach((marker) => {
+                        if (marker.username === username) {
+                            found = true;
+                            markerToSubmit = marker;
+                        }
+                    });
+                    if (found) {
+                        const payload = {
+                            username: username,
+                            lat: markerToSubmit.position.lat().toString(),
+                            lng: markerToSubmit.position.lng().toString(),
+                        }
+                        const submitGuess = async () => {
+                            await fetch(
+                                `${process.env.REACT_APP_SERVER_ORIGIN}/submit-guess/${id}`,
+                                {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify(payload),
+                                }
+                            );
+                        }
+                        submitGuess();
+                    } else {
+                        console.error("User marker not found.");
+                        // TODO: show error
+                    }
+                }
                 if (prevProgress === 0) {
                     clearInterval(intervalRef.current);
                     setRoomStatus("waiting");
+                    roomStatusRef.current = "waiting";
                     const payload = { type: "gameFinished", payload: null };
                     socketRef.current.send(JSON.stringify(payload));
                     return 0;
                 }
-                return prevProgress - 5;
+                return prevProgress - 1;
             });
-        }, 1000 * 5);
+        }, 1000 * 1);
+    }
+
+    function handleConfirmAnswer() {
+        const username = localStorage.getItem("username");
+        let found = false;
+        let markerToSubmit = null;
+        markersRef.current.forEach((marker) => {
+            if (marker.username === username) {
+                found = true;
+                markerToSubmit = marker;
+            }
+        });
+        if (found) {
+            const payload = {
+                username: username,
+                lat: markerToSubmit.position.lat().toString(),
+                lng: markerToSubmit.position.lng().toString(),
+            }
+            fetch(
+                `${process.env.REACT_APP_SERVER_ORIGIN}/submit-guess/${id}`,
+                { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }
+            );
+        } else {
+            // TODO: show error
+        }
     }
 
     const fetchUsers = (retryCount) => {
@@ -102,7 +220,11 @@ export default function PlayScreen({ prevApiKeyRef }) {
                             score: user.score,
                             isHost: user.isHost,
                             description: user.description,
+                            lastGuess: user.lastGuess,
                         })));
+                        if (data.status.type === "playing") {
+                            setStreetViewPosition(data.status.currentLocation);
+                        }
                     } else if (retryCount > 0) {
                         setTimeout(() => fetchUsers(retryCount - 1), 500);
                     }
@@ -202,8 +324,12 @@ export default function PlayScreen({ prevApiKeyRef }) {
                                         score: user.score,
                                         isHost: user.isHost,
                                         description: user.description,
+                                        lastGuess: user.lastGuess,
                                     };
                                 }));
+                                if (data.status.type === "playing") {
+                                    setStreetViewPosition(data.status.currentLocation);
+                                }
                             }
                         })
                         .catch(error => {
@@ -225,8 +351,12 @@ export default function PlayScreen({ prevApiKeyRef }) {
                                         score: user.score,
                                         isHost: user.isHost,
                                         description: user.description,
+                                        lastGuess: user.lastGuess,
                                     };
                                 }));
+                                if (data.status.type === "playing") {
+                                    setStreetViewPosition(data.status.currentLocation);
+                                }
                             }
                         })
                         .catch(error => {
@@ -236,23 +366,61 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 }
                 case "gameStarted": {
                     setRoomStatus("playing");
+                    roomStatusRef.current = "playing";
                     setProgress(100);
                     intervalRef.current = setInterval(() => {
                         setProgress(prevProgress => {
+                            if (prevProgress === 5) {
+                                const username = localStorage.getItem("username");
+                                let found = false;
+                                let markerToSubmit = null;
+                                markersRef.current.forEach((marker) => {
+                                    if (marker.username === username) {
+                                        found = true;
+                                        markerToSubmit = marker;
+                                    }
+                                });
+                                if (found) {
+                                    const payload = {
+                                        username: username,
+                                        lat: markerToSubmit.position.lat().toString(),
+                                        lng: markerToSubmit.position.lng().toString(),
+                                    }
+                                    const submitGuess = async () => {
+                                        await fetch(
+                                            `${process.env.REACT_APP_SERVER_ORIGIN}/submit-guess/${id}`,
+                                            {
+                                                method: "POST",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify(payload),
+                                            }
+                                        );
+                                    }
+                                    submitGuess();
+                                } else {
+                                    console.error("User marker not found.");
+                                    // TODO: show error
+                                }
+                            }
                             if (prevProgress === 0) {
                                 clearInterval(intervalRef.current);
                                 setRoomStatus("waiting");
+                                console.log("set room status to waiting")
+                                roomStatusRef.current = "waiting";
                                 return 0;
                             }
-                            return prevProgress - 5;
+                            return prevProgress - 1;
                         });
-                    }, 1000 * 5);
+                    }, 1000 * 1);
                     break;
                 }
                 case "gameFinished": {
                     clearInterval(intervalRef.current);
                     setRoomStatus("waiting");
+                    console.log("set room status to waiting")
+                    roomStatusRef.current = "waiting";
                     setProgress(0);
+                    fetchUsers(20);
                     break;
                 }
                 case "ping":
@@ -279,7 +447,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
         }, 500);
         setInterval(() => {
             socketRef.current.send(JSON.stringify({ type: "ping", payload: null }));
-        }, 1000 * 30);
+        }, 1000 * 10);
 
         return () => {
             const payload = {
@@ -304,6 +472,11 @@ export default function PlayScreen({ prevApiKeyRef }) {
                         showStartGameButton={showStartGameButton}
                         handleStartGame={handleStartGame}
                         progress={progress}
+                        mapRef={mapRef}
+                        markersRef={markersRef}
+                        roomStatusRef={roomStatusRef}
+                        handleConfirmAnswer={handleConfirmAnswer}
+                        streetViewRef={streetViewRef}
                     />
                 </Panel>
                 <PanelResizeHandle style={{ width: "1px", backgroundColor: "gray" }} />

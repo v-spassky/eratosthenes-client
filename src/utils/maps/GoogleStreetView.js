@@ -2,21 +2,19 @@ import { useEffect, useRef } from "react";
 
 import defaultStreetViewPosition from "../../constants/defaultStreetViewPosition.js";
 
-function GoogleStreetView() {
-    const ref = useRef(null);
+export default function GoogleStreetView({ streetViewRef }) {
+    const streetViewContainerRef = useRef(null);
 
     useEffect(() => {
-        if (ref.current) {
-            new window.google.maps.StreetViewPanorama(ref.current, {
+        if (streetViewContainerRef.current) {
+            streetViewRef.current = new window.google.maps.StreetViewPanorama(streetViewContainerRef.current, {
                 disableDefaultUI: true,
                 position: defaultStreetViewPosition,
                 pov: { heading: 0, pitch: 0 },
                 zoom: 1,
             });
         }
-    }, [ref]);
+    }, [streetViewContainerRef]);
 
-    return <div ref={ref} style={{ width: "100%", height: "100%" }}/>;
+    return <div ref={streetViewContainerRef} style={{ width: "100%", height: "100%" }}/>;
 }
-
-export default GoogleStreetView;
