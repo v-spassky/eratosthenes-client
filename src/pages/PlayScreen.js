@@ -235,17 +235,27 @@ export default function PlayScreen({ prevApiKeyRef }) {
             });
     };
 
-    function connectToSocket() {
+    function connectToSocket(isReconnect) {
         socketRef.current = new WebSocket(`${process.env.REACT_APP_WS_SERVER_ORIGIN}/chat/${id}`);
         socketRef.current.onopen = () => {
             console.log("WebSocket connection established.");
+            if (isReconnect) {
+                const payload = {
+                    type: "userReConnected",
+                    payload: {
+                        username: localStorage.getItem("username"),
+                        avatarEmoji: localStorage.getItem("selectedEmoji"),
+                    },
+                }
+                socketRef.current.send(JSON.stringify(payload));
+            }
         };
         socketRef.current.onclose = () => {
             console.log("WebSocket connection closed.");
             console.log("Current URL path:", window.location.pathname);
             if (window.location.pathname === `/room/${id}`) {
                 console.log("Reconnecting to WebSocket in 1 second.");
-                setTimeout(connectToSocket, 1000);
+                setTimeout(() => connectToSocket(true), 1000);
             }
         };
         socketRef.current.onerror = (error) => {
@@ -254,7 +264,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
             socketRef.current.close();
             if (window.location.pathname === `/room/${id}`) {
                 console.log("Reconnecting to WebSocket in 1 second.");
-                setTimeout(connectToSocket, 1000);
+                setTimeout(() => connectToSocket(true), 1000);
             }
         }
         socketRef.current.onmessage = (event) => {
@@ -452,7 +462,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
         };
         fetchData();
 
-        const pingInterval = connectToSocket();
+        const pingInterval = connectToSocket(false);
 
         setTimeout(() => {
             const payload = {
