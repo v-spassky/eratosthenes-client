@@ -364,7 +364,6 @@ export default function PlayScreen({ prevApiKeyRef }) {
                             if (prevProgress === 0) {
                                 clearInterval(intervalRef.current);
                                 setRoomStatus("waiting");
-                                console.log("set room status to waiting")
                                 roomStatusRef.current = "waiting";
                                 return 0;
                             }
@@ -376,7 +375,6 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 case "gameFinished": {
                     clearInterval(intervalRef.current);
                     setRoomStatus("waiting");
-                    console.log("set room status to waiting")
                     roomStatusRef.current = "waiting";
                     setProgress(0);
                     fetchUsers(20);
@@ -390,6 +388,9 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     console.error(`Unknown message type: ${message.type}`);
             }
         };
+        return setInterval(() => {
+            socketRef.current.send(JSON.stringify({ type: "ping", payload: null }));
+        }, 5 * 1000);
     }
 
     useEffect(() => {
@@ -450,7 +451,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
         };
         fetchData();
 
-        connectToSocket();
+        const pingInterval = connectToSocket();
 
         setTimeout(() => {
             const payload = {
@@ -466,9 +467,6 @@ export default function PlayScreen({ prevApiKeyRef }) {
 
             fetchUsers(20);
         }, 500);
-        // setInterval(() => {
-        //     socketRef.current.send(JSON.stringify({ type: "ping", payload: null }));
-        // }, 1000 * 10);
 
         return () => {
             const payload = {
@@ -481,6 +479,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
             socketRef.current.send(JSON.stringify(payload));
             console.log("Closing WebSocket connection...");
             socketRef.current.close();
+            console.log("Clearing ping interval...");
+            clearInterval(pingInterval);
         };
     }, [navigate, id]);
 
