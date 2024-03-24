@@ -235,68 +235,27 @@ export default function PlayScreen({ prevApiKeyRef }) {
             });
     };
 
-    useEffect(() => {
-        const username = localStorage.getItem("username");
-        if (!username) {
-            navigate("/", { state: { roomId: id } });
-            toast.error("Установи юзернейм чтобы подключиться к комнате", {
-                position: "bottom-left",
-                autoClose: 2000,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-                transition: Slide,
-            });
-            return;
-        }
-        const fetchData = async () => {
-            try {
-                const response = await fetch(
-                    `${process.env.REACT_APP_SERVER_ORIGIN}/can-connect/${id}?username=${username}`,
-                    { method: "GET" },
-                );
-                if (response.ok) {
-                    const data = await response.json();
-                    if (!data.canConnect) {
-                        let errMsg = "";
-                        switch (data.reason) {
-                            case "Room not found.":
-                                errMsg = "Такая комната не найдена";
-                                break;
-                            // TODO: be more precise here
-                            default:
-                                errMsg = "Кто-то с таким именем уже есть в комнате";
-                        }
-                        navigate("/");
-                        toast.error(errMsg, {
-                            position: "bottom-left",
-                            autoClose: 2000,
-                            hideProgressBar: true,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            theme: "light",
-                            transition: Slide,
-                        });
-                        return;
-                    }
-                } else {
-                    console.error("Failed to connect to room", response.statusText);
-                }
-            } catch (error) {
-                console.error("Error connecting to room:", error.message);
-            }
-        };
-        fetchData();
-
+    function connectToSocket() {
         socketRef.current = new WebSocket(`${process.env.REACT_APP_WS_SERVER_ORIGIN}/chat/${id}`);
         socketRef.current.onopen = () => {
             console.log("WebSocket connection established.");
         };
+        socketRef.current.onclose = () => {
+            console.log("WebSocket connection closed.");
+            if (window.location.pathname === `/chat/${id}`) {
+                console.log("Reconnecting to WebSocket in 1 second.");
+                setTimeout(connectToSocket, 1000);
+            }
+        };
+        socketRef.current.onerror = (error) => {
+            console.error("WebSocket error: ", error);
+            console.log("Closing WebSocket connection...");
+            socketRef.current.close();
+            if (window.location.pathname === `/chat/${id}`) {
+                console.log("Reconnecting to WebSocket in 1 second.");
+                setTimeout(connectToSocket, 1000);
+            }
+        }
         socketRef.current.onmessage = (event) => {
             const message = JSON.parse(event.data);
             switch (message.type) {
@@ -431,6 +390,68 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     console.error(`Unknown message type: ${message.type}`);
             }
         };
+    }
+
+    useEffect(() => {
+        const username = localStorage.getItem("username");
+        if (!username) {
+            navigate("/", { state: { roomId: id } });
+            toast.error("Установи юзернейм чтобы подключиться к комнате", {
+                position: "bottom-left",
+                autoClose: 2000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Slide,
+            });
+            return;
+        }
+        const fetchData = async () => {
+            try {
+                const response = await fetch(
+                    `${process.env.REACT_APP_SERVER_ORIGIN}/can-connect/${id}?username=${username}`,
+                    { method: "GET" },
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    if (!data.canConnect) {
+                        let errMsg = "";
+                        switch (data.reason) {
+                            case "Room not found.":
+                                errMsg = "Такая комната не найдена";
+                                break;
+                            // TODO: be more precise here
+                            default:
+                                errMsg = "Кто-то с таким именем уже есть в комнате";
+                        }
+                        navigate("/");
+                        toast.error(errMsg, {
+                            position: "bottom-left",
+                            autoClose: 2000,
+                            hideProgressBar: true,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                            theme: "light",
+                            transition: Slide,
+                        });
+                        return;
+                    }
+                } else {
+                    console.error("Failed to connect to room", response.statusText);
+                }
+            } catch (error) {
+                console.error("Error connecting to room:", error.message);
+            }
+        };
+        fetchData();
+
+        connectToSocket();
+
         setTimeout(() => {
             const payload = {
                 type: "userConnected",
@@ -445,9 +466,9 @@ export default function PlayScreen({ prevApiKeyRef }) {
 
             fetchUsers(20);
         }, 500);
-        setInterval(() => {
-            socketRef.current.send(JSON.stringify({ type: "ping", payload: null }));
-        }, 1000 * 10);
+        // setInterval(() => {
+        //     socketRef.current.send(JSON.stringify({ type: "ping", payload: null }));
+        // }, 1000 * 10);
 
         return () => {
             const payload = {
@@ -458,7 +479,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 },
             }
             socketRef.current.send(JSON.stringify(payload));
-            console.log("WebSocket connection closed.");
+            console.log("Closing WebSocket connection...");
             socketRef.current.close();
         };
     }, [navigate, id]);

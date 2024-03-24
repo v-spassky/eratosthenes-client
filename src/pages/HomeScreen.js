@@ -39,7 +39,7 @@ export default function HomeScreen() {
         localStorage.setItem("selectedEmoji", selectedEmoji);
         localStorage.setItem("apiKeyStrategy", apiKeyStrategy);
         setRedraw(!redraw);
-        toast("Настройки сохранены", {
+        toast("Настройки сохранены.", {
             position: "bottom-left",
             autoClose: 2000,
             hideProgressBar: true,
