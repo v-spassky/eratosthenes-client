@@ -252,7 +252,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
             console.error("WebSocket error: ", error);
             console.log("Closing WebSocket connection...");
             socketRef.current.close();
-            if (window.location.pathname === `/chat/${id}`) {
+            if (window.location.pathname === `/room/${id}`) {
                 console.log("Reconnecting to WebSocket in 1 second.");
                 setTimeout(connectToSocket, 1000);
             }
