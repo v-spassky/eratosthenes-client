@@ -243,7 +243,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
         socketRef.current.onclose = () => {
             console.log("WebSocket connection closed.");
             console.log("Current URL path:", window.location.pathname);
-            if (window.location.pathname === `/chat/${id}`) {
+            if (window.location.pathname === `/room/${id}`) {
                 console.log("Reconnecting to WebSocket in 1 second.");
                 setTimeout(connectToSocket, 1000);
             }
