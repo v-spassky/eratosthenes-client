@@ -343,15 +343,6 @@ export default function HomeScreen() {
                     )}
                 </ModalContent>
             </Modal>
-
-            <div
-                style={{
-                    position: "absolute", bottom: "10px", right: "10px", padding: "10px",
-                    backgroundColor: "rgb(254 205 211)", borderRadius: "10px",
-                }}
-            >
-                Сайтик пока что не работает - нужно поправить кое-что.
-            </div>
         </div >
     );
 }
