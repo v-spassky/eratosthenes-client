@@ -1,6 +1,5 @@
-import { Button, Textarea, Tooltip } from "@nextui-org/react";
+import { Textarea } from "@nextui-org/react";
 import { useEffect, useRef, useState } from "react";
-import { FaRegMessage } from "react-icons/fa6";
 
 import reallyBigScrollValuePx from "../../constants/reallyBigScrollValue.js";
 import randomChatPrompt from "../../utils/randomChatPrompt.js";
@@ -51,7 +50,7 @@ export default function Chat({ socketRef, messages, setMessages }) {
     };
 
     const handleKeyDown = (event) => {
-        if (event.ctrlKey && event.key === "Enter" && textInputIsFocused.current && message.trim() !== "") {
+        if (event.key === "Enter" && textInputIsFocused.current && message.trim() !== "") {
             handleSendMessage(event);
         }
     };
@@ -75,32 +74,16 @@ export default function Chat({ socketRef, messages, setMessages }) {
                     </div>
                 ))}
             </div>
-            <form onSubmit={handleSendMessage} style={{ position: "relative" }}>
-                <Textarea
-                    name="message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder={chatPrompt}
-                    style={{ height: "100px" }}
-                    onKeyDown={handleKeyDown}
-                    onFocus={() => (textInputIsFocused.current = true)}
-                    onBlur={() => (textInputIsFocused.current = false)}
-                />
-                <Tooltip content="Отправить сообщение">
-                    <Button
-                        type="submit"
-                        isIconOnly
-                        color="primary"
-                        aria-label="Send"
-                        style={{ position: "absolute", bottom: "5px", right: "5px" }}
-                    >
-                        <FaRegMessage />
-                    </Button>
-                </Tooltip>
-            </form>
-            <p style={{ fontStyle: "italic", fontSize: "small", color: "gray" }}>
-                Нажми Ctrl+Enter чтобы отправить сообщение
-            </p>
+            <Textarea
+                name="message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder={chatPrompt}
+                style={{ height: "100px" }}
+                onKeyDown={handleKeyDown}
+                onFocus={() => (textInputIsFocused.current = true)}
+                onBlur={() => (textInputIsFocused.current = false)}
+            />
         </div>
     );
 }
