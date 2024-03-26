@@ -16,41 +16,11 @@ export default function HomeScreen() {
     const [apiKeyStrategy, setApiKeyStrategy] = useState(localStorage.getItem("apiKeyStrategy") || "useMyOwn");
     const [apiKey, setApiKey] = useState(localStorage.getItem("apiKey") || "");
     const [targetRoomID, setTargetRoomID] = useState(roomIdFromChat || "");
-    const [redraw, setRedraw] = useState(false);
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const navigate = useNavigate();
 
-    const usernameChangesSaved = localStorage.getItem("username") === username;
-    const apiKeyChangesSaved = localStorage.getItem("apiKey") === apiKey;
-    const selectedEmojiChangesSaved = localStorage.getItem("selectedEmoji") === selectedEmoji;
-    const apiKeyStrategyChangesSaved = localStorage.getItem("apiKeyStrategy") === apiKeyStrategy;
-    const allChangesSaved =
-        usernameChangesSaved
-        && apiKeyChangesSaved
-        && selectedEmojiChangesSaved
-        && apiKeyStrategyChangesSaved;
-
     const apiKeyIsValid = apiKey.trim() !== "";
     const usernameIsValid = username.trim() !== "";
-
-    const handleSave = () => {
-        localStorage.setItem("username", username);
-        localStorage.setItem("apiKey", apiKey);
-        localStorage.setItem("selectedEmoji", selectedEmoji);
-        localStorage.setItem("apiKeyStrategy", apiKeyStrategy);
-        setRedraw(!redraw);
-        toast("Настройки сохранены.", {
-            position: "bottom-left",
-            autoClose: 2000,
-            hideProgressBar: true,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-            transition: Slide,
-        });
-    };
 
     const handleConnectToRoom = async () => {
         if (!targetRoomID.trim()) {
@@ -116,21 +86,16 @@ export default function HomeScreen() {
     };
 
     const handleEmojiSelect = (emoji, onClose) => {
+        localStorage.setItem("selectedEmoji", emoji);
         setSelectedEmoji(emoji);
         onClose();
     };
 
     const canCreateRoom = () => {
-        if (!allChangesSaved) {
-            return false;
-        }
         return username.trim() !== "";
     }
 
     const canJoinToRoom = () => {
-        if (!allChangesSaved) {
-            return false;
-        }
         return username.trim() !== "" && targetRoomID.trim() !== "";
     }
 
@@ -202,7 +167,10 @@ export default function HomeScreen() {
                             label="Юзернейм"
                             placeholder="Как к тебе обращаться?"
                             value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            onChange={(e) => {
+                                localStorage.setItem("username", e.target.value);
+                                setUsername(e.target.value);
+                            }}
                         />
                         : <Input
                             isRequired
@@ -210,7 +178,10 @@ export default function HomeScreen() {
                             label="Юзернейм"
                             placeholder="Как к тебе обращаться?"
                             value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            onChange={(e) => {
+                                localStorage.setItem("username", e.target.value);
+                                setUsername(e.target.value);
+                            }}
                         />
                     }
                 </div>
@@ -228,7 +199,11 @@ export default function HomeScreen() {
                             disallowEmptySelection
                             selectionMode="single"
                             selectedKeys={[apiKeyStrategy]}
-                            onSelectionChange={(strategyKeys) => setApiKeyStrategy([...strategyKeys][0])}
+                            onSelectionChange={(strategyKeys) => {
+                                const newStrategy = [...strategyKeys][0];
+                                localStorage.setItem("apiKeyStrategy", newStrategy);
+                                setApiKeyStrategy(newStrategy);
+                            }}
                         >
                             <DropdownItem key="useMyOwn">
                                 {apiKeyStrategyDisplay("useMyOwn")}
@@ -252,7 +227,10 @@ export default function HomeScreen() {
                             label="АПИ ключ"
                             placeholder="Ключик от Google Maps JS API"
                             value={apiKey}
-                            onChange={(e) => setApiKey(e.target.value)}
+                            onChange={(e) => {
+                                localStorage.setItem("apiKey", e.target.value);
+                                setApiKey(e.target.value);
+                            }}
                         />
                         : <Input
                             isRequired
@@ -260,7 +238,10 @@ export default function HomeScreen() {
                             label="АПИ ключ"
                             placeholder="Ключик от Google Maps JS API"
                             value={apiKey}
-                            onChange={(e) => setApiKey(e.target.value)}
+                            onChange={(e) => {
+                                localStorage.setItem("apiKey", e.target.value);
+                                setApiKey(e.target.value);
+                            }}
                         />
                     )
                 }
@@ -291,12 +272,6 @@ export default function HomeScreen() {
                         </p>
                     </AccordionItem>
                 </Accordion>
-                {allChangesSaved
-                    ? <Button color="primary" style={{ width: "120px" }} onClick={handleSave}>Сохранить</Button>
-                    : <Button color="primary" style={{ width: "120px" }} onClick={handleSave} variant="shadow">
-                        Сохранить
-                    </Button>
-                }
                 <Divider />
                 <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>Подключиться к существующей комнате</h1>
                 <Input
