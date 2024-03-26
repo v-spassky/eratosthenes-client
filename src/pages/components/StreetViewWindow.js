@@ -1,12 +1,12 @@
-import { Button, Modal, ModalContent, ModalFooter, ModalHeader, Tooltip, useDisclosure } from "@nextui-org/react";
+import { Button, Modal, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@nextui-org/react";
 import { FaArrowRightFromBracket } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 
 import GoogleMapsWrapper from "../../utils/maps/GoogleMapsWrapper.js";
 import GoogleStreetView from "../../utils/maps/GoogleStreetView.js";
+import PreferencesButton from "../components/preferencesButton.js";
 import CountdownBar from "./CountdownBar.js";
 import Map from "./Map.js";
-
 
 export default function StreetViewWindow(
     {
@@ -24,24 +24,27 @@ export default function StreetViewWindow(
     return (
         <div id="streetViewWindow" style={{ height: "100%", flexGrow: 1, position: "relative" }}>
             <GoogleMapsWrapper prevApiKeyRef={prevApiKeyRef}>
-                <GoogleStreetView streetViewRef={streetViewRef}/>
+                <GoogleStreetView streetViewRef={streetViewRef} />
                 <Map
                     mapRef={mapRef}
                     markersRef={markersRef}
                     handleConfirmAnswer={handleConfirmAnswer}
                     roomStatusRef={roomStatusRef}
                 />
-                <Tooltip content="Покинуть комнату">
+                <div style={{
+                    position: "absolute", bottom: "10px", left: "10px", zIndex: 1, display: "flex",
+                    flexDirection: "column", gap: "6px",
+                }}>
+                    <PreferencesButton />
                     <Button
                         isIconOnly
                         onClick={onOpen}
                         color="primary"
                         aria-label="Leave room"
-                        style={{ position: "absolute", bottom: "10px", left: "10px", zIndex: 1 }}
                     >
                         <FaArrowRightFromBracket />
                     </Button>
-                </Tooltip>
+                </div>
                 {showStartGameButton &&
                     <Button
                         color="primary"

@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Slide, toast } from "react-toastify";
 
 import avatarEmojis from "../constants/avatarEmojis";
+import PreferencesButton from "./components/preferencesButton.js";
 
 export default function HomeScreen() {
     const location = useLocation();
@@ -293,6 +294,10 @@ export default function HomeScreen() {
                     ? <Button onPress={handleCreateRoom} color="primary" style={{ width: "120px" }}>Создать</Button>
                     : <Button isDisabled color="primary" style={{ width: "120px" }}>Создать</Button>
                 }
+            </div>
+
+            <div style={{ position: "absolute", bottom: "10px", left: "10px", zIndex: 1 }}>
+                <PreferencesButton />
             </div>
 
             <Modal size={"4xl"} isOpen={isOpen} onOpenChange={onOpenChange}>
