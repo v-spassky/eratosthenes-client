@@ -30,7 +30,22 @@ export default function PlayScreen({ prevApiKeyRef }) {
         return (roomStatus === "waiting") && await userIsHost(roomId);
     }
 
+    function handleTabClosing() {
+        console.log("Tab is closing...");
+        const payload = {
+            type: "userDisconnected",
+            payload: {
+                username: localStorage.getItem("username"),
+                avatarEmoji: localStorage.getItem("selectedEmoji"),
+            },
+        }
+        socketRef.current.send(JSON.stringify(payload));
+        console.log("Closing WebSocket connection...");
+        socketRef.current.close();
+    }
+
     useEffect(() => {
+        window.addEventListener("beforeunload", handleTabClosing);
         const switchBtnVisibility = async () => {
             setShowStartGameButton(await mustShowStartGameButton(id));
         };
@@ -55,6 +70,9 @@ export default function PlayScreen({ prevApiKeyRef }) {
             theme: "light",
             transition: Slide,
         });
+        return () => {
+            window.removeEventListener("unload", handleTabClosing);
+        }
     }, []);
 
     useEffect(() => {
