@@ -23,6 +23,25 @@ body {
   border-radius: 4px;
 }
 
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+   width: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #BDBDBD;
+  border-radius: 100px;
+  width: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6E6E6E;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
