@@ -189,6 +189,7 @@ export default function HomeScreen() {
                 <div style={{ display: "flex", flexDirection: "row", gap: "10px" }}>
                     <div>
                         <Avatar
+                            id="userAvatar"
                             name={selectedEmoji}
                             style={{ fontSize: "35px", userSelect: "none", cursor: "pointer" }}
                             size="lg"

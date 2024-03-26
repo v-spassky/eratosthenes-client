@@ -23,6 +23,15 @@ body {
   border-radius: 4px;
 }
 
+#userAvatar:hover {
+  transition: transform .2s;
+}
+
+#userAvatar:hover {
+  outline: 2px solid rgb(0, 112, 240);
+  transform: scale(1.1);
+}
+
 ::-webkit-scrollbar {
   width: 4px;
 }
