@@ -18,11 +18,6 @@ body {
   outline: 2px solid rgb(0, 112, 240);
 }
 
-#about-api-key-heading:hover {
-  background-color: rgb(243 244 246);
-  border-radius: 4px;
-}
-
 #userAvatar:hover {
   transition: transform .2s;
 }

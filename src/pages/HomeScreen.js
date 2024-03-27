@@ -2,6 +2,7 @@ import {
     Accordion, AccordionItem, Avatar, Button, Divider, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input,
     Modal, ModalBody, ModalContent, ModalHeader, useDisclosure,
 } from "@nextui-org/react";
+import { useTheme } from "next-themes";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Slide, toast } from "react-toastify";
@@ -19,9 +20,16 @@ export default function HomeScreen() {
     const [targetRoomID, setTargetRoomID] = useState(roomIdFromChat || "");
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const navigate = useNavigate();
+    const [headingBackgroundColor, setHeadingBackgroundColor] = useState(roomIdFromChat || "");
+    const { theme, _setTheme } = useTheme();
 
     const apiKeyIsValid = apiKey.trim() !== "";
     const usernameIsValid = username.trim() !== "";
+
+    function toggleHeadingBackgroundColor() {
+        const bgColor = theme === "light" ? "rgb(243, 244, 246)" : "rgb(63, 63, 70)";
+        setHeadingBackgroundColor(headingBackgroundColor === "" ? bgColor : "");
+    }
 
     const handleConnectToRoom = async () => {
         if (!targetRoomID.trim()) {
@@ -253,7 +261,12 @@ export default function HomeScreen() {
                         title={
                             <p
                                 id="about-api-key-heading"
-                                style={{ width: "min-content", whiteSpace: "nowrap", padding: "2px 4px 2px 4px" }}
+                                style={{
+                                    width: "min-content", whiteSpace: "nowrap", padding: "2px 4px 2px 4px",
+                                    backgroundColor: headingBackgroundColor, borderRadius: "4px",
+                                }}
+                                onMouseEnter={toggleHeadingBackgroundColor}
+                                onMouseLeave={toggleHeadingBackgroundColor}
                             >
                                 Про АПИ ключ
                             </p>

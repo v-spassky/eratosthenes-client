@@ -8,7 +8,7 @@ import HomeScreen from "./pages/HomeScreen.js";
 import NoMatchScreen from "./pages/NoMatchScreen.js";
 import PlayScreen from "./pages/PlayScreen.js";
 
-function App() {
+export default function App() {
     const prevApiKeyRef = useRef("UNSET");
 
     return (
@@ -35,5 +35,3 @@ function App() {
         </NextUIProvider>
     );
 }
-
-export default App;
