@@ -18,6 +18,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
     const [streetViewPosition, setStreetViewPosition] = useState(defaultStreetViewPosition);
     const mapRef = useRef(null);
     const markersRef = useRef([]);
+    const polyLinesRef = useRef([]);
     const roomStatusRef = useRef("waiting");
     const [progress, setProgress] = useState(0);
     const intervalRef = useRef(null);
@@ -90,6 +91,9 @@ export default function PlayScreen({ prevApiKeyRef }) {
             markersRef.current.forEach((marker) => {
                 marker.setMap(null);
             });
+            polyLinesRef.current.forEach((polyLine) => {
+                polyLine.setMap(null);
+            });
             markersRef.current = [];
             const svgMarker = {
                 path: mapMarkSvg,
@@ -117,6 +121,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 }
             });
             if (roomStatus === "waiting") {
+                mapRef.current.setCenter({ lat: 0.0, lng: 0.0 });
+                mapRef.current.setZoom(1);
                 markersRef.current.push(
                     new window.google.maps.Marker({
                         position: streetViewPosition,
@@ -126,6 +132,18 @@ export default function PlayScreen({ prevApiKeyRef }) {
                         username: "host",
                     })
                 );
+                markersRef.current.forEach((marker) => {
+                    polyLinesRef.current.push(
+                        new window.google.maps.Polyline({
+                            path: [streetViewPosition, marker.position],
+                            geodesic: true,
+                            strokeColor: "#0070F0",
+                            strokeOpacity: 1.0,
+                            strokeWeight: 2,
+                            map: mapRef.current,
+                        })
+                    );
+                });
             }
         }
     }, [users, roomStatus]);
