@@ -213,9 +213,9 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     socketRef.current.send(JSON.stringify(payload));
                     return 0;
                 }
-                return prevProgress - 0.5;
+                return prevProgress - 1;
             });
-        }, 500);
+        }, 1000);
     }
 
     const fetchUsers = (retryCount) => {
@@ -389,9 +389,9 @@ export default function PlayScreen({ prevApiKeyRef }) {
                                 roomStatusRef.current = "waiting";
                                 return 0;
                             }
-                            return prevProgress - 0.5;
+                            return prevProgress - 1;
                         });
-                    }, 500);
+                    }, 1000);
                     break;
                 }
                 case "gameFinished": {
