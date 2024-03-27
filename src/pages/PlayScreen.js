@@ -173,7 +173,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
         socketRef.current.send(JSON.stringify(payload));
         intervalRef.current = setInterval(() => {
             setProgress(prevProgress => {
-                if (prevProgress === 5) {
+                if (prevProgress === 1) {
                     const username = localStorage.getItem("username");
                     let found = false;
                     let markerToSubmit = null;
@@ -213,34 +213,9 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     socketRef.current.send(JSON.stringify(payload));
                     return 0;
                 }
-                return prevProgress - 1;
+                return prevProgress - 0.5;
             });
-        }, 1000 * 1);
-    }
-
-    function handleConfirmAnswer() {
-        const username = localStorage.getItem("username");
-        let found = false;
-        let markerToSubmit = null;
-        markersRef.current.forEach((marker) => {
-            if (marker.username === username) {
-                found = true;
-                markerToSubmit = marker;
-            }
-        });
-        if (found) {
-            const payload = {
-                username: username,
-                lat: markerToSubmit.position.lat().toString(),
-                lng: markerToSubmit.position.lng().toString(),
-            }
-            fetch(
-                `${process.env.REACT_APP_SERVER_ORIGIN}/submit-guess/${id}`,
-                { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }
-            );
-        } else {
-            // TODO: show error
-        }
+        }, 500);
     }
 
     const fetchUsers = (retryCount) => {
@@ -376,7 +351,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     setProgress(100);
                     intervalRef.current = setInterval(() => {
                         setProgress(prevProgress => {
-                            if (prevProgress === 5) {
+                            if (prevProgress === 1) {
                                 const username = localStorage.getItem("username");
                                 let found = false;
                                 let markerToSubmit = null;
@@ -414,9 +389,9 @@ export default function PlayScreen({ prevApiKeyRef }) {
                                 roomStatusRef.current = "waiting";
                                 return 0;
                             }
-                            return prevProgress - 1;
+                            return prevProgress - 0.5;
                         });
-                    }, 1000 * 1);
+                    }, 500);
                     break;
                 }
                 case "gameFinished": {
@@ -543,7 +518,6 @@ export default function PlayScreen({ prevApiKeyRef }) {
                         mapRef={mapRef}
                         markersRef={markersRef}
                         roomStatusRef={roomStatusRef}
-                        handleConfirmAnswer={handleConfirmAnswer}
                         streetViewRef={streetViewRef}
                     />
                 </Panel>

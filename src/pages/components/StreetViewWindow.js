@@ -11,7 +11,7 @@ import Map from "./Map.js";
 export default function StreetViewWindow(
     {
         prevApiKeyRef, showStartGameButton, handleStartGame, progress, mapRef, markersRef, roomStatusRef,
-        handleConfirmAnswer, streetViewRef,
+        streetViewRef,
     }
 ) {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -28,7 +28,6 @@ export default function StreetViewWindow(
                 <Map
                     mapRef={mapRef}
                     markersRef={markersRef}
-                    handleConfirmAnswer={handleConfirmAnswer}
                     roomStatusRef={roomStatusRef}
                 />
                 <div style={{

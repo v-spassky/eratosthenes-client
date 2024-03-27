@@ -1,9 +1,6 @@
-import { Button, Tooltip } from "@nextui-org/react";
-import { FaCheck } from "react-icons/fa6";
-
 import GoogleMap from "../../utils/maps/GoogleMap.js";
 
-export default function Map({ mapRef, markersRef, handleConfirmAnswer, roomStatusRef }) {
+export default function Map({ mapRef, markersRef, roomStatusRef }) {
     return (
         <div
             id="map"
@@ -13,18 +10,6 @@ export default function Map({ mapRef, markersRef, handleConfirmAnswer, roomStatu
             }}
         >
             <GoogleMap mapRef={mapRef} markersRef={markersRef} roomStatusRef={roomStatusRef}/>
-            {roomStatusRef.current === "playing" &&
-                <Tooltip content="Подтвердить ответ">
-                    <Button
-                        onClick={handleConfirmAnswer}
-                        isIconOnly
-                        color="primary"
-                        style={{ position: "absolute", bottom: "5px", right: "5px" }}
-                    >
-                        <FaCheck />
-                    </Button>
-                </Tooltip>
-            }
         </div>
     );
 }
