@@ -64,7 +64,7 @@ export default function Map({ mapRef, markersRef, roomStatusRef }) {
             <div
                 style={{
                     position: "absolute", top: "6px", left: "6px", width: "20px", height: "20px", zIndex: 2,
-                    backgroundColor: "blue", borderRadius: "100px", cursor: "se-resize", display: "flex",
+                    backgroundColor: "#0070F0", borderRadius: "100px", cursor: "se-resize", display: "flex",
                     justifyContent: "center", alignItems: "center",
                 }}
                 onMouseDown={handleMouseDown}
