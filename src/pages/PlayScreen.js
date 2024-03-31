@@ -26,6 +26,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
     const socketRef = useRef(null);
     const { id } = useParams();
     const navigate = useNavigate();
+    const [connectionIsOk, setConnectionIsOk] = useState(false);
 
     async function mustShowStartGameButton(roomId) {
         return (roomStatus === "waiting") && await userIsHost(roomId);
@@ -254,6 +255,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
         socketRef.current = new WebSocket(`${process.env.REACT_APP_WS_SERVER_ORIGIN}/chat/${id}`);
         socketRef.current.onopen = () => {
             console.log("WebSocket connection established.");
+            setConnectionIsOk(true);
             if (isReconnect) {
                 const payload = {
                     type: "userReConnected",
@@ -268,6 +270,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
         socketRef.current.onclose = () => {
             console.log("WebSocket connection closed.");
             console.log("Current URL path:", window.location.pathname);
+            setConnectionIsOk(false);
             if (window.location.pathname === `/room/${id}`) {
                 console.log("Reconnecting to WebSocket in 1 second.");
                 setTimeout(() => connectToSocket(true), 1000);
@@ -277,6 +280,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
             console.error("WebSocket error: ", error);
             console.log("Closing WebSocket connection...");
             socketRef.current.close();
+            setConnectionIsOk(false);
             if (window.location.pathname === `/room/${id}`) {
                 console.log("Reconnecting to WebSocket in 1 second.");
                 setTimeout(() => connectToSocket(true), 1000);
@@ -531,7 +535,13 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 </Panel>
                 <PanelResizeHandle style={{ width: "1px", backgroundColor: "gray" }} />
                 <Panel defaultSize={30} minSize={10}>
-                    <SidePane socketRef={socketRef} messages={messages} setMessages={setMessages} users={users} />
+                    <SidePane
+                        socketRef={socketRef}
+                        messages={messages}
+                        setMessages={setMessages}
+                        users={users}
+                        connectionIsOk={connectionIsOk}
+                    />
                 </Panel>
             </PanelGroup>
         </div >

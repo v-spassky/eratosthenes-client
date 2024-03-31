@@ -1,14 +1,33 @@
 import { Textarea } from "@nextui-org/react";
+import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
+import { FaWifi } from "react-icons/fa6";
 
 import reallyBigScrollValuePx from "../../constants/reallyBigScrollValue.js";
 import randomChatPrompt from "../../utils/randomChatPrompt.js";
 
-export default function Chat({ socketRef, messages, setMessages }) {
+export default function Chat({ socketRef, messages, setMessages, connectionIsOk }) {
     const [message, setMessage] = useState("");
     const [chatPrompt, setPrompt] = useState(randomChatPrompt());
     const textInputIsFocused = useRef(false);
     const chatContainerRef = useRef(null);
+    const { theme, _setTheme } = useTheme();
+
+    const statusBarText = connectionIsOk ? "Соединение работает нормально." : "Соединение потеряно.";
+
+    function statusBarBgColor() {
+        let statusBarColor;
+        if (!connectionIsOk && theme === "light") {
+            statusBarColor = "rgb(252, 165, 165)";
+        } else if (!connectionIsOk && theme === "dark") {
+            statusBarColor = "rgb(220, 38, 38)";
+        } else if (connectionIsOk && theme === "light") {
+            statusBarColor = "#F4F4F5";
+        } else if (connectionIsOk && theme === "dark") {
+            statusBarColor = "#27272A";
+        }
+        return statusBarColor;
+    }
 
     useEffect(() => {
         setTimeout(() => {
@@ -59,31 +78,42 @@ export default function Chat({ socketRef, messages, setMessages }) {
         <div
             id="chat"
             style={{
-                display: "flex", flexDirection: "column", justifyContent: "flex-end", height: "100%", padding: 10,
-                paddingRight: 20, overflow: "hidden",
+                display: "flex", flexDirection: "column", justifyContent: "flex-end", height: "100%",
+                overflow: "hidden",
             }}
         >
-            <div
-                id="chat-container"
-                ref={chatContainerRef}
-                style={{ flex: "1 1 auto", overflowY: "auto" }}
-            >
-                {messages.map(message => (
-                    <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word" }}>
-                        <span style={{ fontWeight: "bold" }}>{message.author}:</span> {message.content}
-                    </div>
-                ))}
+            <div style={{ padding: 10 }}>
+                <div
+                    id="chat-container"
+                    ref={chatContainerRef}
+                    style={{ flex: "1 1 auto", overflowY: "auto" }}
+                >
+                    {messages.map(message => (
+                        <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word" }}>
+                            <span style={{ fontWeight: "bold" }}>{message.author}:</span> {message.content}
+                        </div>
+                    ))}
+                </div>
+                <Textarea
+                    name="message"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder={chatPrompt}
+                    style={{ height: "100px" }}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => (textInputIsFocused.current = true)}
+                    onBlur={() => (textInputIsFocused.current = false)}
+                />
             </div>
-            <Textarea
-                name="message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder={chatPrompt}
-                style={{ height: "100px" }}
-                onKeyDown={handleKeyDown}
-                onFocus={() => (textInputIsFocused.current = true)}
-                onBlur={() => (textInputIsFocused.current = false)}
-            />
+            <div
+                style={{
+                    height: "14px", backgroundColor: statusBarBgColor(), display: "flex", flexDirection: "row",
+                    alignItems: "center", justifyContent: "center", gap: "4px",
+                }}
+            >
+                <FaWifi style={{ height: "10px" }} />
+                <span style={{ fontSize: "10px" }}>{statusBarText}</span>
+            </div>
         </div>
     );
 }
