@@ -171,6 +171,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
         setProgress(100);
         const payload = { type: "gameStarted", payload: null };
         socketRef.current.send(JSON.stringify(payload));
+        const gameStartedNotification = new Audio("game_started_notification.wav");
+        gameStartedNotification.play();
         intervalRef.current = setInterval(() => {
             setProgress(prevProgress => {
                 if (prevProgress === 1) {
@@ -211,6 +213,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     roomStatusRef.current = "waiting";
                     const payload = { type: "gameFinished", payload: null };
                     socketRef.current.send(JSON.stringify(payload));
+                    const gameFinishedNotification = new Audio("game_finished_notification.wav");
+                    gameFinishedNotification.play();
                     return 0;
                 }
                 return prevProgress - 1;
@@ -349,6 +353,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     setRoomStatus("playing");
                     roomStatusRef.current = "playing";
                     setProgress(100);
+                    const gameStartedNotification = new Audio("game_started_notification.wav");
+                    gameStartedNotification.play();
                     intervalRef.current = setInterval(() => {
                         setProgress(prevProgress => {
                             if (prevProgress === 1) {
@@ -399,6 +405,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     setRoomStatus("waiting");
                     roomStatusRef.current = "waiting";
                     setProgress(0);
+                    const gameFinishedNotification = new Audio("game_finished_notification.wav");
+                    gameFinishedNotification.play();
                     fetchUsers(20);
                     break;
                 }
