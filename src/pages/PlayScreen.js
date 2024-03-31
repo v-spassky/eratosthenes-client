@@ -37,7 +37,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
             type: "userDisconnected",
             payload: {
                 username: localStorage.getItem("username"),
-                avatarEmoji: localStorage.getItem("selectedEmoji"),
+                avatarEmoji: localStorage.getItem("selectedEmoji") || "",
             },
         }
         socketRef.current.send(JSON.stringify(payload));
@@ -114,7 +114,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                                 lng: user.lastGuess.lng,
                             },
                             map: mapRef.current,
-                            label: user.avatarEmoji,
+                            label: user.avatarEmoji || user.name.slice(0, 3),
                             icon: svgMarker,
                             username: user.name,
                         }))
@@ -480,7 +480,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 type: "userConnected",
                 payload: {
                     username: localStorage.getItem("username"),
-                    avatarEmoji: localStorage.getItem("selectedEmoji"),
+                    avatarEmoji: localStorage.getItem("selectedEmoji") || "",
                 },
             }
             waitForSocketConnection(socketRef.current, () => {
@@ -495,7 +495,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 type: "userDisconnected",
                 payload: {
                     username: localStorage.getItem("username"),
-                    avatarEmoji: localStorage.getItem("selectedEmoji"),
+                    avatarEmoji: localStorage.getItem("selectedEmoji") || "",
                 },
             }
             socketRef.current.send(JSON.stringify(payload));

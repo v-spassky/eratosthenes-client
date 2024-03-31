@@ -35,7 +35,7 @@ export default function GoogleMap({ mapRef, markersRef, roomStatusRef }) {
                 new window.google.maps.Marker({
                     position: location,
                     map: mapRef.current,
-                    label: localStorage.getItem("selectedEmoji"),
+                    label: localStorage.getItem("selectedEmoji") || localStorage.getItem("username").slice(0, 3),
                     icon: svgMarker,
                     username: username,
                 })
