@@ -12,6 +12,7 @@ export default function GoogleStreetView({ streetViewRef }) {
                 position: defaultStreetViewPosition,
                 pov: { heading: 0, pitch: 0 },
                 zoom: 1,
+                showRoadLabels: false,
             });
         }
     }, [streetViewContainerRef]);
