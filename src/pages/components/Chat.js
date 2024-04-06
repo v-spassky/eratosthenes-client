@@ -82,18 +82,18 @@ export default function Chat({ socketRef, messages, setMessages, connectionIsOk 
                 overflow: "hidden",
             }}
         >
-            <div style={{ padding: 10 }}>
-                <div
-                    id="chat-container"
-                    ref={chatContainerRef}
-                    style={{ flex: "1 1 auto", overflowY: "auto" }}
-                >
-                    {messages.map(message => (
-                        <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word" }}>
-                            <span style={{ fontWeight: "bold" }}>{message.author}:</span> {message.content}
-                        </div>
-                    ))}
-                </div>
+            <div
+                id="chat-container"
+                ref={chatContainerRef}
+                style={{ padding: "10px", flex: "1 1 auto", overflowY: "auto" }}
+            >
+                {messages.map(message => (
+                    <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word" }}>
+                        <span style={{ fontWeight: "bold" }}>{message.author}:</span> {message.content}
+                    </div>
+                ))}
+            </div>
+            <div style={{ padding: "10px", paddingTop: "0px" }}>
                 <Textarea
                     name="message"
                     value={message}
