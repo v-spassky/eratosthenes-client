@@ -53,7 +53,18 @@ export default function HomeScreen() {
                 if (response.ok) {
                     const data = await response.json();
                     if (!data.canConnect) {
-                        toast.error("Такая комната не найдена", {
+                        let errMsg = "";
+                        switch (data.reason) {
+                            case "Room not found.":
+                                errMsg = "Такая комната не найдена";
+                                break;
+                            case "Such user already in the room.":
+                                errMsg = "Кто-то с таким именем уже есть в комнате";
+                                break;
+                            default:
+                                errMsg = "Ой, почему-то не получилось подключиться к комнате";
+                        }
+                        toast.error(errMsg, {
                             position: "bottom-left",
                             autoClose: 2000,
                             hideProgressBar: true,

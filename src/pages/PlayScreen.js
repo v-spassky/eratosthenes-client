@@ -455,9 +455,11 @@ export default function PlayScreen({ prevApiKeyRef }) {
                             case "Room not found.":
                                 errMsg = "Такая комната не найдена";
                                 break;
-                            // TODO: be more precise here
-                            default:
+                            case "Such user already in the room.":
                                 errMsg = "Кто-то с таким именем уже есть в комнате";
+                                break;
+                            default:
+                                errMsg = "Ой, почему-то не получилось подключиться к комнате";
                         }
                         navigate("/");
                         toast.error(errMsg, {
