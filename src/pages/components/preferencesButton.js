@@ -3,10 +3,20 @@ import {
     TableRow,
 } from "@nextui-org/react";
 import { useTheme } from "next-themes";
+import { useState } from "react";
 import { FaBrush, FaMoon, FaSun } from "react-icons/fa6";
+import { VscMusic, VscMute } from "react-icons/vsc";
+
+import { soundsAreMuted, toggleMute} from "../../utils/sounds.js";
 
 export default function PreferencesButton() {
     const { theme, setTheme } = useTheme();
+    const [isMuted, setIsMuted] = useState(soundsAreMuted());
+
+    function onSoundSettingsChange() {
+        toggleMute();
+        setIsMuted(soundsAreMuted());
+    }
 
     return <Popover placement={"top-start"}>
         <PopoverTrigger>
@@ -35,6 +45,20 @@ export default function PreferencesButton() {
                                 endContent={<FaMoon />}
                                 isSelected={theme === "dark"}
                                 onValueChange={() => setTheme(theme === "dark" ? "light" : "dark")}
+                            >
+                            </Switch>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>
+                            Громко или тихо
+                        </TableCell>
+                        <TableCell>
+                            <Switch
+                                startContent={<VscMusic />}
+                                endContent={<VscMute />}
+                                isSelected={isMuted}
+                                onValueChange={onSoundSettingsChange}
                             >
                             </Switch>
                         </TableCell>

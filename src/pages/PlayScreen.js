@@ -6,6 +6,10 @@ import { Slide, toast } from "react-toastify";
 import userIsHost from "../api/userIsHost.js";
 import defaultStreetViewPosition from "../constants/defaultStreetViewPosition.js";
 import mapMarkSvg from "../constants/mapMarkSvg.js";
+import {
+    playGameFinishedNotification, playGameStartedNotification, playNewMessageNotification,
+    playUserConnectedNotification, playUserDisconnectedNotification,
+} from "../utils/sounds.js";
 import waitForSocketConnection from "../utils/waitForSocketConnection.js";
 import SidePane from "./components/SidePane.js";
 import StreetViewWindow from "./components/StreetViewWindow.js";
@@ -172,8 +176,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
         setProgress(100);
         const payload = { type: "gameStarted", payload: null };
         socketRef.current.send(JSON.stringify(payload));
-        const gameStartedNotification = new Audio("game_started_notification.wav");
-        gameStartedNotification.play();
+        playGameStartedNotification();
         intervalRef.current = setInterval(() => {
             setProgress(prevProgress => {
                 if (prevProgress === 1) {
@@ -214,8 +217,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     roomStatusRef.current = "waiting";
                     const payload = { type: "gameFinished", payload: null };
                     socketRef.current.send(JSON.stringify(payload));
-                    const gameFinishedNotification = new Audio("game_finished_notification.wav");
-                    gameFinishedNotification.play();
+                    playGameFinishedNotification();
                     return 0;
                 }
                 return prevProgress - 1;
@@ -290,8 +292,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
             const message = JSON.parse(event.data);
             switch (message.type) {
                 case "chatMessage": {
-                    const newMessageSound = new Audio("new_message_notification.wav");
-                    newMessageSound.play();
+                    playNewMessageNotification();
                     setMessages(
                         messages => [
                             ...messages, { id: 1, author: message.payload.from, content: message.payload.content }
@@ -304,8 +305,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                         .then(response => response.json())
                         .then(data => {
                             if (!data.error) {
-                                const userConnectedSound = new Audio("user_connected_notification.wav");
-                                userConnectedSound.play();
+                                playUserConnectedNotification();
                                 setUsers(data.users.map(user => {
                                     return {
                                         name: user.name,
@@ -331,8 +331,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                         .then(response => response.json())
                         .then(data => {
                             if (!data.error) {
-                                const userDisconnectedSound = new Audio("user_disconnected_notification.wav");
-                                userDisconnectedSound.play();
+                                playUserDisconnectedNotification();
                                 setUsers(data.users.map(user => {
                                     return {
                                         name: user.name,
@@ -357,8 +356,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     setRoomStatus("playing");
                     roomStatusRef.current = "playing";
                     setProgress(100);
-                    const gameStartedNotification = new Audio("game_started_notification.wav");
-                    gameStartedNotification.play();
+                    playGameStartedNotification();
                     intervalRef.current = setInterval(() => {
                         setProgress(prevProgress => {
                             if (prevProgress === 1) {
@@ -409,8 +407,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     setRoomStatus("waiting");
                     roomStatusRef.current = "waiting";
                     setProgress(0);
-                    const gameFinishedNotification = new Audio("game_finished_notification.wav");
-                    gameFinishedNotification.play();
+                    playGameFinishedNotification();
                     fetchUsers(20);
                     break;
                 }
