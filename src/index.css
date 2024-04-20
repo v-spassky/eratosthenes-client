@@ -18,8 +18,9 @@ body {
   outline: 2px solid rgb(0, 112, 240);
 }
 
-#userAvatar:hover {
+#userAvatar {
   transition: transform .2s;
+  transform: scale(1);
 }
 
 #userAvatar:hover {
