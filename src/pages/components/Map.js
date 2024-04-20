@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaArrowRightArrowLeft } from "react-icons/fa6";
 
 import GoogleMap from "../../utils/maps/GoogleMap.js";
@@ -50,6 +50,15 @@ export default function Map({ mapRef, markersRef, roomStatusRef }) {
         localStorage.setItem("mapHeight", mapHeight);
     };
 
+    useEffect(() => {
+        window.addEventListener("mousemove", handleMouseMove);
+        window.addEventListener("mouseup", handleMouseUp);
+        return () => {
+            window.removeEventListener("mousemove", handleMouseMove);
+            window.removeEventListener("mouseup", handleMouseUp);
+        };
+    }, [resizing]);
+
     return (
         <div
             id="map"
@@ -57,8 +66,6 @@ export default function Map({ mapRef, markersRef, roomStatusRef }) {
                 position: "absolute", bottom: "20px", right: "20px", width: mapWidth, height: mapHeight, zIndex: 1,
                 borderRadius: "10px", overflow: "hidden",
             }}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
         >
             <GoogleMap mapRef={mapRef} markersRef={markersRef} roomStatusRef={roomStatusRef} />
             <div
