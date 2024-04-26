@@ -1,9 +1,10 @@
+import { canConnectToRoom, getUsersOfRoom, submitGuess, userIsHost } from "api/http.js";
+import { getUsername } from "local_storage/storage.js";
 import { useEffect, useRef, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { useNavigate, useParams } from "react-router-dom";
 import { Slide, toast } from "react-toastify";
 
-import userIsHost from "../api/userIsHost.js";
 import defaultStreetViewPosition from "../constants/defaultStreetViewPosition.js";
 import mapMarkSvg from "../constants/mapMarkSvg.js";
 import {
@@ -22,6 +23,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
     const [streetViewPosition, setStreetViewPosition] = useState(defaultStreetViewPosition);
     const mapRef = useRef(null);
     const markersRef = useRef([]);
+    const userGuessRef = useRef(null);
     const polyLinesRef = useRef([]);
     const roomStatusRef = useRef("waiting");
     const [progress, setProgress] = useState(0);
@@ -100,6 +102,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 polyLine.setMap(null);
             });
             markersRef.current = [];
+            polyLinesRef.current = [];
             const svgMarker = {
                 path: mapMarkSvg,
                 fillColor: "#0070F0",
@@ -126,6 +129,10 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 }
             });
             if (roomStatus === "waiting") {
+                if (userGuessRef.current !== null) {
+                    userGuessRef.current.setMap(null);
+                }
+                userGuessRef.current = null;
                 mapRef.current.setCenter({ lat: 0.0, lng: 0.0 });
                 mapRef.current.setZoom(1);
                 markersRef.current.push(
@@ -180,32 +187,10 @@ export default function PlayScreen({ prevApiKeyRef }) {
         intervalRef.current = setInterval(() => {
             setProgress(prevProgress => {
                 if (prevProgress === 1) {
-                    const username = localStorage.getItem("username");
-                    let found = false;
-                    let markerToSubmit = null;
-                    markersRef.current.forEach((marker) => {
-                        if (marker.username === username) {
-                            found = true;
-                            markerToSubmit = marker;
-                        }
-                    });
-                    if (found) {
-                        const payload = {
-                            username: username,
-                            lat: markerToSubmit.position.lat().toString(),
-                            lng: markerToSubmit.position.lng().toString(),
-                        }
-                        const submitGuess = async () => {
-                            await fetch(
-                                `${process.env.REACT_APP_SERVER_ORIGIN}/submit-guess/${id}`,
-                                {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify(payload),
-                                }
-                            );
-                        }
-                        submitGuess();
+                    if (userGuessRef.current !== null) {
+                        const lat = userGuessRef.current.position.lat().toString();
+                        const lng = userGuessRef.current.position.lng().toString();
+                        submitGuess(lat, lng, id);
                     } else {
                         console.error("User marker not found.");
                         // TODO: show error
@@ -215,8 +200,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     clearInterval(intervalRef.current);
                     setRoomStatus("waiting");
                     roomStatusRef.current = "waiting";
-                    const payload = { type: "gameFinished", payload: null };
-                    socketRef.current.send(JSON.stringify(payload));
+                    // const payload = { type: "gameFinished", payload: null };
+                    // socketRef.current.send(JSON.stringify(payload));
                     playGameFinishedNotification();
                     return 0;
                 }
@@ -225,36 +210,36 @@ export default function PlayScreen({ prevApiKeyRef }) {
         }, 1000);
     }
 
-    const fetchUsers = (retryCount) => {
-        fetch(`${process.env.REACT_APP_SERVER_ORIGIN}/users-of-room/${id}`)
-            .then(response => response.json())
-            .then(data => {
-                if (!data.error) {
-                    const roomHasCurrentUser = data.users.find(user => user.name === localStorage.getItem("username"));
-                    if (roomHasCurrentUser) {
-                        setUsers(data.users.map(user => ({
-                            name: user.name,
-                            avatarEmoji: user.avatarEmoji,
-                            score: user.score,
-                            isHost: user.isHost,
-                            description: user.description,
-                            lastGuess: user.lastGuess,
-                        })));
-                        if (data.status.type === "playing") {
-                            setStreetViewPosition(data.status.currentLocation);
-                        }
-                    } else if (retryCount > 0) {
-                        setTimeout(() => fetchUsers(retryCount - 1), 500);
-                    }
-                }
-            })
-            .catch(error => {
-                console.error("Error fetching users:", error);
-            });
+    const fetchUsers = async (retryCount) => {
+        const usersResp = await getUsersOfRoom(id);
+        // TODO: is it ok to compare by name? Maybe I should compare by some kind of public id?
+        // At least I must ensure that the username is unique per room.
+        const roomHasCurrentUser = usersResp.users.find(user => user.name === getUsername());
+        if (roomHasCurrentUser) {
+            setUsers(usersResp.users.map(user => ({
+                name: user.name,
+                avatarEmoji: user.avatarEmoji,
+                score: user.score,
+                isHost: user.isHost,
+                description: user.description,
+                lastGuess: user.lastGuess,
+            })));
+            if (usersResp.status.type === "playing") {
+                setStreetViewPosition(usersResp.status.currentLocation);
+                setRoomStatus("playing");
+                roomStatusRef.current = "playing";
+            } else if (usersResp.status.type === "waiting") {
+                setStreetViewPosition(usersResp.status.previousLocation);
+                setRoomStatus("waiting");
+                roomStatusRef.current = "waiting";
+            }
+        } else if (retryCount > 0) {
+            setTimeout(async () => await fetchUsers(retryCount - 1), 500);
+        }
     };
 
     function connectToSocket(isReconnect) {
-        socketRef.current = new WebSocket(`${process.env.REACT_APP_WS_SERVER_ORIGIN}/chat/${id}`);
+        socketRef.current = new WebSocket(`${process.env.REACT_APP_WS_SERVER_ORIGIN}/chat/${id}?user_id=${localStorage.getItem("userId")}`);
         socketRef.current.onopen = () => {
             console.log("WebSocket connection established.");
             setConnectionIsOk(true);
@@ -288,7 +273,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 setTimeout(() => connectToSocket(true), 1000);
             }
         }
-        socketRef.current.onmessage = (event) => {
+        socketRef.current.onmessage = async (event) => {
             const message = JSON.parse(event.data);
             switch (message.type) {
                 case "chatMessage": {
@@ -301,55 +286,39 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     break;
                 }
                 case "userConnected": {
-                    fetch(`${process.env.REACT_APP_SERVER_ORIGIN}/users-of-room/${id}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (!data.error) {
-                                playUserConnectedNotification();
-                                setUsers(data.users.map(user => {
-                                    return {
-                                        name: user.name,
-                                        avatarEmoji: user.avatarEmoji,
-                                        score: user.score,
-                                        isHost: user.isHost,
-                                        description: user.description,
-                                        lastGuess: user.lastGuess,
-                                    };
-                                }));
-                                if (data.status.type === "playing") {
-                                    setStreetViewPosition(data.status.currentLocation);
-                                }
-                            }
-                        })
-                        .catch(error => {
-                            console.error("Error fetching users:", error);
-                        });
+                    playUserConnectedNotification();
+                    const usersResp = await getUsersOfRoom(id);
+                    setUsers(usersResp.users.map(user => {
+                        return {
+                            name: user.name,
+                            avatarEmoji: user.avatarEmoji,
+                            score: user.score,
+                            isHost: user.isHost,
+                            description: user.description,
+                            lastGuess: user.lastGuess,
+                        };
+                    }));
+                    if (usersResp.status.type === "playing") {
+                        setStreetViewPosition(usersResp.status.currentLocation);
+                    }
                     break;
                 }
                 case "userDisconnected": {
-                    fetch(`${process.env.REACT_APP_SERVER_ORIGIN}/users-of-room/${id}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (!data.error) {
-                                playUserDisconnectedNotification();
-                                setUsers(data.users.map(user => {
-                                    return {
-                                        name: user.name,
-                                        avatarEmoji: user.avatarEmoji,
-                                        score: user.score,
-                                        isHost: user.isHost,
-                                        description: user.description,
-                                        lastGuess: user.lastGuess,
-                                    };
-                                }));
-                                if (data.status.type === "playing") {
-                                    setStreetViewPosition(data.status.currentLocation);
-                                }
-                            }
-                        })
-                        .catch(error => {
-                            console.error("Error fetching users:", error);
-                        });
+                    playUserDisconnectedNotification();
+                    const usersResp = await getUsersOfRoom(id);
+                    setUsers(usersResp.users.map(user => {
+                        return {
+                            name: user.name,
+                            avatarEmoji: user.avatarEmoji,
+                            score: user.score,
+                            isHost: user.isHost,
+                            description: user.description,
+                            lastGuess: user.lastGuess,
+                        };
+                    }));
+                    if (usersResp.status.type === "playing") {
+                        setStreetViewPosition(usersResp.status.currentLocation);
+                    }
                     break;
                 }
                 case "gameStarted": {
@@ -360,32 +329,10 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     intervalRef.current = setInterval(() => {
                         setProgress(prevProgress => {
                             if (prevProgress === 1) {
-                                const username = localStorage.getItem("username");
-                                let found = false;
-                                let markerToSubmit = null;
-                                markersRef.current.forEach((marker) => {
-                                    if (marker.username === username) {
-                                        found = true;
-                                        markerToSubmit = marker;
-                                    }
-                                });
-                                if (found) {
-                                    const payload = {
-                                        username: username,
-                                        lat: markerToSubmit.position.lat().toString(),
-                                        lng: markerToSubmit.position.lng().toString(),
-                                    }
-                                    const submitGuess = async () => {
-                                        await fetch(
-                                            `${process.env.REACT_APP_SERVER_ORIGIN}/submit-guess/${id}`,
-                                            {
-                                                method: "POST",
-                                                headers: { "Content-Type": "application/json" },
-                                                body: JSON.stringify(payload),
-                                            }
-                                        );
-                                    }
-                                    submitGuess();
+                                if (userGuessRef.current !== null) {
+                                    const lat = userGuessRef.current.position.lat().toString();
+                                    const lng = userGuessRef.current.position.lng().toString();
+                                    submitGuess(lat, lng, id);
                                 } else {
                                     console.error("User marker not found.");
                                     // TODO: show error
@@ -415,6 +362,19 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     break;
                 case "pong":
                     break;
+                case "tick":
+                    setProgress(message.payload);
+                    if (message.payload === 1) {
+                        if (userGuessRef.current !== null) {
+                            const lat = userGuessRef.current.position.lat().toString();
+                            const lng = userGuessRef.current.position.lng().toString();
+                            submitGuess(lat, lng, id);
+                        } else {
+                            console.error("User marker not found.");
+                            // TODO: show error
+                        }
+                    }
+                    break;
                 default:
                     console.error(`Unknown message type: ${message.type}`);
             }
@@ -442,44 +402,31 @@ export default function PlayScreen({ prevApiKeyRef }) {
             return;
         }
         const fetchData = async () => {
-            try {
-                const response = await fetch(
-                    `${process.env.REACT_APP_SERVER_ORIGIN}/can-connect/${id}?username=${username}`,
-                    { method: "GET" },
-                );
-                if (response.ok) {
-                    const data = await response.json();
-                    if (!data.canConnect) {
-                        let errMsg = "";
-                        switch (data.reason) {
-                            case "Room not found.":
-                                errMsg = "Такая комната не найдена";
-                                break;
-                            case "Such user already in the room.":
-                                errMsg = "Кто-то с таким именем уже есть в комнате";
-                                break;
-                            default:
-                                errMsg = "Ой, почему-то не получилось подключиться к комнате";
-                        }
-                        navigate("/");
-                        toast.error(errMsg, {
-                            position: "bottom-left",
-                            autoClose: 2000,
-                            hideProgressBar: true,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            theme: "light",
-                            transition: Slide,
-                        });
-                        return;
-                    }
-                } else {
-                    console.error("Failed to connect to room", response.statusText);
+            const canConnectResp = await canConnectToRoom(id);
+            if (!canConnectResp.canConnect) {
+                let errMsg = "";
+                switch (canConnectResp.reason) {
+                    case "Room not found.":
+                        errMsg = "Такая комната не найдена";
+                        break;
+                    case "Such user already in the room.":
+                        errMsg = "Кто-то с таким именем уже есть в комнате";
+                        break;
+                    default:
+                        errMsg = "Ой, почему-то не получилось подключиться к комнате";
                 }
-            } catch (error) {
-                console.error("Error connecting to room:", error.message);
+                navigate("/");
+                toast.error(errMsg, {
+                    position: "bottom-left",
+                    autoClose: 2000,
+                    hideProgressBar: true,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "light",
+                    transition: Slide,
+                });
             }
         };
         fetchData();
@@ -527,9 +474,9 @@ export default function PlayScreen({ prevApiKeyRef }) {
                         handleStartGame={handleStartGame}
                         progress={progress}
                         mapRef={mapRef}
-                        markersRef={markersRef}
                         roomStatusRef={roomStatusRef}
                         streetViewRef={streetViewRef}
+                        userGuessRef={userGuessRef}
                     />
                 </Panel>
                 <PanelResizeHandle style={{ width: "1px", backgroundColor: "gray" }} />

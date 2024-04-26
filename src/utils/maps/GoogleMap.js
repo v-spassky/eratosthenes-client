@@ -5,7 +5,7 @@ import mapMarkSvg from "../../constants/mapMarkSvg.js";
 const mapDefaultCenter = { lat: 0.0, lng: 0.0 };
 const mapDefaultZoom = 1;
 
-export default function GoogleMap({ mapRef, markersRef, roomStatusRef }) {
+export default function GoogleMap({ mapRef, roomStatusRef, userGuessRef }) {
     const mapContainerRef = useRef(null);
 
     function setUserMarker(location) {
@@ -13,34 +13,27 @@ export default function GoogleMap({ mapRef, markersRef, roomStatusRef }) {
             return;
         }
         const username = localStorage.getItem("username");
-        let found = false;
-        markersRef.current.forEach((marker) => {
-            if (marker.username === username) {
-                marker.setPosition(location);
-                found = true;
-            }
-        });
-        if (!found) {
-            const svgMarker = {
-                path: mapMarkSvg,
-                fillColor: "#0070F0",
-                fillOpacity: 1,
-                strokeWeight: 0,
-                rotation: 0,
-                scale: 2,
-                anchor: new window.google.maps.Point(0, 20),
-                labelOrigin: new window.google.maps.Point(0, 7),
-            };
-            markersRef.current.push(
-                new window.google.maps.Marker({
-                    position: location,
-                    map: mapRef.current,
-                    label: localStorage.getItem("selectedEmoji") || localStorage.getItem("username").slice(0, 3),
-                    icon: svgMarker,
-                    username: username,
-                })
-            );
+        if (userGuessRef.current !== null) {
+            userGuessRef.current.setPosition(location);
+            return;
         }
+        const svgMarker = {
+            path: mapMarkSvg,
+            fillColor: "#0070F0",
+            fillOpacity: 1,
+            strokeWeight: 0,
+            rotation: 0,
+            scale: 2,
+            anchor: new window.google.maps.Point(0, 20),
+            labelOrigin: new window.google.maps.Point(0, 7),
+        };
+        userGuessRef.current = new window.google.maps.Marker({
+            position: location,
+            map: mapRef.current,
+            label: localStorage.getItem("selectedEmoji") || localStorage.getItem("username").slice(0, 3),
+            icon: svgMarker,
+            username: username,
+        });
     }
 
     useEffect(() => {

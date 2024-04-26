@@ -10,7 +10,7 @@ const maxMapHeight = 800;
 const minMapWidth = 200;
 const minMapHeight = 150;
 
-export default function Map({ mapRef, markersRef, roomStatusRef }) {
+export default function Map({ mapRef, roomStatusRef, userGuessRef }) {
     const [resizing, setResizing] = useState(false);
     const [initialX, setInitialX] = useState(0);
     const [initialY, setInitialY] = useState(0);
@@ -67,7 +67,7 @@ export default function Map({ mapRef, markersRef, roomStatusRef }) {
                 borderRadius: "10px", overflow: "hidden",
             }}
         >
-            <GoogleMap mapRef={mapRef} markersRef={markersRef} roomStatusRef={roomStatusRef} />
+            <GoogleMap mapRef={mapRef} roomStatusRef={roomStatusRef} userGuessRef={userGuessRef} />
             <div
                 style={{
                     position: "absolute", top: "6px", left: "6px", width: "20px", height: "20px", zIndex: 2,

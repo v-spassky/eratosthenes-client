@@ -2,6 +2,7 @@ import {
     Accordion, AccordionItem, Avatar, Button, Divider, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input,
     Modal, ModalBody, ModalContent, ModalHeader, useDisclosure,
 } from "@nextui-org/react";
+import { canConnectToRoom, createRoom } from "api/http.js";
 import { useTheme } from "next-themes";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -45,64 +46,39 @@ export default function HomeScreen() {
                 transition: Slide,
             });
         } else {
-            try {
-                const response = await fetch(
-                    `${process.env.REACT_APP_SERVER_ORIGIN}/can-connect/${targetRoomID}?username=${username}`,
-                    { method: "GET" },
-                );
-                if (response.ok) {
-                    const data = await response.json();
-                    if (!data.canConnect) {
-                        let errMsg = "";
-                        switch (data.reason) {
-                            case "Room not found.":
-                                errMsg = "Такая комната не найдена";
-                                break;
-                            case "Such user already in the room.":
-                                errMsg = "Кто-то с таким именем уже есть в комнате";
-                                break;
-                            default:
-                                errMsg = "Ой, почему-то не получилось подключиться к комнате";
-                        }
-                        toast.error(errMsg, {
-                            position: "bottom-left",
-                            autoClose: 2000,
-                            hideProgressBar: true,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            theme: "light",
-                            transition: Slide,
-                        });
-                        return;
-                    }
-                    navigate(`/room/${targetRoomID}`);
-                } else {
-                    console.error("Failed to create room:", response.statusText);
+            const canConnectResp = await canConnectToRoom(targetRoomID);
+            if (!canConnectResp.canConnect) {
+                let errMsg = "";
+                switch (canConnectResp.reason) {
+                    case "Room not found.":
+                        errMsg = "Такая комната не найдена";
+                        break;
+                    case "Such user already in the room.":
+                        errMsg = "Кто-то с таким именем уже есть в комнате";
+                        break;
+                    default:
+                        errMsg = "Ой, почему-то не получилось подключиться к комнате";
                 }
-            } catch (error) {
-                console.error("Error creating room:", error.message);
+                toast.error(errMsg, {
+                    position: "bottom-left",
+                    autoClose: 2000,
+                    hideProgressBar: true,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "light",
+                    transition: Slide,
+                });
+                return;
             }
+            navigate(`/room/${targetRoomID}`);
         }
     };
 
     const handleCreateRoom = async () => {
-        try {
-            const response = await fetch(
-                `${process.env.REACT_APP_SERVER_ORIGIN}/create-room`,
-                { method: "POST", headers: { "Content-Type": "application/json" } }
-            );
-            if (response.ok) {
-                const data = await response.json();
-                const roomId = data.roomId;
-                navigate(`/room/${roomId}`);
-            } else {
-                console.error("Failed to create room:", response.statusText);
-            }
-        } catch (error) {
-            console.error("Error creating room:", error.message);
-        }
+        const roomId = await createRoom();
+        navigate(`/room/${roomId}`);
     };
 
     const handleEmojiSelect = (emoji, onClose) => {
