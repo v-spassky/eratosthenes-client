@@ -111,7 +111,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 strokeWeight: 0,
                 rotation: 0,
                 scale: 2,
-                anchor: new window.google.maps.Point(0, 20),
+                anchor: new window.google.maps.Point(0, 19),
                 labelOrigin: new window.google.maps.Point(0, 7),
             };
             users.forEach(user => {
