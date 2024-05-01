@@ -16,7 +16,7 @@ function medalOfIndex(index) {
     }
 }
 
-export default function UserList({ users }) {
+export default function UserList({ users, showLastRoundScore }) {
     const { theme, _setTheme } = useTheme();
     const chipBackground = theme === "light" ? "rgb(242, 244, 245)" : "rgb(75 85 99)";
 
@@ -43,7 +43,15 @@ export default function UserList({ users }) {
                         }
                         <TableCell style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>{user.name}</TableCell>
                         <TableCell style={{ whiteSpace: "nowrap" }}>
-                            <Chip style={{ background: chipBackground }}>{user.score}</Chip>
+                            <Badge
+                                content={`+${user.lastRoundScore}`}
+                                color="primary"
+                                size="md"
+                                placement="bottom-right"
+                                isInvisible={!showLastRoundScore}
+                            >
+                                <Chip style={{ background: chipBackground }}>{user.score}</Chip>
+                            </Badge>
                             <span style={{ marginLeft: "3px" }} ></span>
                             {medalOfIndex(index) !== ""
                                 && <Chip style={{ background: chipBackground }}>

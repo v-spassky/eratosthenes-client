@@ -18,6 +18,7 @@ import StreetViewWindow from "./components/StreetViewWindow.js";
 export default function PlayScreen({ prevApiKeyRef }) {
     const [messages, setMessages] = useState([]);
     const [users, setUsers] = useState([]);
+    const [showLastRoundScore, setShowLastRoundScore] = useState(false);
     const [roomStatus, setRoomStatus] = useState("waiting");
     const streetViewRef = useRef(null);
     const [streetViewPosition, setStreetViewPosition] = useState(defaultStreetViewPosition);
@@ -223,6 +224,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 isHost: user.isHost,
                 description: user.description,
                 lastGuess: user.lastGuess,
+                lastRoundScore: user.lastRoundScore,
             })));
             if (usersResp.status.type === "playing") {
                 setStreetViewPosition(usersResp.status.currentLocation);
@@ -356,6 +358,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     setProgress(0);
                     playGameFinishedNotification();
                     fetchUsers(20);
+                    setShowLastRoundScore(true);
+                    setTimeout(() => setShowLastRoundScore(false), 5000);
                     break;
                 }
                 case "ping":
@@ -487,6 +491,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                         setMessages={setMessages}
                         users={users}
                         connectionIsOk={connectionIsOk}
+                        showLastRoundScore={showLastRoundScore}
                     />
                 </Panel>
             </PanelGroup>
