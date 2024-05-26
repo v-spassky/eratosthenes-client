@@ -1,4 +1,4 @@
-import { getUserId, getUsername,setUserId } from "local_storage/storage.js";
+import { getUserId, getUsername,setUserId } from "localStorage/storage.js";
 
 const origin = process.env.REACT_APP_SERVER_ORIGIN;
 
@@ -18,7 +18,6 @@ export async function userIsHost(roomId) {
 
 export async function createRoom() {
     const userId = getUserId();
-    // TODO: maybe remove `Content-Type` header?
     return await fetch(
         `${origin}/create-room/?user_id=${userId}`,
         { method: "POST", headers: { "Content-Type": "application/json" } },
@@ -42,6 +41,17 @@ export async function submitGuess(lat, lng, roomId) {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
+        }
+    );
+}
+
+export async function revokeGuess(roomId) {
+    const userId = getUserId();
+    await fetch(
+        `${origin}/revoke-guess/${roomId}?user_id=${userId}`,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
         }
     );
 }

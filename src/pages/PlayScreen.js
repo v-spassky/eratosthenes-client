@@ -1,5 +1,5 @@
-import { canConnectToRoom, getUsersOfRoom, submitGuess, userIsHost } from "api/http.js";
-import { getUsername } from "local_storage/storage.js";
+import { canConnectToRoom, getUsersOfRoom, revokeGuess, submitGuess, userIsHost } from "api/http.js";
+import { getUsername } from "localStorage/storage.js";
 import { useEffect, useRef, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { useNavigate, useParams } from "react-router-dom";
@@ -25,6 +25,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
     const mapRef = useRef(null);
     const markersRef = useRef([]);
     const userGuessRef = useRef(null);
+    const [submittedGuess, setSubmittedGuess] = useState(false);
+    const submittedGuessRef = useRef(false);
     const polyLinesRef = useRef([]);
     const roomStatusRef = useRef("waiting");
     const [progress, setProgress] = useState(0);
@@ -114,22 +116,22 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 anchor: new window.google.maps.Point(0, 19),
                 labelOrigin: new window.google.maps.Point(0, 7),
             };
-            users.forEach(user => {
-                if (user.lastGuess) {
-                    markersRef.current.push(
-                        new window.google.maps.Marker({
-                            position: {
-                                lat: user.lastGuess.lat,
-                                lng: user.lastGuess.lng,
-                            },
-                            map: mapRef.current,
-                            label: user.avatarEmoji || user.name.slice(0, 3),
-                            icon: svgMarker,
-                            username: user.name,
-                        }))
-                }
-            });
             if (roomStatus === "waiting") {
+                users.forEach(user => {
+                    if (user.lastGuess) {
+                        markersRef.current.push(
+                            new window.google.maps.Marker({
+                                position: {
+                                    lat: user.lastGuess.lat,
+                                    lng: user.lastGuess.lng,
+                                },
+                                map: mapRef.current,
+                                label: user.avatarEmoji || user.name.slice(0, 3),
+                                icon: svgMarker,
+                                username: user.name,
+                            }))
+                    }
+                });
                 if (userGuessRef.current !== null) {
                     userGuessRef.current.setMap(null);
                 }
@@ -179,6 +181,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
         if (intervalRef.current !== null) {
             clearInterval(intervalRef.current);
         }
+        setSubmittedGuess(false);
+        submittedGuessRef.current = false;
         setRoomStatus("playing");
         roomStatusRef.current = "playing";
         setProgress(100);
@@ -224,6 +228,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 isHost: user.isHost,
                 description: user.description,
                 lastGuess: user.lastGuess,
+                submittedGuess: user.submittedGuess,
                 lastRoundScore: user.lastRoundScore,
             })));
             if (usersResp.status.type === "playing") {
@@ -298,6 +303,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
                             isHost: user.isHost,
                             description: user.description,
                             lastGuess: user.lastGuess,
+                            submittedGuess: user.submittedGuess,
+                            lastRoundScore: user.lastRoundScore,
                         };
                     }));
                     if (usersResp.status.type === "playing") {
@@ -316,6 +323,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
                             isHost: user.isHost,
                             description: user.description,
                             lastGuess: user.lastGuess,
+                            submittedGuess: user.submittedGuess,
+                            lastRoundScore: user.lastRoundScore,
                         };
                     }));
                     if (usersResp.status.type === "playing") {
@@ -326,6 +335,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 case "gameStarted": {
                     setRoomStatus("playing");
                     roomStatusRef.current = "playing";
+                    setSubmittedGuess(false);
+                    submittedGuessRef.current = false;
                     setProgress(100);
                     playGameStartedNotification();
                     intervalRef.current = setInterval(() => {
@@ -355,11 +366,14 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     clearInterval(intervalRef.current);
                     setRoomStatus("waiting");
                     roomStatusRef.current = "waiting";
+                    setSubmittedGuess(false);
+                    submittedGuessRef.current = false;
                     setProgress(0);
                     playGameFinishedNotification();
                     fetchUsers(20);
                     setShowLastRoundScore(true);
-                    setTimeout(() => setShowLastRoundScore(false), 5000);
+                    setSubmittedGuess(false);
+                    setTimeout(() => setShowLastRoundScore(false), 10000);
                     break;
                 }
                 case "ping":
@@ -379,6 +393,38 @@ export default function PlayScreen({ prevApiKeyRef }) {
                         }
                     }
                     break;
+                case "guessSubmitted": {
+                    const usersResp = await getUsersOfRoom(id);
+                    setUsers(usersResp.users.map(user => {
+                        return {
+                            name: user.name,
+                            avatarEmoji: user.avatarEmoji,
+                            score: user.score,
+                            isHost: user.isHost,
+                            description: user.description,
+                            lastGuess: user.lastGuess,
+                            submittedGuess: user.submittedGuess,
+                            lastRoundScore: user.lastRoundScore,
+                        };
+                    }));
+                    break;
+                }
+                case "guessRevoked": {
+                    const usersResp = await getUsersOfRoom(id);
+                    setUsers(usersResp.users.map(user => {
+                        return {
+                            name: user.name,
+                            avatarEmoji: user.avatarEmoji,
+                            score: user.score,
+                            isHost: user.isHost,
+                            description: user.description,
+                            lastGuess: user.lastGuess,
+                            submittedGuess: user.submittedGuess,
+                            lastRoundScore: user.lastRoundScore,
+                        };
+                    }));
+                    break;
+                }
                 default:
                     console.error(`Unknown message type: ${message.type}`);
             }
@@ -468,6 +514,25 @@ export default function PlayScreen({ prevApiKeyRef }) {
         };
     }, [navigate, id]);
 
+    function handleConfirmAnswer() {
+        console.log("submittedGuess[handleConfirmAnswer]: ", submittedGuess);
+        if (userGuessRef.current === null) {
+            console.error("User marker not found.");
+        }
+        const lat = userGuessRef.current.position.lat().toString();
+        const lng = userGuessRef.current.position.lng().toString();
+        submitGuess(lat, lng, id);
+        setSubmittedGuess(true);
+        submittedGuessRef.current = true;
+    }
+
+    function handleRevokeAnswer() {
+        console.log("submittedGuess[handleConfirmAnswer]: ", submittedGuess);
+        revokeGuess(id);
+        setSubmittedGuess(false);
+        submittedGuessRef.current = false;
+    }
+
     return (
         <div id="playScreen" style={{ height: "100vh", display: "flex", flexDirection: "row" }}>
             <PanelGroup autoSaveId="persistence" direction="horizontal">
@@ -481,6 +546,9 @@ export default function PlayScreen({ prevApiKeyRef }) {
                         roomStatusRef={roomStatusRef}
                         streetViewRef={streetViewRef}
                         userGuessRef={userGuessRef}
+                        handleConfirmAnswer={handleConfirmAnswer}
+                        handleRevokeAnswer={handleRevokeAnswer}
+                        submittedGuessRef={submittedGuessRef}
                     />
                 </Panel>
                 <PanelResizeHandle style={{ width: "1px", backgroundColor: "gray" }} />

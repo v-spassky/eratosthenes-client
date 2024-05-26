@@ -11,7 +11,7 @@ import Map from "./Map.js";
 export default function StreetViewWindow(
     {
         prevApiKeyRef, showStartGameButton, handleStartGame, progress, mapRef, roomStatusRef, streetViewRef,
-        userGuessRef,
+        userGuessRef, handleConfirmAnswer, handleRevokeAnswer, submittedGuessRef,
     }
 ) {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -25,7 +25,14 @@ export default function StreetViewWindow(
         <div id="streetViewWindow" style={{ height: "100%", flexGrow: 1, position: "relative" }}>
             <GoogleMapsWrapper prevApiKeyRef={prevApiKeyRef}>
                 <GoogleStreetView streetViewRef={streetViewRef} />
-                <Map mapRef={mapRef} roomStatusRef={roomStatusRef} userGuessRef={userGuessRef} />
+                <Map
+                    mapRef={mapRef}
+                    roomStatusRef={roomStatusRef}
+                    userGuessRef={userGuessRef}
+                    handleConfirmAnswer={handleConfirmAnswer}
+                    handleRevokeAnswer={handleRevokeAnswer}
+                    submittedGuessRef={submittedGuessRef}
+                />
                 <div style={{
                     position: "absolute", bottom: "10px", left: "10px", zIndex: 1, display: "flex",
                     flexDirection: "column", gap: "6px",

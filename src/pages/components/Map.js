@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { FaArrowRightArrowLeft } from "react-icons/fa6";
+import { Button, Tooltip } from "@nextui-org/react";
+import { FaCheck } from "react-icons/fa6";
+import { FaArrowRotateLeft } from "react-icons/fa6";
 
 import GoogleMap from "../../utils/maps/GoogleMap.js";
 
@@ -10,7 +13,9 @@ const maxMapHeight = 800;
 const minMapWidth = 200;
 const minMapHeight = 150;
 
-export default function Map({ mapRef, roomStatusRef, userGuessRef }) {
+export default function Map(
+    { mapRef, roomStatusRef, userGuessRef, handleConfirmAnswer, handleRevokeAnswer, submittedGuessRef }
+) {
     const [resizing, setResizing] = useState(false);
     const [initialX, setInitialX] = useState(0);
     const [initialY, setInitialY] = useState(0);
@@ -59,6 +64,35 @@ export default function Map({ mapRef, roomStatusRef, userGuessRef }) {
         };
     }, [resizing]);
 
+    const confirmGuessBtn = () => {
+        if (userGuessRef.current === null) {
+            return <Tooltip content="Подтвердить ответ">
+                <Button
+                    isDisabled
+                    onClick={handleConfirmAnswer}
+                    isIconOnly
+                    color="primary"
+                    style={{ position: "absolute", bottom: "5px", right: "5px" }}
+                >
+                    <FaCheck />
+                </Button>
+            </Tooltip>;
+        }
+        const btnIcon = submittedGuessRef.current ? <FaArrowRotateLeft /> : <FaCheck />;
+        const btnTooltip = submittedGuessRef.current ? "Отменить ответ" : "Подтвердить ответ";
+        const btnOnClick = submittedGuessRef.current ? handleRevokeAnswer : handleConfirmAnswer;
+        return <Tooltip content={btnTooltip}>
+            <Button
+                onClick={btnOnClick}
+                isIconOnly
+                color="primary"
+                style={{ position: "absolute", bottom: "5px", right: "5px" }}
+            >
+                {btnIcon}
+            </Button>
+        </Tooltip>;
+    }
+
     return (
         <div
             id="map"
@@ -67,7 +101,13 @@ export default function Map({ mapRef, roomStatusRef, userGuessRef }) {
                 borderRadius: "10px", overflow: "hidden",
             }}
         >
-            <GoogleMap mapRef={mapRef} roomStatusRef={roomStatusRef} userGuessRef={userGuessRef} />
+            <GoogleMap
+                mapRef={mapRef}
+                roomStatusRef={roomStatusRef}
+                userGuessRef={userGuessRef}
+                submittedGuessRef={submittedGuessRef}
+            />
+            {roomStatusRef.current === "playing" && confirmGuessBtn()}
             <div
                 style={{
                     position: "absolute", top: "6px", left: "6px", width: "20px", height: "20px", zIndex: 2,

@@ -20,6 +20,28 @@ export default function UserList({ users, showLastRoundScore }) {
     const { theme, _setTheme } = useTheme();
     const chipBackground = theme === "light" ? "rgb(242, 244, 245)" : "rgb(75 85 99)";
 
+    function getUserAvatarCell(user) {
+        let avatar = <Avatar name={user.avatarEmoji} style={{ fontSize: "35px" }} />;
+        if (user.submittedGuess) {
+            avatar = <Badge
+                content="✔"
+                color="success"
+                size="sm"
+                placement="bottom-left"
+                shape="circle"
+                style={{ color: "white" }}
+            >
+                {avatar}
+            </Badge>;
+        }
+        if (user.isHost) {
+            avatar = <Badge content="host" color="danger" size="sm">
+                {avatar}
+            </Badge>;
+        }
+        return <TableCell style={{ fontWeight: "bold" }}>{avatar}</TableCell>;
+    }
+
     return <div id="userList" style={{ height: "100%", flexGrow: 1, overflowX: "hidden" }}>
         <Table removeWrapper hideHeader aria-label="List of users in the room">
             <TableHeader>
@@ -31,16 +53,7 @@ export default function UserList({ users, showLastRoundScore }) {
             <TableBody>
                 {users.map((user, index) => (
                     <TableRow key={user.name}>
-                        {user.isHost
-                            ? <TableCell style={{ fontWeight: "bold" }}>
-                                <Badge content="host" color="danger" size="sm">
-                                    <Avatar name={user.avatarEmoji} style={{ fontSize: "35px" }} />
-                                </Badge>
-                            </TableCell>
-                            : <TableCell style={{ fontWeight: "bold" }}>
-                                <Avatar name={user.avatarEmoji} style={{ fontSize: "35px" }} />
-                            </TableCell>
-                        }
+                        {getUserAvatarCell(user)}
                         <TableCell style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>{user.name}</TableCell>
                         <TableCell style={{ whiteSpace: "nowrap" }}>
                             <Badge

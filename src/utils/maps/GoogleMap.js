@@ -5,11 +5,16 @@ import mapMarkSvg from "../../constants/mapMarkSvg.js";
 const mapDefaultCenter = { lat: 0.0, lng: 0.0 };
 const mapDefaultZoom = 1;
 
-export default function GoogleMap({ mapRef, roomStatusRef, userGuessRef }) {
+export default function GoogleMap({ mapRef, roomStatusRef, userGuessRef, submittedGuessRef }) {
     const mapContainerRef = useRef(null);
 
     function setUserMarker(location) {
         if (roomStatusRef.current !== "playing") {
+            console.log("returning bc mode in not playing");
+            return;
+        }
+        if (submittedGuessRef.current) {
+            console.log("returning bc submittedGuessRef.current");
             return;
         }
         const username = localStorage.getItem("username");
