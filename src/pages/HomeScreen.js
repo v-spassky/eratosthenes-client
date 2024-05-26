@@ -3,13 +3,13 @@ import {
     Modal, ModalBody, ModalContent, ModalHeader, useDisclosure,
 } from "@nextui-org/react";
 import { canConnectToRoom, createRoom } from "api/http.js";
+import avatarEmojis from "constants/avatarEmojis";
+import maxUsernameLength from "constants/maxUsernameLength.js";
 import { useTheme } from "next-themes";
+import PreferencesButton from "pages/components/preferencesButton.js";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Slide, toast } from "react-toastify";
-
-import avatarEmojis from "../constants/avatarEmojis";
-import PreferencesButton from "./components/preferencesButton.js";
 
 export default function HomeScreen() {
     const location = useLocation();
@@ -25,7 +25,17 @@ export default function HomeScreen() {
     const { theme, _setTheme } = useTheme();
 
     const apiKeyIsValid = apiKey.trim() !== "";
-    const usernameIsValid = username.trim() !== "";
+    const [usernameIsValid, usernameErrorMsg] = checkUsername();
+
+    function checkUsername() {
+        if (username.trim() === "") {
+            return [false, "Юзернейм не может быть пустым."];
+        }
+        if (username.length >= maxUsernameLength) {
+            return [false, "Юзернейм слишком длинный."];
+        }
+        return [true, null];
+    }
 
     function toggleHeadingBackgroundColor() {
         const bgColor = theme === "light" ? "rgb(243, 244, 246)" : "rgb(63, 63, 70)";
@@ -55,6 +65,9 @@ export default function HomeScreen() {
                         break;
                     case "Such user already in the room.":
                         errMsg = "Кто-то с таким именем уже есть в комнате";
+                        break;
+                    case "The username is too long.":
+                        errMsg = "Говорят что твой юзернейм слишком длинный, попробуй покороче.";
                         break;
                     default:
                         errMsg = "Ой, почему-то не получилось подключиться к комнате";
@@ -137,6 +150,21 @@ export default function HomeScreen() {
         }
     }
 
+    function usernameErrorMsgDecorator() {
+        return <div
+            style={{
+                height: usernameIsValid ? 0 : "20px",
+                overflow: "hidden",
+                transition: "height 0.3s ease",
+                color: "red",
+                fontSize: "12px",
+                marginTop: "5px",
+            }}
+        >
+            {usernameErrorMsg}
+        </div>;
+    }
+
     return (
         <div
             id="homeScreen"
@@ -157,29 +185,19 @@ export default function HomeScreen() {
                             onClick={onOpen}
                         />
                     </div>
-                    {usernameIsValid
-                        ? <Input
-                            isRequired
-                            label="Юзернейм"
-                            placeholder="Как к тебе обращаться?"
-                            value={username}
-                            onChange={(e) => {
-                                localStorage.setItem("username", e.target.value);
-                                setUsername(e.target.value);
-                            }}
-                        />
-                        : <Input
-                            isRequired
-                            isInvalid
-                            label="Юзернейм"
-                            placeholder="Как к тебе обращаться?"
-                            value={username}
-                            onChange={(e) => {
-                                localStorage.setItem("username", e.target.value);
-                                setUsername(e.target.value);
-                            }}
-                        />
-                    }
+
+                    <Input
+                        isRequired
+                        isInvalid={!usernameIsValid}
+                        errorMessage={usernameErrorMsgDecorator()}
+                        label="Юзернейм"
+                        placeholder="Как к тебе обращаться?"
+                        value={username}
+                        onChange={(e) => {
+                            localStorage.setItem("username", e.target.value);
+                            setUsername(e.target.value);
+                        }}
+                    />
                 </div>
                 <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "16px" }}>
                     <p>Что делаем с АПИ ключом?</p>

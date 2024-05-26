@@ -1,10 +1,10 @@
 import { Textarea } from "@nextui-org/react";
+import maxMessageLength from "constants/maxMessageLength.js"
+import reallyBigScrollValuePx from "constants/reallyBigScrollValue.js";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 import { FaWifi } from "react-icons/fa6";
-
-import reallyBigScrollValuePx from "../../constants/reallyBigScrollValue.js";
-import randomChatPrompt from "../../utils/randomChatPrompt.js";
+import randomChatPrompt from "utils/randomChatPrompt.js";
 
 export default function Chat({ socketRef, messages, setMessages, connectionIsOk }) {
     const [message, setMessage] = useState("");
@@ -12,8 +12,8 @@ export default function Chat({ socketRef, messages, setMessages, connectionIsOk 
     const textInputIsFocused = useRef(false);
     const chatContainerRef = useRef(null);
     const { theme, _setTheme } = useTheme();
-
     const statusBarText = connectionIsOk ? "Соединение работает нормально." : "Соединение потеряно.";
+    const messageLengthIsValid = message.length <= maxMessageLength;
 
     function statusBarBgColor() {
         let statusBarColor;
@@ -50,11 +50,8 @@ export default function Chat({ socketRef, messages, setMessages, connectionIsOk 
         }
     }, [messages]);
 
-    const handleSendMessage = (event) => {
+    function handleSendMessage(event) {
         event.preventDefault();
-        if (message.trim() === "") {
-            return;
-        }
         const payload = {
             type: "chatMessage",
             payload: {
@@ -66,13 +63,27 @@ export default function Chat({ socketRef, messages, setMessages, connectionIsOk 
         setMessages([...messages, { id: 1, author: "я", content: message }]);
         setMessage("");
         setPrompt(randomChatPrompt());
-    };
+    }
 
-    const handleKeyDown = (event) => {
-        if (event.key === "Enter" && textInputIsFocused.current && message.trim() !== "") {
+    function handleKeyDown(event) {
+        if (event.key === "Enter" && textInputIsFocused.current && message.trim() !== "" && messageLengthIsValid) {
             handleSendMessage(event);
         }
-    };
+    }
+
+    const messageLengthErrorMsg =
+        <div
+            style={{
+                height: messageLengthIsValid ? 0 : "20px",
+                overflow: "hidden",
+                transition: "height 0.3s ease",
+                color: "red",
+                fontSize: "12px",
+                marginTop: "5px",
+            }}
+        >
+            Сообщение слишком длинное.
+        </div>;
 
     return (
         <div
@@ -93,7 +104,7 @@ export default function Chat({ socketRef, messages, setMessages, connectionIsOk 
                     </div>
                 ))}
             </div>
-            <div style={{ padding: "10px", paddingTop: "0px" }}>
+            <div style={{ padding: "10px", paddingTop: "0px", paddingBottom: "0px" }}>
                 <Textarea
                     name="message"
                     value={message}
@@ -103,6 +114,8 @@ export default function Chat({ socketRef, messages, setMessages, connectionIsOk 
                     onKeyDown={handleKeyDown}
                     onFocus={() => (textInputIsFocused.current = true)}
                     onBlur={() => (textInputIsFocused.current = false)}
+                    isInvalid={!messageLengthIsValid}
+                    errorMessage={messageLengthErrorMsg}
                 />
             </div>
             <div

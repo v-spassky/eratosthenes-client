@@ -1,6 +1,6 @@
+import { Button, Tooltip } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 import { FaArrowRightArrowLeft } from "react-icons/fa6";
-import { Button, Tooltip } from "@nextui-org/react";
 import { FaCheck } from "react-icons/fa6";
 import { FaArrowRotateLeft } from "react-icons/fa6";
 
