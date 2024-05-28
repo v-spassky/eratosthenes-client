@@ -116,6 +116,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 anchor: new window.google.maps.Point(0, 19),
                 labelOrigin: new window.google.maps.Point(0, 7),
             };
+            mapRef.current.setCenter({ lat: 0.0, lng: 0.0 });
+            mapRef.current.setZoom(1);
             if (roomStatus === "waiting") {
                 users.forEach(user => {
                     if (user.lastGuess) {
@@ -136,8 +138,6 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     userGuessRef.current.setMap(null);
                 }
                 userGuessRef.current = null;
-                mapRef.current.setCenter({ lat: 0.0, lng: 0.0 });
-                mapRef.current.setZoom(1);
                 markersRef.current.push(
                     new window.google.maps.Marker({
                         position: streetViewPosition,
