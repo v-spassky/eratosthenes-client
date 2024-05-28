@@ -22,6 +22,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
     const [roomStatus, setRoomStatus] = useState("waiting");
     const streetViewRef = useRef(null);
     const [streetViewPosition, setStreetViewPosition] = useState(defaultStreetViewPosition);
+    const streetViewInitialized = useRef(false);
     const mapRef = useRef(null);
     const markersRef = useRef([]);
     const userGuessRef = useRef(null);
@@ -116,8 +117,6 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 anchor: new window.google.maps.Point(0, 19),
                 labelOrigin: new window.google.maps.Point(0, 7),
             };
-            mapRef.current.setCenter({ lat: 0.0, lng: 0.0 });
-            mapRef.current.setZoom(1);
             if (roomStatus === "waiting") {
                 users.forEach(user => {
                     if (user.lastGuess) {
@@ -165,12 +164,24 @@ export default function PlayScreen({ prevApiKeyRef }) {
 
     useEffect(() => {
         fetchUsers(20);
+        if (mapRef.current) {
+            mapRef.current.setCenter({ lat: 0.0, lng: 0.0 });
+            mapRef.current.setZoom(1);
+        }
     }, [roomStatus]);
 
     useEffect(() => {
         if (streetViewRef.current) {
-            const newPosition = new window.google.maps.LatLng(streetViewPosition);
-            streetViewRef.current.setPosition(newPosition);
+            if (!streetViewInitialized.current) {
+                const newPosition = new window.google.maps.LatLng(streetViewPosition);
+                streetViewRef.current.setPosition(newPosition);
+                streetViewInitialized.current = true;
+                return;
+            }
+            if (roomStatus === "playing") {
+                const newPosition = new window.google.maps.LatLng(streetViewPosition);
+                streetViewRef.current.setPosition(newPosition);
+            }
         }
     }, [streetViewPosition]);
 
@@ -307,9 +318,6 @@ export default function PlayScreen({ prevApiKeyRef }) {
                             lastRoundScore: user.lastRoundScore,
                         };
                     }));
-                    if (usersResp.status.type === "playing") {
-                        setStreetViewPosition(usersResp.status.currentLocation);
-                    }
                     break;
                 }
                 case "userDisconnected": {
@@ -327,9 +335,6 @@ export default function PlayScreen({ prevApiKeyRef }) {
                             lastRoundScore: user.lastRoundScore,
                         };
                     }));
-                    if (usersResp.status.type === "playing") {
-                        setStreetViewPosition(usersResp.status.currentLocation);
-                    }
                     break;
                 }
                 case "gameStarted": {
