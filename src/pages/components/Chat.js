@@ -1,10 +1,12 @@
 import { Textarea } from "@nextui-org/react";
 import maxMessageLength from "constants/maxMessageLength.js"
-import reallyBigScrollValuePx from "constants/reallyBigScrollValue.js";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 import { FaWifi } from "react-icons/fa6";
 import randomChatPrompt from "utils/randomChatPrompt.js";
+
+const scrollUpThreshold = 40;
+const scrollBottomPadding = 4;
 
 export default function Chat({ socketRef, messages, setMessages, connectionIsOk }) {
     const [message, setMessage] = useState("");
@@ -14,6 +16,23 @@ export default function Chat({ socketRef, messages, setMessages, connectionIsOk 
     const { theme, _setTheme } = useTheme();
     const statusBarText = connectionIsOk ? "Соединение работает нормально." : "Соединение потеряно.";
     const messageLengthIsValid = message.length <= maxMessageLength;
+
+    useEffect(() => {
+        if (chatContainerRef.current === null) {
+            return;
+        }
+        const chat = chatContainerRef.current;
+        const newMsgHeight = chat.lastElementChild?.offsetHeight || 0;
+        // `scrollUp` represents the number of pixels the user has scrolled up in the chat.
+        // A value of zero means the user is at the bottom of the chat, negative values indicate no scroll.
+        const scrollUp = chat.scrollHeight - chat.clientHeight - chat.scrollTop - scrollBottomPadding - newMsgHeight;
+        if (scrollUp > scrollUpThreshold) {
+            // The user has scrolled up a significant amount. Avoid scrolling to the bottom when a new message arrives
+            // to prevent disturbance.
+            return;
+        }
+        chat.scrollTop = chat.scrollHeight - chat.clientHeight;
+    }, [messages]);
 
     function statusBarBgColor() {
         let statusBarColor;
@@ -28,27 +47,6 @@ export default function Chat({ socketRef, messages, setMessages, connectionIsOk 
         }
         return statusBarColor;
     }
-
-    useEffect(() => {
-        setTimeout(() => {
-            if (chatContainerRef.current !== null) {
-                chatContainerRef.current.scrollTop = reallyBigScrollValuePx;
-            }
-        }, 100);
-    }, []);
-
-    useEffect(() => {
-        if (
-            chatContainerRef.current !== null
-            &&
-            chatContainerRef.current.scrollHeight
-            - chatContainerRef.current.scrollTop
-            - chatContainerRef.current.clientHeight
-            < 50
-        ) {
-            chatContainerRef.current.scrollTop = reallyBigScrollValuePx;
-        }
-    }, [messages]);
 
     function handleSendMessage(event) {
         event.preventDefault();
