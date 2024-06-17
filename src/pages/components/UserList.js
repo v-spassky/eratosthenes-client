@@ -61,7 +61,7 @@ export default function UserList({ users, showLastRoundScore }) {
                                 color="primary"
                                 size="md"
                                 placement="bottom-right"
-                                isInvisible={!showLastRoundScore}
+                                isInvisible={!(showLastRoundScore && user.lastRoundScore !== null)}
                             >
                                 <Chip style={{ background: chipBackground }}>{user.score}</Chip>
                             </Badge>
