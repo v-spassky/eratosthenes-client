@@ -3,6 +3,7 @@ import {
     Modal, ModalBody, ModalContent, ModalHeader, useDisclosure,
 } from "@nextui-org/react";
 import { canConnectToRoom, createRoom } from "api/http.js";
+import useHealth from "hooks/apiHealth.js";
 import avatarEmojis from "constants/avatarEmojis";
 import maxUsernameLength from "constants/maxUsernameLength.js";
 import { useTheme } from "next-themes";
@@ -22,6 +23,7 @@ export default function HomeScreen() {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const navigate = useNavigate();
     const [headingBackgroundColor, setHeadingBackgroundColor] = useState(roomIdFromChat || "");
+    const [healthy, _checkingHealth] = useHealth();
     const { theme, _setTheme } = useTheme();
 
     const apiKeyIsValid = apiKey.trim() !== "";
@@ -317,6 +319,16 @@ export default function HomeScreen() {
             <div style={{ position: "absolute", bottom: "10px", left: "10px", zIndex: 1 }}>
                 <PreferencesButton />
             </div>
+
+            {!healthy &&
+                <div style={{
+                    position: "absolute", bottom: "10px", left: "50%", transform: "translateX(-50%)", zIndex: 1,
+                    color: "red", border: "solid", borderWidth: "1px", borderRadius: "12px", height: "40px",
+                    padding: "12px", display: "flex", justifyContent: "center", alignItems: "center",
+                }}>
+                    Бэкенд недоступен, пока что поиграть не получится.
+                </div>
+            }
 
             <Modal size={"4xl"} isOpen={isOpen} onOpenChange={onOpenChange}>
                 <ModalContent>

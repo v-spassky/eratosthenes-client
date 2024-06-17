@@ -62,3 +62,8 @@ export async function acquireUserId() {
         .then(data => data.userId);
     setUserId(userId);
 }
+
+export async function apiIsHealthy() {
+    const response =  await fetch(`${origin}/healthcheck`);
+    return response.status === 200;
+}
