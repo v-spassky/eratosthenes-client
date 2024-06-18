@@ -18,7 +18,7 @@ export default function CountdownBar({ progress }) {
                 visibility: progressBarVisibility(),
             }}
         >
-            <Progress value={progress} style={{ padding: "10px" }} />
+            <Progress aria-label="Seconds left until round end" value={progress} style={{ padding: "10px" }} />
         </div>
     );
 }

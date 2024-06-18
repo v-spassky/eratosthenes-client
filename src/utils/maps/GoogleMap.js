@@ -10,11 +10,9 @@ export default function GoogleMap({ mapRef, roomStatusRef, userGuessRef, submitt
 
     function setUserMarker(location) {
         if (roomStatusRef.current !== "playing") {
-            console.log("returning bc mode in not playing");
             return;
         }
         if (submittedGuessRef.current) {
-            console.log("returning bc submittedGuessRef.current");
             return;
         }
         const username = localStorage.getItem("username");

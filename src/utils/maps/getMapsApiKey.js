@@ -7,7 +7,7 @@ export default function getMapsApiKey() {
         case "useDefault":
             return process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
         default:
-            console.error(`Unknown apiKeyStrategy: ${localStorage.getItem("apiKeyStrategy")}`);
+            console.error(`[API key]: unknown API key strategy: ${localStorage.getItem("apiKeyStrategy")}`);
             return process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
     }
 }

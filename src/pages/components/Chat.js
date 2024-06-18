@@ -104,6 +104,7 @@ export default function Chat({ socketRef, messages, setMessages, connectionIsOk 
             </div>
             <div style={{ padding: "10px", paddingTop: "0px", paddingBottom: "0px" }}>
                 <Textarea
+                    aria-label="Chat message text"
                     name="message"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}

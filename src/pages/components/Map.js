@@ -68,6 +68,7 @@ export default function Map(
         if (userGuessRef.current === null) {
             return <Tooltip content="Подтвердить ответ">
                 <Button
+                    aria-label="Submit guess"
                     isDisabled
                     onClick={handleConfirmAnswer}
                     isIconOnly
@@ -83,6 +84,7 @@ export default function Map(
         const btnOnClick = submittedGuessRef.current ? handleRevokeAnswer : handleConfirmAnswer;
         return <Tooltip content={btnTooltip}>
             <Button
+                aria-label="Submit or revoke guess"
                 onClick={btnOnClick}
                 isIconOnly
                 color="primary"

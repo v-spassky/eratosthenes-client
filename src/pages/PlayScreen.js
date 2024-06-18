@@ -26,7 +26,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
     const mapRef = useRef(null);
     const markersRef = useRef([]);
     const userGuessRef = useRef(null);
-    const [submittedGuess, setSubmittedGuess] = useState(false);
+    const [_submittedGuess, setSubmittedGuess] = useState(false);
     const submittedGuessRef = useRef(false);
     const polyLinesRef = useRef([]);
     const roomStatusRef = useRef("waiting");
@@ -43,7 +43,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
     }
 
     function handleTabClosing() {
-        console.log("Tab is closing...");
+        console.log("[navigation]: tab is closing...");
         const payload = {
             type: "userDisconnected",
             payload: {
@@ -52,7 +52,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
             },
         }
         socketRef.current.send(JSON.stringify(payload));
-        console.log("Closing WebSocket connection...");
+        console.log("[WS]: closing websocket connection...");
         socketRef.current.close();
     }
 
@@ -209,7 +209,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                         const lng = userGuessRef.current.position.lng().toString();
                         submitGuess(lat, lng, id);
                     } else {
-                        console.error("User marker not found.");
+                        console.error("[map]: user marker not found.");
                         // TODO: show error
                     }
                 }
@@ -260,7 +260,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
     function connectToSocket(isReconnect) {
         socketRef.current = new WebSocket(`${process.env.REACT_APP_WS_SERVER_ORIGIN}/chat/${id}?user_id=${localStorage.getItem("userId")}`);
         socketRef.current.onopen = () => {
-            console.log("WebSocket connection established.");
+            console.log("[WS]: websocket connection established.");
             setConnectionIsOk(true);
             if (isReconnect) {
                 const payload = {
@@ -274,21 +274,21 @@ export default function PlayScreen({ prevApiKeyRef }) {
             }
         };
         socketRef.current.onclose = () => {
-            console.log("WebSocket connection closed.");
-            console.log("Current URL path:", window.location.pathname);
+            console.log("[WS]: websocket connection closed.");
+            console.log(`[navigation]: current URL path: ${window.location.pathname}`);
             setConnectionIsOk(false);
             if (window.location.pathname === `/room/${id}`) {
-                console.log("Reconnecting to WebSocket in 1 second.");
+                console.log("[WS]: reconnecting websocket in 1 second.");
                 setTimeout(() => connectToSocket(true), 1000);
             }
         };
         socketRef.current.onerror = (error) => {
-            console.error("WebSocket error: ", error);
-            console.log("Closing WebSocket connection...");
+            console.error(`[WS]: websocket error: ${error}`);
+            console.log("[WS]: closing websocket connection...");
             socketRef.current.close();
             setConnectionIsOk(false);
             if (window.location.pathname === `/room/${id}`) {
-                console.log("Reconnecting to WebSocket in 1 second.");
+                console.log("[WS]: reconnecting websocket in 1 second.");
                 setTimeout(() => connectToSocket(true), 1000);
             }
         }
@@ -353,7 +353,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                                     const lng = userGuessRef.current.position.lng().toString();
                                     submitGuess(lat, lng, id);
                                 } else {
-                                    console.error("User marker not found.");
+                                    console.error("[map]: user marker not found.");
                                     // TODO: show error
                                 }
                             }
@@ -394,7 +394,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                             const lng = userGuessRef.current.position.lng().toString();
                             submitGuess(lat, lng, id);
                         } else {
-                            console.error("User marker not found.");
+                            console.error("[map]: user marker not found.");
                             // TODO: show error
                         }
                     }
@@ -432,7 +432,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     break;
                 }
                 default:
-                    console.error(`Unknown message type: ${message.type}`);
+                    console.error(`[WS]: unknown message type: ${message.type}`);
             }
         };
         return setInterval(() => {
@@ -524,17 +524,16 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 },
             }
             socketRef.current.send(JSON.stringify(payload));
-            console.log("Closing WebSocket connection...");
+            console.log("[WS]: closing websocket connection...");
             socketRef.current.close();
-            console.log("Clearing ping interval...");
+            console.log("[WS]: clearing ping interval...");
             clearInterval(pingInterval);
         };
     }, [navigate, id]);
 
     function handleConfirmAnswer() {
-        console.log("submittedGuess[handleConfirmAnswer]: ", submittedGuess);
         if (userGuessRef.current === null) {
-            console.error("User marker not found.");
+            console.error("[map]: user marker not found.");
         }
         const lat = userGuessRef.current.position.lat().toString();
         const lng = userGuessRef.current.position.lng().toString();
@@ -544,7 +543,6 @@ export default function PlayScreen({ prevApiKeyRef }) {
     }
 
     function handleRevokeAnswer() {
-        console.log("submittedGuess[handleConfirmAnswer]: ", submittedGuess);
         revokeGuess(id);
         setSubmittedGuess(false);
         submittedGuessRef.current = false;

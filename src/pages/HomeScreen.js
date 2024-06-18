@@ -119,7 +119,7 @@ export default function HomeScreen() {
             case "useDefault":
                 return <p>Используем дефолтный</p>;
             default:
-                console.error("Unknown API key strategy:", strategyKey);
+                console.error(`[API key]: unknown API key strategy: ${strategyKey}`);
                 return <p>Случилось что-то не то... попробуй перезагрузить страницу.</p>;
         }
     }
@@ -147,7 +147,7 @@ export default function HomeScreen() {
                     а поиграть хочется, то не стесняйся использовать эту опцию.
                 </p>;
             default:
-                console.error("Unknown API key strategy:", strategyKey);
+                console.error(`[API key]: unknown API key strategy: ${strategyKey}`);
                 return <p>Нет-нет, это что-то не то!</p>;
         }
     }

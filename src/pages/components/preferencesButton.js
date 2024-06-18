@@ -41,6 +41,7 @@ export default function PreferencesButton() {
                         </TableCell>
                         <TableCell>
                             <Switch
+                                aria-label="Switch between themes"
                                 startContent={<FaSun />}
                                 endContent={<FaMoon />}
                                 isSelected={theme === "dark"}
@@ -55,6 +56,7 @@ export default function PreferencesButton() {
                         </TableCell>
                         <TableCell>
                             <Switch
+                                aria-label="Whether to play sounds"
                                 startContent={<VscMusic />}
                                 endContent={<VscMute />}
                                 isSelected={isMuted}
