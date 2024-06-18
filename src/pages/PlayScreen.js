@@ -1,4 +1,4 @@
-import { canConnectToRoom, getUsersOfRoom, revokeGuess, submitGuess, userIsHost } from "api/http.js";
+import { canConnectToRoom, getMessagesOfRoom, getUsersOfRoom, revokeGuess, submitGuess, userIsHost } from "api/http.js";
 import { getUsername } from "localStorage/storage.js";
 import { useEffect, useRef, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
@@ -83,6 +83,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
             transition: Slide,
         });
         return () => {
+            // TODO: is this OK that we don't return this in guards?
             window.removeEventListener("unload", handleTabClosing);
         }
     }, []);
@@ -486,6 +487,14 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     transition: Slide,
                 });
             }
+            const messagesResp = await getMessagesOfRoom(id);
+            setMessages(messagesResp.messages.map(message => {
+                return {
+                    id: 1,
+                    author: message.from === getUsername() ? "я" : message.from,
+                    content: message.content,
+                }
+            }));
         };
         fetchData();
 

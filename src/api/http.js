@@ -32,6 +32,12 @@ export async function getUsersOfRoom(roomId) {
         .then(response => response.json());
 }
 
+export async function getMessagesOfRoom(roomId) {
+    const userId = getUserId();
+    return await fetch(`${origin}/messages-of-room/${roomId}?user_id=${userId}`)
+        .then(response => response.json());
+}
+
 export async function submitGuess(lat, lng, roomId) {
     const userId = getUserId();
     const payload = { lat: lat, lng: lng };

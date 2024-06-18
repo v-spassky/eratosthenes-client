@@ -3,9 +3,9 @@ import {
     Modal, ModalBody, ModalContent, ModalHeader, useDisclosure,
 } from "@nextui-org/react";
 import { canConnectToRoom, createRoom } from "api/http.js";
-import useHealth from "hooks/apiHealth.js";
 import avatarEmojis from "constants/avatarEmojis";
 import maxUsernameLength from "constants/maxUsernameLength.js";
+import useHealth from "hooks/apiHealth.js";
 import { useTheme } from "next-themes";
 import PreferencesButton from "pages/components/preferencesButton.js";
 import { useState } from "react";

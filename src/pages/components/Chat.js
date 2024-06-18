@@ -54,7 +54,7 @@ export default function Chat({ socketRef, messages, setMessages, connectionIsOk 
             type: "chatMessage",
             payload: {
                 from: localStorage.getItem("username"),
-                content: message,
+                content: message.replace(/\n/g, "\\n"),
             },
         }
         socketRef.current.send(JSON.stringify(payload));
