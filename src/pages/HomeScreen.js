@@ -1,12 +1,12 @@
 import {
-    Accordion, AccordionItem, Avatar, Button, Divider, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input,
-    Modal, ModalBody, ModalContent, ModalHeader, useDisclosure,
+    Avatar, Button, Divider, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input, Modal, ModalBody,
+    ModalContent, ModalHeader, useDisclosure,
 } from "@nextui-org/react";
 import { canConnectToRoom, createRoom } from "api/http.js";
+import AccordionWithResponsiveBackground from "components/AccordionWithInteractiveBackground.js";
+import HealthcheckFailedWarning from "components/HealthcheckFailedWarning.js";
 import avatarEmojis from "constants/avatarEmojis";
 import maxUsernameLength from "constants/maxUsernameLength.js";
-import useHealth from "hooks/apiHealth.js";
-import { useTheme } from "next-themes";
 import PreferencesButton from "pages/components/preferencesButton.js";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -22,9 +22,6 @@ export default function HomeScreen() {
     const [targetRoomID, setTargetRoomID] = useState(roomIdFromChat || "");
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const navigate = useNavigate();
-    const [headingBackgroundColor, setHeadingBackgroundColor] = useState(roomIdFromChat || "");
-    const [healthy, _checkingHealth] = useHealth();
-    const { theme, _setTheme } = useTheme();
 
     const apiKeyIsValid = apiKey.trim() !== "";
     const [usernameIsValid, usernameErrorMsg] = checkUsername();
@@ -37,11 +34,6 @@ export default function HomeScreen() {
             return [false, "Юзернейм слишком длинный."];
         }
         return [true, null];
-    }
-
-    function toggleHeadingBackgroundColor() {
-        const bgColor = theme === "light" ? "rgb(243, 244, 246)" : "rgb(63, 63, 70)";
-        setHeadingBackgroundColor(headingBackgroundColor === "" ? bgColor : "");
     }
 
     const handleConnectToRoom = async () => {
@@ -261,38 +253,18 @@ export default function HomeScreen() {
                         />
                     )
                 }
-                <Accordion>
-                    <AccordionItem
-                        key="1"
-                        aria-label="Про АПИ ключ"
-                        title={
-                            <p
-                                id="about-api-key-heading"
-                                style={{
-                                    width: "min-content", whiteSpace: "nowrap", padding: "2px 4px 2px 4px",
-                                    backgroundColor: headingBackgroundColor, borderRadius: "4px",
-                                }}
-                                onMouseEnter={toggleHeadingBackgroundColor}
-                                onMouseLeave={toggleHeadingBackgroundColor}
-                            >
-                                Про АПИ ключ
-                            </p>
-                        }
-                    >
-                        <p>
-                            АПИ ключ не обязателен, но если у тебя есть возможность, то используй, пожалуйста, свой
-                            ключ. Вот <a href="https://www.geohub.gg/custom-key-instructions.pdf" target="blank"
-                                style={{ color: "blue", fontStyle: "italic", textDecoration: "underline" }}>
-                                инструкция</a> по созданию и настройке ключа от разработчиков Geohub (требуется гугл
-                            аккаунт с подключённой картой в консоли разработчика).
-                            <br /><br />
-                            Если хочется просто осмотреться, то есть опция не использовать ключ вообще. В этом случае
-                            карта будет с инвертированными цветами.
-                            <br /><br />
-                            АПИ ключ сохраняется только на клиенте и не передаётся на сервер, честное слово. Спасибо!
-                        </p>
-                    </AccordionItem>
-                </Accordion>
+                <AccordionWithResponsiveBackground title="Про АПИ ключ">
+                    АПИ ключ не обязателен, но если у тебя есть возможность, то используй, пожалуйста, свой
+                    ключ. Вот <a href="https://www.geohub.gg/custom-key-instructions.pdf" target="blank"
+                        style={{ color: "blue", fontStyle: "italic", textDecoration: "underline" }}>
+                        инструкция</a> по созданию и настройке ключа от разработчиков Geohub (требуется гугл
+                    аккаунт с подключённой картой в консоли разработчика).
+                    <br /><br />
+                    Если хочется просто осмотреться, то есть опция не использовать ключ вообще. В этом случае
+                    карта будет с инвертированными цветами.
+                    <br /><br />
+                    АПИ ключ сохраняется только на клиенте и не передаётся на сервер, честное слово. Спасибо!
+                </AccordionWithResponsiveBackground>
                 <Divider />
                 <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>Подключиться к существующей комнате</h1>
                 <Input
@@ -320,15 +292,11 @@ export default function HomeScreen() {
                 <PreferencesButton />
             </div>
 
-            {!healthy &&
-                <div style={{
-                    position: "absolute", bottom: "10px", left: "50%", transform: "translateX(-50%)", zIndex: 1,
-                    color: "red", border: "solid", borderWidth: "1px", borderRadius: "12px", height: "40px",
-                    padding: "12px", display: "flex", justifyContent: "center", alignItems: "center",
-                }}>
-                    Бэкенд недоступен, пока что поиграть не получится.
-                </div>
-            }
+            <div
+                style={{ position: "absolute", bottom: "10px", left: "50%", transform: "translateX(-50%)", zIndex: 1 }}
+            >
+                <HealthcheckFailedWarning />
+            </div>
 
             <Modal size={"4xl"} isOpen={isOpen} onOpenChange={onOpenChange}>
                 <ModalContent>

@@ -18,3 +18,11 @@ export function getUserId() {
 export function setUserId(userId) {
     localStorage.setItem("userId", userId);
 }
+
+export function getLastVisitedRoomId() {
+    return localStorage.getItem("lastVisitedRoomId");
+}
+
+export function setLastVisitedRoomId(roomId) {
+    localStorage.setItem("lastVisitedRoomId", roomId);
+}

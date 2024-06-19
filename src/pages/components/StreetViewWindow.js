@@ -1,6 +1,9 @@
-import { Button, Modal, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@nextui-org/react";
+import { Button, Modal, ModalContent, ModalFooter, ModalHeader, Snippet, useDisclosure } from "@nextui-org/react";
+import AccordionWithResponsiveBackground from "components/AccordionWithInteractiveBackground.js";
+import { getLastVisitedRoomId, setLastVisitedRoomId } from "localStorage/storage.js";
+import { useEffect } from "react";
 import { FaArrowRightFromBracket } from "react-icons/fa6";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import GoogleMapsWrapper from "../../utils/maps/GoogleMapsWrapper.js";
 import GoogleStreetView from "../../utils/maps/GoogleStreetView.js";
@@ -14,12 +17,22 @@ export default function StreetViewWindow(
         userGuessRef, handleConfirmAnswer, handleRevokeAnswer, submittedGuessRef,
     }
 ) {
-    const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const leaveGameModal = useDisclosure();
+    const newlyConnectedModal = useDisclosure();
     const navigate = useNavigate();
+    const { id } = useParams();
 
     function handleRoomExit() {
         navigate("/");
     }
+
+    useEffect(() => {
+        if (getLastVisitedRoomId() === id) {
+            return;
+        }
+        setLastVisitedRoomId(id);
+        newlyConnectedModal.onOpen();
+    }, []);
 
     return (
         <div id="streetViewWindow" style={{ height: "100%", flexGrow: 1, position: "relative" }}>
@@ -40,7 +53,7 @@ export default function StreetViewWindow(
                     <PreferencesButton />
                     <Button
                         isIconOnly
-                        onClick={onOpen}
+                        onClick={leaveGameModal.onOpen}
                         color="primary"
                         aria-label="Leave room"
                     >
@@ -66,7 +79,7 @@ export default function StreetViewWindow(
                 </div>
             </GoogleMapsWrapper>
 
-            <Modal size={"sm"} isOpen={isOpen} onOpenChange={onOpenChange}>
+            <Modal size={"sm"} isOpen={leaveGameModal.isOpen} onOpenChange={leaveGameModal.onOpenChange}>
                 <ModalContent>
                     {(onClose) => (
                         <>
@@ -74,6 +87,29 @@ export default function StreetViewWindow(
                             <ModalFooter>
                                 <Button color="primary" onPress={onClose}>Нет...</Button>
                                 <Button color="danger" onPress={handleRoomExit}>Да, и поскорее!</Button>
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
+
+            <Modal size={"2xl"} isOpen={newlyConnectedModal.isOpen} onOpenChange={newlyConnectedModal.onOpenChange}>
+                <ModalContent style={{ padding: "24px" }}>
+                    {(onClose) => (
+                        <>
+                            <ModalHeader style={{ padding: "0px", paddingBottom: "12px" }}>Привет!</ModalHeader>
+                            <p style={{ paddingBottom: "4px" }}>
+                                Вот ссылка по которой сюда можно кого-нибудь пригласить:
+                            </p>
+                            <Snippet symbol="">{window.location.href}</Snippet>
+                            <AccordionWithResponsiveBackground title="А как играть?">
+                                Когда хозяин комнаты начинает игру, на экране появляется стрит вью панорама и таймер
+                                обратного отсчёта. До конца таймера нужно поставить метку на карте внизу справа. После
+                                конца таймера раунд заканчивается и игрокам начисляются очки пропорционально близости их
+                                метки к реальному положению панорамы. И так по кругу.
+                            </AccordionWithResponsiveBackground>
+                            <ModalFooter style={{ padding: "0px", paddingTop: "12px" }}>
+                                <Button color="primary" onPress={onClose}>Понятно.</Button>
                             </ModalFooter>
                         </>
                     )}
