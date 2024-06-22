@@ -3,16 +3,17 @@ import {
     ModalContent, ModalHeader, useDisclosure,
 } from "@nextui-org/react";
 import { canConnectToRoom, createRoom } from "api/http.js";
-import AccordionWithResponsiveBackground from "components/AccordionWithInteractiveBackground.js";
-import HealthcheckFailedWarning from "components/HealthcheckFailedWarning.js";
 import avatarEmojis from "constants/avatarEmojis";
 import maxUsernameLength from "constants/maxUsernameLength.js";
-import PreferencesButton from "pages/components/preferencesButton.js";
+import { showFailedRoomConnectionNotification, showUnsetRoomIdErrorNotification } from "notifications/all.js";
+import HealthcheckFailedWarning from "pages/homeScreen/components/HealthcheckFailedWarning.js";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Slide, toast } from "react-toastify";
+import AccordionWithResponsiveBackground from "sharedComponents/AccordionWithInteractiveBackground.js";
+import PreferencesButton from "sharedComponents/preferencesButton.js";
 
 export default function HomeScreen() {
+    const navigate = useNavigate();
     const location = useLocation();
     const roomIdFromChat = location.state && location.state.roomId;
     const [selectedEmoji, setSelectedEmoji] = useState(localStorage.getItem("selectedEmoji") || "");
@@ -21,7 +22,6 @@ export default function HomeScreen() {
     const [apiKey, setApiKey] = useState(localStorage.getItem("apiKey") || "");
     const [targetRoomID, setTargetRoomID] = useState(roomIdFromChat || "");
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
-    const navigate = useNavigate();
 
     const apiKeyIsValid = apiKey.trim() !== "";
     const [usernameIsValid, usernameErrorMsg] = checkUsername();
@@ -38,46 +38,11 @@ export default function HomeScreen() {
 
     const handleConnectToRoom = async () => {
         if (!targetRoomID.trim()) {
-            toast.error("Введи айди комнаты", {
-                position: "bottom-left",
-                autoClose: 2000,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-                transition: Slide,
-            });
+            showUnsetRoomIdErrorNotification();
         } else {
             const canConnectResp = await canConnectToRoom(targetRoomID);
             if (!canConnectResp.canConnect) {
-                let errMsg = "";
-                switch (canConnectResp.reason) {
-                    case "Room not found.":
-                        errMsg = "Такая комната не найдена";
-                        break;
-                    case "Such user already in the room.":
-                        errMsg = "Кто-то с таким именем уже есть в комнате";
-                        break;
-                    case "The username is too long.":
-                        errMsg = "Говорят что твой юзернейм слишком длинный, попробуй покороче.";
-                        break;
-                    default:
-                        errMsg = "Ой, почему-то не получилось подключиться к комнате";
-                }
-                toast.error(errMsg, {
-                    position: "bottom-left",
-                    autoClose: 2000,
-                    hideProgressBar: true,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "light",
-                    transition: Slide,
-                });
-                return;
+                showFailedRoomConnectionNotification(canConnectResp.reason);
             }
             navigate(`/room/${targetRoomID}`);
         }
@@ -96,11 +61,11 @@ export default function HomeScreen() {
 
     const canCreateRoom = () => {
         return username.trim() !== "";
-    }
+    };
 
     const canJoinToRoom = () => {
         return username.trim() !== "" && targetRoomID.trim() !== "";
-    }
+    };
 
     function apiKeyStrategyDisplay(strategyKey) {
         switch (strategyKey) {

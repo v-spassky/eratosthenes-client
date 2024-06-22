@@ -32,5 +32,5 @@ export default function AccordionWithResponsiveBackground({title, children}) {
         >
             {children}
         </AccordionItem>
-    </Accordion>
+    </Accordion>;
 }

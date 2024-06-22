@@ -1,6 +1,5 @@
 import { Wrapper } from "@googlemaps/react-wrapper";
-
-import getMapsApiKey from "./getMapsApiKey.js";
+import getMapsApiKey from "utils/getMapsApiKey.js";
 
 export default function GoogleMapsWrapper({ children, prevApiKeyRef }) {
     const apiKey = getMapsApiKey();

@@ -6,8 +6,7 @@ import { useTheme } from "next-themes";
 import { useState } from "react";
 import { FaBrush, FaMoon, FaSun } from "react-icons/fa6";
 import { VscMusic, VscMute } from "react-icons/vsc";
-
-import { soundsAreMuted, toggleMute} from "../../utils/sounds.js";
+import { soundsAreMuted, toggleMute} from "utils/sounds.js";
 
 export default function PreferencesButton() {
     const { theme, setTheme } = useTheme();
@@ -68,5 +67,5 @@ export default function PreferencesButton() {
                 </TableBody>
             </Table>
         </PopoverContent>
-    </Popover>
+    </Popover>;
 }

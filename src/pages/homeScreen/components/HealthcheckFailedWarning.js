@@ -12,5 +12,5 @@ export default function HealthcheckFailedWarning() {
         display: "flex", justifyContent: "center", alignItems: "center",
     }}>
         Бэкенд недоступен, пока что поиграть не получится.
-    </div>
+    </div>;
 }

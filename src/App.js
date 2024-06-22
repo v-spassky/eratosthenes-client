@@ -1,12 +1,11 @@
 import { NextUIProvider } from "@nextui-org/react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
+import HomeScreen from "pages/homeScreen/HomeScreen.js";
+import NoMatchScreen from "pages/NoMatchScreen.js";
+import PlayScreen from "pages/playScreen/PlayScreen.js";
 import { useRef } from "react";
 import { Outlet, Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-
-import HomeScreen from "./pages/HomeScreen.js";
-import NoMatchScreen from "./pages/NoMatchScreen.js";
-import PlayScreen from "./pages/PlayScreen.js";
 
 export default function App() {
     const prevApiKeyRef = useRef("UNSET");

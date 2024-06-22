@@ -77,5 +77,5 @@ export default function UserList({ users, showLastRoundScore }) {
                 ))}
             </TableBody>
         </Table>
-    </div>
+    </div>;
 }

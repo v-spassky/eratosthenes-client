@@ -1,9 +1,8 @@
+import Chat from "pages/playScreen/components/Chat.js";
+import UserList from "pages/playScreen/components/UserList.js";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
-import Chat from "./Chat.js";
-import UserList from "./UserList.js";
-
-export default function SidePane({ socketRef, messages, setMessages, users, connectionIsOk, showLastRoundScore }) {
+export default function SidePane({ sendMessage, messages, setMessages, users, connectionIsOk, showLastRoundScore }) {
     return (
         <div id="sidePane" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
             <PanelGroup autoSaveId="persistence" direction="vertical">
@@ -13,7 +12,7 @@ export default function SidePane({ socketRef, messages, setMessages, users, conn
                 <PanelResizeHandle style={{ height: "1px", backgroundColor: "gray" }} />
                 <Panel defaultSize={60} minSize={20}>
                     <Chat
-                        socketRef={socketRef}
+                        sendMessage={sendMessage}
                         messages={messages}
                         setMessages={setMessages}
                         connectionIsOk={connectionIsOk}

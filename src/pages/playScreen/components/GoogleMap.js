@@ -1,6 +1,5 @@
+import mapMarkSvg from "constants/mapMarkSvg.js";
 import { useEffect, useRef } from "react";
-
-import mapMarkSvg from "../../constants/mapMarkSvg.js";
 
 const mapDefaultCenter = { lat: 0.0, lng: 0.0 };
 const mapDefaultZoom = 1;

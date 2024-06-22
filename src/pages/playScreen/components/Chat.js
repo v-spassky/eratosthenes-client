@@ -1,5 +1,5 @@
 import { Textarea } from "@nextui-org/react";
-import maxMessageLength from "constants/maxMessageLength.js"
+import maxMessageLength from "constants/maxMessageLength.js";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 import { FaWifi } from "react-icons/fa6";
@@ -8,7 +8,7 @@ import randomChatPrompt from "utils/randomChatPrompt.js";
 const scrollUpThreshold = 40;
 const scrollBottomPadding = 4;
 
-export default function Chat({ socketRef, messages, setMessages, connectionIsOk }) {
+export default function Chat({ sendMessage, messages, setMessages, connectionIsOk }) {
     const [message, setMessage] = useState("");
     const [chatPrompt, setPrompt] = useState(randomChatPrompt());
     const textInputIsFocused = useRef(false);
@@ -56,8 +56,8 @@ export default function Chat({ socketRef, messages, setMessages, connectionIsOk 
                 from: localStorage.getItem("username"),
                 content: message.replace(/\n/g, "\\n"),
             },
-        }
-        socketRef.current.send(JSON.stringify(payload));
+        };
+        sendMessage(payload);
         setMessages([...messages, { id: 1, author: "я", content: message }]);
         setMessage("");
         setPrompt(randomChatPrompt());

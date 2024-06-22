@@ -8,12 +8,33 @@
         "plugin:react/recommended"
     ],
     "rules": {
-        "quotes": ["error", "double"],
+        "quotes": [
+            "error",
+            "double"
+        ],
         "simple-import-sort/imports": "warn",
         "simple-import-sort/exports": "warn",
         "react/react-in-jsx-scope": "off",
         "react/prop-types": "off",
-        "no-unused-vars": ["warn", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_" }]
+        "no-unused-vars": [
+            "warn",
+            {
+                "varsIgnorePattern": "^_",
+                "argsIgnorePattern": "^_"
+            }
+        ],
+        "semi": [
+            "error",
+            "always"
+        ],
+        "no-restricted-imports": [
+            "error",
+            {
+                "patterns": [
+                    ".*"
+                ]
+            }
+        ]
     },
     "parserOptions": {
         "sourceType": "module",

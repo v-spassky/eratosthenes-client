@@ -1,10 +1,9 @@
 import { Button, Tooltip } from "@nextui-org/react";
+import GoogleMap from "pages/playScreen/components/GoogleMap.js";
 import { useEffect, useState } from "react";
 import { FaArrowRightArrowLeft } from "react-icons/fa6";
 import { FaCheck } from "react-icons/fa6";
 import { FaArrowRotateLeft } from "react-icons/fa6";
-
-import GoogleMap from "../../utils/maps/GoogleMap.js";
 
 const defaultMapWidth = 500;
 const defaultMapHeight = 300;
@@ -93,7 +92,7 @@ export default function Map(
                 {btnIcon}
             </Button>
         </Tooltip>;
-    }
+    };
 
     return (
         <div

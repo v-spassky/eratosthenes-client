@@ -1,6 +1,5 @@
+import defaultStreetViewPosition from "constants/defaultStreetViewPosition.js";
 import { useEffect, useRef } from "react";
-
-import defaultStreetViewPosition from "../../constants/defaultStreetViewPosition.js";
 
 export default function GoogleStreetView({ streetViewRef }) {
     const streetViewContainerRef = useRef(null);

@@ -1,15 +1,14 @@
 import { Button, Modal, ModalContent, ModalFooter, ModalHeader, Snippet, useDisclosure } from "@nextui-org/react";
-import AccordionWithResponsiveBackground from "components/AccordionWithInteractiveBackground.js";
+import AccordionWithResponsiveBackground from "sharedComponents/AccordionWithInteractiveBackground.js";
+import PreferencesButton from "sharedComponents/preferencesButton.js";
 import { getLastVisitedRoomId, setLastVisitedRoomId } from "localStorage/storage.js";
+import CountdownBar from "pages/playScreen/components/CountdownBar.js";
+import GoogleMapsWrapper from "pages/playScreen/components/GoogleMapsWrapper.js";
+import GoogleStreetView from "pages/playScreen/components/GoogleStreetView.js";
+import Map from "pages/playScreen/components/Map.js";
 import { useEffect } from "react";
 import { FaArrowRightFromBracket } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
-
-import GoogleMapsWrapper from "../../utils/maps/GoogleMapsWrapper.js";
-import GoogleStreetView from "../../utils/maps/GoogleStreetView.js";
-import PreferencesButton from "../components/preferencesButton.js";
-import CountdownBar from "./CountdownBar.js";
-import Map from "./Map.js";
 
 export default function StreetViewWindow(
     {
