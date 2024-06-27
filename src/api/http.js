@@ -1,4 +1,4 @@
-import { getUserId, getUsername,setUserId } from "localStorage/storage.js";
+import { getUserId, getUsername, setUserId } from "localStorage/storage.js";
 
 const origin = process.env.REACT_APP_SERVER_ORIGIN;
 
@@ -69,7 +69,59 @@ export async function acquireUserId() {
     setUserId(userId);
 }
 
+export async function muteUser(roomId, usernameToMute) {
+    const userId = getUserId();
+    const payload = { userName: usernameToMute };
+    await fetch(
+        `${origin}/mute-user/${roomId}?user_id=${userId}`,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        }
+    );
+}
+
+export async function unmuteUser(roomId, usernameToUnmute) {
+    const userId = getUserId();
+    const payload = { userName: usernameToUnmute };
+    await fetch(
+        `${origin}/unmute-user/${roomId}?user_id=${userId}`,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        }
+    );
+}
+
+export async function banUser(roomId, usernameToBan) {
+    const userId = getUserId();
+    const payload = { username: usernameToBan };
+    await fetch(
+        `${origin}/ban-user/${roomId}?user_id=${userId}`,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        }
+    );
+}
+
 export async function apiIsHealthy() {
-    const response =  await fetch(`${origin}/healthcheck`);
+    const response = await fetch(`${origin}/healthcheck`);
     return response.status === 200;
+}
+
+export async function changeUserScore(roomId, targetUsername, amount) {
+    const userId = getUserId();
+    const payload = { username: targetUsername, amount: String(amount) };
+    await fetch(
+        `${origin}/change-user-score/${roomId}?user_id=${userId}`,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        }
+    );
 }

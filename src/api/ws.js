@@ -1,11 +1,13 @@
 import { getUsersOfRoom, submitGuess } from "api/http.js";
 import socketConnWaitRetryPeriodMs from "constants/socketConnWaitRetryPeriod.js";
+import { getSelectedEmoji, getUserId, getUsername } from "localStorage/storage.js";
+import { showBannedFromRoomNotification } from "notifications/all.js";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     playGameFinishedNotification, playGameStartedNotification, playNewMessageNotification,
     playUserConnectedNotification, playUserDisconnectedNotification,
 } from "utils/sounds.js";
-
 
 function waitForSocketConnection(socket, callback) {
     setTimeout(() => {
@@ -27,6 +29,7 @@ export default function useRoomSocket(
 ) {
     const socketRef = useRef(null);
     const [connectionIsOk, setConnectionIsOk] = useState(false);
+    const navigate = useNavigate();
 
     async function fetchAndSetUsers(roomId) {
         const usersResp = await getUsersOfRoom(roomId);
@@ -40,6 +43,7 @@ export default function useRoomSocket(
                 lastGuess: user.lastGuess,
                 submittedGuess: user.submittedGuess,
                 lastRoundScore: user.lastRoundScore,
+                isMuted: user.isMuted,
             };
         }));
     }
@@ -50,10 +54,7 @@ export default function useRoomSocket(
         setTimeout(() => {
             const payload = {
                 type: "userConnected",
-                payload: {
-                    username: localStorage.getItem("username"),
-                    avatarEmoji: localStorage.getItem("selectedEmoji") || "",
-                },
+                payload: { username: getUsername(), avatarEmoji: getSelectedEmoji() || "" },
             };
             waitForSocketConnection(socketRef.current, () => { sendMessage(payload); });
             refreshRoomUsersAndStatus(20);
@@ -62,10 +63,7 @@ export default function useRoomSocket(
         return () => {
             const payload = {
                 type: "userDisconnected",
-                payload: {
-                    username: localStorage.getItem("username"),
-                    avatarEmoji: localStorage.getItem("selectedEmoji") || "",
-                },
+                payload: { username: getUsername(), avatarEmoji: getSelectedEmoji() || "" },
             };
             sendMessage(payload);
             closeSocket();
@@ -76,7 +74,7 @@ export default function useRoomSocket(
 
     function connectToSocket(isReconnect) {
         socketRef.current = new WebSocket(
-            `${process.env.REACT_APP_WS_SERVER_ORIGIN}/chat/${roomId}?user_id=${localStorage.getItem("userId")}`
+            `${process.env.REACT_APP_WS_SERVER_ORIGIN}/chat/${roomId}?user_id=${getUserId()}`
         );
         socketRef.current.onopen = () => {
             console.log("[WS]: websocket connection established.");
@@ -84,10 +82,7 @@ export default function useRoomSocket(
             if (isReconnect) {
                 const payload = {
                     type: "userReConnected",
-                    payload: {
-                        username: localStorage.getItem("username"),
-                        avatarEmoji: localStorage.getItem("selectedEmoji"),
-                    },
+                    payload: { username: getUsername(), avatarEmoji: getSelectedEmoji() },
                 };
                 sendMessage(payload);
             }
@@ -174,6 +169,34 @@ export default function useRoomSocket(
                     setTimeout(() => setShowLastRoundScore(false), 10000);
                     break;
                 }
+                case "guessSubmitted": {
+                    await fetchAndSetUsers(roomId);
+                    break;
+                }
+                case "guessRevoked": {
+                    await fetchAndSetUsers(roomId);
+                    break;
+                }
+                case "userMuted": {
+                    await fetchAndSetUsers(roomId);
+                    break;
+                }
+                case "userUnmuted": {
+                    await fetchAndSetUsers(roomId);
+                    break;
+                }
+                case "userBanned": {
+                    if (message.payload.username === getUsername()) {
+                        showBannedFromRoomNotification();
+                        navigate("/");
+                    }
+                    await fetchAndSetUsers(roomId);
+                    break;
+                }
+                case "userScoreChanged": {
+                    await fetchAndSetUsers(roomId);
+                    break;
+                }
                 case "ping":
                     break;
                 case "pong":
@@ -191,14 +214,6 @@ export default function useRoomSocket(
                         }
                     }
                     break;
-                case "guessSubmitted": {
-                    await fetchAndSetUsers(roomId);
-                    break;
-                }
-                case "guessRevoked": {
-                    await fetchAndSetUsers(roomId);
-                    break;
-                }
                 default:
                     console.error(`[WS]: unknown message type: ${message.type}`);
             }

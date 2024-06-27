@@ -40,6 +40,9 @@ export function showFailedRoomConnectionNotification(apiErrorText) {
         case "The username is too long.":
             errMsg = "Говорят что твой юзернейм слишком длинный, попробуй покороче.";
             break;
+        case "User is banned.":
+            errMsg = "Ты забанен в этой комнате.";
+            break;
         default:
             errMsg = "Ой, почему-то не получилось подключиться к комнате";
     }
@@ -58,6 +61,20 @@ export function showFailedRoomConnectionNotification(apiErrorText) {
 
 export function showThanksForUsingOwnApiKeyNotification() {
     toast("Спасибо за использование собственного АПИ ключа! ❤️ ", {
+        position: "bottom-left",
+        autoClose: 4000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Slide,
+    });
+}
+
+export function showBannedFromRoomNotification() {
+    toast.error("Тебя забанили в этой комнате", {
         position: "bottom-left",
         autoClose: 4000,
         hideProgressBar: true,

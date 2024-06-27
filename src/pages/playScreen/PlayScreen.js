@@ -2,7 +2,7 @@ import { canConnectToRoom, getMessagesOfRoom, getUsersOfRoom, revokeGuess, submi
 import useRoomSocket from "api/ws.js";
 import defaultStreetViewPosition from "constants/defaultStreetViewPosition.js";
 import mapMarkSvg from "constants/mapMarkSvg.js";
-import { getUsername } from "localStorage/storage.js";
+import { getApiKey, getApiKeyStrategy, getSelectedEmoji, getUsername } from "localStorage/storage.js";
 import {
     showFailedRoomConnectionNotification, showThanksForUsingOwnApiKeyNotification, showUnsetUsernameErrorNotification,
 } from "notifications/all.js";
@@ -19,6 +19,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
 
     const [messages, setMessages] = useState([]);
     const [users, setUsers] = useState([]);
+    const [iAmHost, setIAmHost] = useState(false);
 
     const [roomStatus, setRoomStatus] = useState("waiting");
     const roomStatusRef = useRef("waiting");
@@ -54,6 +55,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                 lastGuess: user.lastGuess,
                 submittedGuess: user.submittedGuess,
                 lastRoundScore: user.lastRoundScore,
+                isMuted: user.isMuted,
             })));
             if (usersResp.status.type === "playing") {
                 setStreetViewPosition(usersResp.status.currentLocation);
@@ -75,6 +77,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
     });
 
     async function mustShowStartGameButton(roomId) {
+        const currentUserIsHost = await userIsHost(roomId);
+        setIAmHost(currentUserIsHost);
         return (roomStatus === "waiting") && await userIsHost(roomId);
     }
 
@@ -83,8 +87,8 @@ export default function PlayScreen({ prevApiKeyRef }) {
         const payload = {
             type: "userDisconnected",
             payload: {
-                username: localStorage.getItem("username"),
-                avatarEmoji: localStorage.getItem("selectedEmoji") || "",
+                username: getUsername(),
+                avatarEmoji: getSelectedEmoji() || "",
             },
         };
         sendMessage(payload);
@@ -93,13 +97,13 @@ export default function PlayScreen({ prevApiKeyRef }) {
 
     useEffect(() => {
         window.addEventListener("beforeunload", handleTabClosing);
-        if (localStorage.getItem("apiKeyStrategy") !== "useMyOwn") {
+        if (getApiKeyStrategy() !== "useMyOwn") {
             return;
         }
-        if (localStorage.getItem("apiKey") === null) {
+        if (getApiKey() === null) {
             return;
         }
-        if (localStorage.getItem("apiKey") === "") {
+        if (getApiKey() === "") {
             return;
         }
         showThanksForUsingOwnApiKeyNotification();
@@ -235,8 +239,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
     }
 
     useEffect(() => {
-        const username = localStorage.getItem("username");
-        if (!username) {
+        if (!getUsername()) {
             showUnsetUsernameErrorNotification();
             navigate("/", { state: { roomId: id } });
             return;
@@ -301,6 +304,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                         users={users}
                         connectionIsOk={connectionIsOk}
                         showLastRoundScore={showLastRoundScore}
+                        iAmHost={iAmHost}
                     />
                 </Panel>
             </PanelGroup>

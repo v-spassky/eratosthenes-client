@@ -1,4 +1,5 @@
 import mapMarkSvg from "constants/mapMarkSvg.js";
+import { getSelectedEmoji, getUsername } from "localStorage/storage.js";
 import { useEffect, useRef } from "react";
 
 const mapDefaultCenter = { lat: 0.0, lng: 0.0 };
@@ -14,7 +15,7 @@ export default function GoogleMap({ mapRef, roomStatusRef, userGuessRef, submitt
         if (submittedGuessRef.current) {
             return;
         }
-        const username = localStorage.getItem("username");
+        const username = getUsername();
         if (userGuessRef.current !== null) {
             userGuessRef.current.setPosition(location);
             return;
@@ -32,7 +33,7 @@ export default function GoogleMap({ mapRef, roomStatusRef, userGuessRef, submitt
         userGuessRef.current = new window.google.maps.Marker({
             position: location,
             map: mapRef.current,
-            label: localStorage.getItem("selectedEmoji") || localStorage.getItem("username").slice(0, 3),
+            label: getSelectedEmoji() || getUsername().slice(0, 3),
             icon: svgMarker,
             username: username,
         });

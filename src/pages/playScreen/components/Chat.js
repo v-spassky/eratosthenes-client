@@ -1,5 +1,6 @@
 import { Textarea } from "@nextui-org/react";
 import maxMessageLength from "constants/maxMessageLength.js";
+import { getUsername } from "localStorage/storage.js";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 import { FaWifi } from "react-icons/fa6";
@@ -53,7 +54,7 @@ export default function Chat({ sendMessage, messages, setMessages, connectionIsO
         const payload = {
             type: "chatMessage",
             payload: {
-                from: localStorage.getItem("username"),
+                from: getUsername(),
                 content: message.replace(/\n/g, "\\n"),
             },
         };

@@ -5,6 +5,11 @@ import {
 import { canConnectToRoom, createRoom } from "api/http.js";
 import avatarEmojis from "constants/avatarEmojis";
 import maxUsernameLength from "constants/maxUsernameLength.js";
+import {
+    getApiKey, getApiKeyStrategy, getSelectedEmoji, getUsername, setApiKey as setApiKeyInStorage,
+    setApiKeyStrategy as setApiKeyStrategyInStorage, setSelectedEmoji as setSelectedEmojiInStorage,
+    setUsername as setUsernameInStorage,
+} from "localStorage/storage.js";
 import { showFailedRoomConnectionNotification, showUnsetRoomIdErrorNotification } from "notifications/all.js";
 import HealthcheckFailedWarning from "pages/homeScreen/components/HealthcheckFailedWarning.js";
 import { useState } from "react";
@@ -16,10 +21,10 @@ export default function HomeScreen() {
     const navigate = useNavigate();
     const location = useLocation();
     const roomIdFromChat = location.state && location.state.roomId;
-    const [selectedEmoji, setSelectedEmoji] = useState(localStorage.getItem("selectedEmoji") || "");
-    const [username, setUsername] = useState(localStorage.getItem("username") || "");
-    const [apiKeyStrategy, setApiKeyStrategy] = useState(localStorage.getItem("apiKeyStrategy") || "useMyOwn");
-    const [apiKey, setApiKey] = useState(localStorage.getItem("apiKey") || "");
+    const [selectedEmoji, setSelectedEmoji] = useState(getSelectedEmoji() || "");
+    const [username, setUsername] = useState(getUsername() || "");
+    const [apiKeyStrategy, setApiKeyStrategy] = useState(getApiKeyStrategy() || "useMyOwn");
+    const [apiKey, setApiKey] = useState(getApiKey() || "");
     const [targetRoomID, setTargetRoomID] = useState(roomIdFromChat || "");
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -43,6 +48,7 @@ export default function HomeScreen() {
             const canConnectResp = await canConnectToRoom(targetRoomID);
             if (!canConnectResp.canConnect) {
                 showFailedRoomConnectionNotification(canConnectResp.reason);
+                return;
             }
             navigate(`/room/${targetRoomID}`);
         }
@@ -54,7 +60,7 @@ export default function HomeScreen() {
     };
 
     const handleEmojiSelect = (emoji, onClose) => {
-        localStorage.setItem("selectedEmoji", emoji);
+        setSelectedEmojiInStorage(emoji);
         setSelectedEmoji(emoji);
         onClose();
     };
@@ -153,7 +159,7 @@ export default function HomeScreen() {
                         placeholder="Как к тебе обращаться?"
                         value={username}
                         onChange={(e) => {
-                            localStorage.setItem("username", e.target.value);
+                            setUsernameInStorage(e.target.value);
                             setUsername(e.target.value);
                         }}
                     />
@@ -174,7 +180,7 @@ export default function HomeScreen() {
                             selectedKeys={[apiKeyStrategy]}
                             onSelectionChange={(strategyKeys) => {
                                 const newStrategy = [...strategyKeys][0];
-                                localStorage.setItem("apiKeyStrategy", newStrategy);
+                                setApiKeyStrategyInStorage(newStrategy);
                                 setApiKeyStrategy(newStrategy);
                             }}
                         >
@@ -201,7 +207,7 @@ export default function HomeScreen() {
                             placeholder="Ключик от Google Maps JS API"
                             value={apiKey}
                             onChange={(e) => {
-                                localStorage.setItem("apiKey", e.target.value);
+                                setApiKeyInStorage(e.target.value);
                                 setApiKey(e.target.value);
                             }}
                         />
@@ -212,7 +218,7 @@ export default function HomeScreen() {
                             placeholder="Ключик от Google Maps JS API"
                             value={apiKey}
                             onChange={(e) => {
-                                localStorage.setItem("apiKey", e.target.value);
+                                setApiKeyInStorage(e.target.value);
                                 setApiKey(e.target.value);
                             }}
                         />

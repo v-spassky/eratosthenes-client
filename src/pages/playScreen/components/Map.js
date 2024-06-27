@@ -1,4 +1,7 @@
 import { Button, Tooltip } from "@nextui-org/react";
+import {
+    getMapHeight, getMapWidth, setMapHeight as setMapHeightInStorage, setMapWidth as setMapWidthInStorage,
+} from "localStorage/storage";
 import GoogleMap from "pages/playScreen/components/GoogleMap.js";
 import { useEffect, useState } from "react";
 import { FaArrowRightArrowLeft } from "react-icons/fa6";
@@ -18,10 +21,8 @@ export default function Map(
     const [resizing, setResizing] = useState(false);
     const [initialX, setInitialX] = useState(0);
     const [initialY, setInitialY] = useState(0);
-    const [mapWidth, setMapWidth] = useState(() => parseInt(localStorage.getItem("mapWidth"), 10) || defaultMapWidth);
-    const [mapHeight, setMapHeight] = useState(() => {
-        return parseInt(localStorage.getItem("mapHeight"), 10) || defaultMapHeight;
-    });
+    const [mapWidth, setMapWidth] = useState(() => parseInt(getMapWidth(), 10) || defaultMapWidth);
+    const [mapHeight, setMapHeight] = useState(() => parseInt(getMapHeight(), 10) || defaultMapHeight);
 
     const handleMouseDown = (event) => {
         setResizing(true);
@@ -50,8 +51,8 @@ export default function Map(
 
     const handleMouseUp = () => {
         setResizing(false);
-        localStorage.setItem("mapWidth", mapWidth);
-        localStorage.setItem("mapHeight", mapHeight);
+        setMapWidthInStorage(mapWidth);
+        setMapHeightInStorage(mapHeight);
     };
 
     useEffect(() => {
