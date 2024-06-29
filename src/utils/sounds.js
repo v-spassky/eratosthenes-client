@@ -24,12 +24,12 @@ function playSound(sound) {
     }
 }
 
-export function playGameStartedNotification() {
-    playSound(new Audio("/sounds/game_started_notification.wav"));
+export function playRoundStartedNotification() {
+    playSound(new Audio("/sounds/round_started_notification.wav"));
 }
 
-export function playGameFinishedNotification() {
-    playSound(new Audio("/sounds/game_finished_notification.wav"));
+export function playRoundFinishedNotification() {
+    playSound(new Audio("/sounds/round_finished_notification.wav"));
 }
 
 export function playNewMessageNotification() {

@@ -68,7 +68,7 @@ export default function StreetViewWindow(
                             position: "absolute", bottom: "10px", left: "50%", transform: "translateX(-50%)", zIndex: 1,
                         }}
                     >
-                        Начать игру
+                        Начать раунд
                     </Button>
                 }
                 <div
@@ -100,7 +100,7 @@ export default function StreetViewWindow(
                             <p style={{ paddingBottom: "4px" }}>
                                 Вот ссылка по которой сюда можно кого-нибудь пригласить:
                             </p>
-                            <Snippet symbol="">{window.location.href}</Snippet>
+                            <Snippet symbol="" tooltipProps={{ content: "Копировать" }}>{window.location.href}</Snippet>
                             <AccordionWithResponsiveBackground title="А как играть?">
                                 Когда хозяин комнаты начинает игру, на экране появляется стрит вью панорама и таймер
                                 обратного отсчёта. До конца таймера нужно поставить метку на карте внизу справа. После

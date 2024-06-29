@@ -5,7 +5,7 @@ import { showBannedFromRoomNotification } from "notifications/all.js";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-    playGameFinishedNotification, playGameStartedNotification, playNewMessageNotification,
+    playNewMessageNotification, playRoundFinishedNotification, playRoundStartedNotification,
     playUserConnectedNotification, playUserDisconnectedNotification,
 } from "utils/sounds.js";
 
@@ -24,7 +24,7 @@ function waitForSocketConnection(socket, callback) {
 export default function useRoomSocket(
     {
         roomId, refreshRoomUsersAndStatus, setMessages, setUsers, setRoomStatus, setProgress, setShowLastRoundScore,
-        userGuessRef, roomStatusRef, submittedGuessRef, intervalRef,
+        userGuessRef, roomStatusRef, submittedGuessRef, intervalRef, openGameFinishedModal,
     }
 ) {
     const socketRef = useRef(null);
@@ -128,12 +128,12 @@ export default function useRoomSocket(
                     await fetchAndSetUsers(roomId);
                     break;
                 }
-                case "gameStarted": {
+                case "roundStarted": {
                     setRoomStatus("playing");
                     roomStatusRef.current = "playing";
                     submittedGuessRef.current = false;
                     setProgress(100);
-                    playGameStartedNotification();
+                    playRoundStartedNotification();
                     intervalRef.current = setInterval(() => {
                         setProgress(prevProgress => {
                             if (prevProgress === 1) {
@@ -158,12 +158,17 @@ export default function useRoomSocket(
                     break;
                 }
                 case "gameFinished": {
+                    openGameFinishedModal();
+                }
+                // `gameFinished` event is the same as `roundFinished` event plus some extra logic
+                // eslint-disable-next-line no-fallthrough
+                case "roundFinished": {
                     clearInterval(intervalRef.current);
                     setRoomStatus("waiting");
                     roomStatusRef.current = "waiting";
                     submittedGuessRef.current = false;
                     setProgress(0);
-                    playGameFinishedNotification();
+                    playRoundFinishedNotification();
                     refreshRoomUsersAndStatus(20);
                     setShowLastRoundScore(true);
                     setTimeout(() => setShowLastRoundScore(false), 10000);

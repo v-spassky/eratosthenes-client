@@ -15,6 +15,7 @@ export default function AccordionWithResponsiveBackground({title, children}) {
         <AccordionItem
             key="1"
             isCompact
+            hideIndicator
             aria-label={title}
             title={
                 <p

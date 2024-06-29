@@ -111,7 +111,14 @@ export default function UserList({ users, showLastRoundScore, iAmHost }) {
                             <ModalHeader>Точно хочешь забанить {user.name}?</ModalHeader>
                             <ModalFooter>
                                 <Button color="primary" onPress={onClose}>Ой, нет...</Button>
-                                <Button color="danger" onPress={() => banUser(id, user.name)}>Да!</Button>
+                                <Button
+                                    color="danger"
+                                    onPress={() => {
+                                        banUser(id, user.name);
+                                        onClose();
+                                    }}>
+                                    Да!
+                                </Button>
                             </ModalFooter>
                         </>
                     )}

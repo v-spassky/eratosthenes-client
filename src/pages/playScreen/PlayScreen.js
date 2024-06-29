@@ -1,3 +1,4 @@
+import { Button, Modal, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@nextui-org/react";
 import { canConnectToRoom, getMessagesOfRoom, getUsersOfRoom, revokeGuess, submitGuess, userIsHost } from "api/http.js";
 import useRoomSocket from "api/ws.js";
 import defaultStreetViewPosition from "constants/defaultStreetViewPosition.js";
@@ -11,11 +12,12 @@ import StreetViewWindow from "pages/playScreen/components/StreetViewWindow.js";
 import { useEffect, useRef, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { useNavigate, useParams } from "react-router-dom";
-import { playGameFinishedNotification, playGameStartedNotification } from "utils/sounds.js";
+import { playRoundFinishedNotification, playRoundStartedNotification } from "utils/sounds.js";
 
 export default function PlayScreen({ prevApiKeyRef }) {
     const { id } = useParams();
     const navigate = useNavigate();
+    const gameFinishedModal = useDisclosure();
 
     const [messages, setMessages] = useState([]);
     const [users, setUsers] = useState([]);
@@ -74,6 +76,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
     const { connectionIsOk, sendMessage, closeSocket } = useRoomSocket({
         roomId: id, refreshRoomUsersAndStatus, setMessages, setUsers, setRoomStatus, setProgress,
         setShowLastRoundScore, userGuessRef, roomStatusRef, submittedGuessRef, intervalRef,
+        openGameFinishedModal: gameFinishedModal.onOpen,
     });
 
     async function mustShowStartGameButton(roomId) {
@@ -211,9 +214,9 @@ export default function PlayScreen({ prevApiKeyRef }) {
         setRoomStatus("playing");
         roomStatusRef.current = "playing";
         setProgress(100);
-        const payload = { type: "gameStarted", payload: null };
+        const payload = { type: "roundStarted", payload: null };
         sendMessage(payload);
-        playGameStartedNotification();
+        playRoundStartedNotification();
         intervalRef.current = setInterval(() => {
             setProgress(prevProgress => {
                 if (prevProgress === 1) {
@@ -230,7 +233,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     clearInterval(intervalRef.current);
                     setRoomStatus("waiting");
                     roomStatusRef.current = "waiting";
-                    playGameFinishedNotification();
+                    playRoundFinishedNotification();
                     return 0;
                 }
                 return prevProgress - 1;
@@ -308,6 +311,24 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     />
                 </Panel>
             </PanelGroup>
+            <Modal size={"md"} isOpen={gameFinishedModal.isOpen} onOpenChange={gameFinishedModal.onOpenChange}>
+                <ModalContent style={{ padding: "24px" }}>
+                    {(onClose) => (
+                        <>
+                            <ModalHeader style={{ padding: "0px", paddingBottom: "12px" }}>
+                                Игра завершена! Победитель это...
+                            </ModalHeader>
+                                <div style={{ textAlign: "center" }}>
+                                    <p style={{ fontSize: "80px" }}>{users[0].avatarEmoji}</p>
+                                    <p style={{ fontSize: "24px" }}>{users[0].name}</p>
+                                </div>
+                            <ModalFooter style={{ padding: "0px", paddingTop: "12px" }}>
+                                <Button color="primary" onPress={onClose}>Круто!</Button>
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
         </div >
     );
 }
