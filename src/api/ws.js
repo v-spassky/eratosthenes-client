@@ -227,15 +227,16 @@ export default function useRoomSocket(
     }
 
     function sendMessage(message) {
+        const messageAsStr = JSON.stringify(message);
         if (socketRef.current === null) {
-            console.error(`[WS]: tried to send message ${message} while socketRef.current === null`);
+            console.error(`[WS]: tried to send message ${messageAsStr} while socketRef.current === null`);
             return;
         }
         if (socketRef.current.readyState !== 1) {
-            console.error(`[WS]: tried to send message ${message} while socketRef.current.readyState !== 1`);
+            console.error(`[WS]: tried to send message ${messageAsStr} while socketRef.current.readyState !== 1`);
             return;
         }
-        socketRef.current.send(JSON.stringify(message));
+        socketRef.current.send(messageAsStr);
     }
 
     function closeSocket() {
