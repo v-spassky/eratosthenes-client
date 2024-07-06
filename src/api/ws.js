@@ -110,10 +110,18 @@ export default function useRoomSocket(
             const message = JSON.parse(event.data);
             switch (message.type) {
                 case "chatMessage": {
-                    playNewMessageNotification();
+                    if (!message.payload.isFromBot) {
+                        playNewMessageNotification();
+                    }
                     setMessages(
                         messages => [
-                            ...messages, { id: 1, author: message.payload.from, content: message.payload.content }
+                            ...messages,
+                            {
+                                id: 1,
+                                author: message.payload.from,
+                                content: message.payload.content,
+                                isFromBot: message.payload.isFromBot,
+                            },
                         ]
                     );
                     break;

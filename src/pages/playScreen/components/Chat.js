@@ -98,9 +98,16 @@ export default function Chat({ sendMessage, messages, setMessages, connectionIsO
                 style={{ padding: "10px", flex: "1 1 auto", overflowY: "auto" }}
             >
                 {messages.map(message => (
-                    <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word" }}>
-                        <span style={{ fontWeight: "bold" }}>{message.author}:</span> {message.content}
-                    </div>
+                    message.isFromBot
+                        ? <div
+                            key={message.id}
+                            style={{ marginBottom: 4, wordWrap: "break-word", fontStyle: "italic" }}
+                        >
+                            {message.content}
+                        </div>
+                        : <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word" }}>
+                            <span style={{ fontWeight: "bold" }}>{message.author}:</span> {message.content}
+                        </div>
                 ))}
             </div>
             <div style={{ padding: "10px", paddingTop: "0px", paddingBottom: "0px" }}>

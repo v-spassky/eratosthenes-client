@@ -259,6 +259,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
                     id: 1,
                     author: message.from === getUsername() ? "я" : message.from,
                     content: message.content,
+                    isFromBot: message.isFromBot,
                 };
             }));
         };
