@@ -5,13 +5,13 @@ const origin = process.env.REACT_APP_SERVER_ORIGIN;
 export async function canConnectToRoom(roomId) {
     const userId = getUserId();
     const username = getUsername();
-    return await fetch(`${origin}/can-connect/${roomId}?user_id=${userId}&username=${username}`)
+    return await fetch(`${origin}/rooms/${roomId}/can-connect?user_id=${userId}&username=${username}`)
         .then(response => response.json());
 }
 
 export async function userIsHost(roomId) {
     const userId = getUserId();
-    return await fetch(`${origin}/is-host/${roomId}?user_id=${userId}`)
+    return await fetch(`${origin}/rooms/${roomId}/am-i-host?user_id=${userId}`)
         .then(response => response.json())
         .then(data => data.isHost);
 }
@@ -19,7 +19,7 @@ export async function userIsHost(roomId) {
 export async function createRoom() {
     const userId = getUserId();
     return await fetch(
-        `${origin}/create-room/?user_id=${userId}`,
+        `${origin}/rooms?user_id=${userId}`,
         { method: "POST", headers: { "Content-Type": "application/json" } },
     )
         .then(response => response.json())
@@ -28,13 +28,13 @@ export async function createRoom() {
 
 export async function getUsersOfRoom(roomId) {
     const userId = getUserId();
-    return await fetch(`${origin}/users-of-room/${roomId}?user_id=${userId}`)
+    return await fetch(`${origin}/rooms/${roomId}/users?user_id=${userId}`)
         .then(response => response.json());
 }
 
 export async function getMessagesOfRoom(roomId) {
     const userId = getUserId();
-    return await fetch(`${origin}/messages-of-room/${roomId}?user_id=${userId}`)
+    return await fetch(`${origin}/rooms/${roomId}/messages?user_id=${userId}`)
         .then(response => response.json());
 }
 
@@ -42,7 +42,7 @@ export async function submitGuess(lat, lng, roomId) {
     const userId = getUserId();
     const payload = { lat: lat, lng: lng };
     await fetch(
-        `${origin}/submit-guess/${roomId}?user_id=${userId}`,
+        `${origin}/rooms/${roomId}/submit-guess?user_id=${userId}`,
         {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -54,7 +54,7 @@ export async function submitGuess(lat, lng, roomId) {
 export async function revokeGuess(roomId) {
     const userId = getUserId();
     await fetch(
-        `${origin}/revoke-guess/${roomId}?user_id=${userId}`,
+        `${origin}/rooms/${roomId}/revoke-guess?user_id=${userId}`,
         {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -63,7 +63,7 @@ export async function revokeGuess(roomId) {
 }
 
 export async function acquireUserId() {
-    const userId = await fetch(`${origin}/acquire-id`)
+    const userId = await fetch(`${origin}/auth/acquire-id`)
         .then(response => response.json())
         .then(data => data.userId);
     setUserId(userId);
@@ -71,53 +71,47 @@ export async function acquireUserId() {
 
 export async function muteUser(roomId, usernameToMute) {
     const userId = getUserId();
-    const payload = { userName: usernameToMute };
     await fetch(
-        `${origin}/mute-user/${roomId}?user_id=${userId}`,
+        `${origin}/rooms/${roomId}/users/${usernameToMute}/mute?user_id=${userId}`,
         {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
         }
     );
 }
 
 export async function unmuteUser(roomId, usernameToUnmute) {
     const userId = getUserId();
-    const payload = { userName: usernameToUnmute };
     await fetch(
-        `${origin}/unmute-user/${roomId}?user_id=${userId}`,
+        `${origin}/rooms/${roomId}/users/${usernameToUnmute}/unmute?user_id=${userId}`,
         {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
         }
     );
 }
 
 export async function banUser(roomId, usernameToBan) {
     const userId = getUserId();
-    const payload = { username: usernameToBan };
     await fetch(
-        `${origin}/ban-user/${roomId}?user_id=${userId}`,
+        `${origin}/rooms/${roomId}/users/${usernameToBan}/ban?user_id=${userId}`,
         {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
         }
     );
 }
 
 export async function apiIsHealthy() {
-    const response = await fetch(`${origin}/healthcheck`);
+    const response = await fetch(`${origin}/health/check`);
     return response.status === 200;
 }
 
 export async function changeUserScore(roomId, targetUsername, amount) {
     const userId = getUserId();
-    const payload = { username: targetUsername, amount: String(amount) };
+    const payload = { amount: String(amount) };
     await fetch(
-        `${origin}/change-user-score/${roomId}?user_id=${userId}`,
+        `${origin}/rooms/${roomId}/users/${targetUsername}/change-score?user_id=${userId}`,
         {
             method: "POST",
             headers: { "Content-Type": "application/json" },

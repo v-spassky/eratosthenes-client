@@ -74,7 +74,7 @@ export default function useRoomSocket(
 
     function connectToSocket(isReconnect) {
         socketRef.current = new WebSocket(
-            `${process.env.REACT_APP_WS_SERVER_ORIGIN}/chat/${roomId}?user_id=${getUserId()}`
+            `${process.env.REACT_APP_WS_SERVER_ORIGIN}/rooms/${roomId}?user_id=${getUserId()}`
         );
         socketRef.current.onopen = () => {
             console.log("[WS]: websocket connection established.");
