@@ -1,6 +1,11 @@
 import { Slide, toast } from "react-toastify";
 
+let unsetUsernameErrorFired = false;
+
 export function showUnsetUsernameErrorNotification() {
+    if (unsetUsernameErrorFired) {
+        return;
+    }
     toast.error("Установи юзернейм чтобы подключиться к комнате", {
         position: "bottom-left",
         autoClose: 2000,
@@ -12,6 +17,8 @@ export function showUnsetUsernameErrorNotification() {
         theme: "light",
         transition: Slide,
     });
+    unsetUsernameErrorFired = true;
+    setTimeout(() => { unsetUsernameErrorFired = false; }, 2000);
 }
 
 export function showUnsetRoomIdErrorNotification() {
@@ -28,7 +35,17 @@ export function showUnsetRoomIdErrorNotification() {
     });
 }
 
+let failedRoomConnectionErrorFired = {
+    "Room not found.": false,
+    "Such user already in the room.": false,
+    "The username is too long.": false,
+    "User is banned.": false,
+};
+
 export function showFailedRoomConnectionNotification(apiErrorText) {
+    if (failedRoomConnectionErrorFired[apiErrorText]) {
+        return;
+    }
     let errMsg = "";
     switch (apiErrorText) {
         case "Room not found.":
@@ -57,6 +74,8 @@ export function showFailedRoomConnectionNotification(apiErrorText) {
         theme: "light",
         transition: Slide,
     });
+    failedRoomConnectionErrorFired[apiErrorText] = true;
+    setTimeout(() => { failedRoomConnectionErrorFired[apiErrorText] = false; }, 2000);
 }
 
 export function showThanksForUsingOwnApiKeyNotification() {

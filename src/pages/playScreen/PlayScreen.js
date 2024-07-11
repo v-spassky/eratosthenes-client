@@ -181,6 +181,20 @@ export default function PlayScreen({ prevApiKeyRef }) {
     }, [users, roomStatus]);
 
     useEffect(() => {
+        if (!getUsername()) {
+            showUnsetUsernameErrorNotification();
+            navigate("/", { state: { roomId: id } });
+            return;
+        }
+        const checkIfCanConnect = async () => {
+            const canConnectResp = await canConnectToRoom(id);
+            if (!canConnectResp.canConnect) {
+                showFailedRoomConnectionNotification(canConnectResp.reason);
+                navigate("/");
+                return;
+            }
+        };
+        checkIfCanConnect();
         refreshRoomUsersAndStatus(20);
         if (mapRef.current) {
             mapRef.current.setCenter({ lat: 0.0, lng: 0.0 });
@@ -252,6 +266,7 @@ export default function PlayScreen({ prevApiKeyRef }) {
             if (!canConnectResp.canConnect) {
                 showFailedRoomConnectionNotification(canConnectResp.reason);
                 navigate("/");
+                return;
             }
             const messagesResp = await getMessagesOfRoom(id);
             setMessages(messagesResp.messages.map(message => {

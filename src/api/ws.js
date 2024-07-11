@@ -1,7 +1,10 @@
-import { getUsersOfRoom, submitGuess } from "api/http.js";
+import { canConnectToRoom, getUsersOfRoom, submitGuess } from "api/http.js";
 import socketConnWaitRetryPeriodMs from "constants/socketConnWaitRetryPeriod.js";
 import { getSelectedEmoji, getUserId, getUsername } from "localStorage/storage.js";
 import { showBannedFromRoomNotification } from "notifications/all.js";
+import {
+    showFailedRoomConnectionNotification, showUnsetUsernameErrorNotification,
+} from "notifications/all.js";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -49,6 +52,21 @@ export default function useRoomSocket(
     }
 
     useEffect(() => {
+        if (!getUsername()) {
+            showUnsetUsernameErrorNotification();
+            navigate("/", { state: { roomId: roomId } });
+            return;
+        }
+        const checkIfCanConnect = async () => {
+            const canConnectResp = await canConnectToRoom(roomId);
+            if (!canConnectResp.canConnect) {
+                showFailedRoomConnectionNotification(canConnectResp.reason);
+                navigate("/");
+                return;
+            }
+        };
+        checkIfCanConnect();
+
         const pingInterval = connectToSocket(false);
 
         setTimeout(() => {
