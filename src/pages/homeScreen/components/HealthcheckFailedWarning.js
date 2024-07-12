@@ -11,6 +11,6 @@ export default function HealthcheckFailedWarning() {
         color: "red", border: "solid", borderWidth: "1px", borderRadius: "12px", height: "40px", padding: "12px",
         display: "flex", justifyContent: "center", alignItems: "center",
     }}>
-        Бэкенд недоступен, пока что поиграть не получится.
+        Сервер недоступен, пока что поиграть не получится.
     </div>;
 }
