@@ -1,40 +1,34 @@
 {
-    "plugins": [
-        "react",
-        "simple-import-sort"
-    ],
+    "plugins": ["react", "simple-import-sort", "@typescript-eslint"],
     "extends": [
         "eslint:recommended",
-        "plugin:react/recommended"
+        "plugin:react/recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
     ],
+    "parser": "@typescript-eslint/parser",
     "rules": {
-        "quotes": [
-            "error",
-            "double"
-        ],
+        "quotes": ["error", "double"],
         "simple-import-sort/imports": "warn",
         "simple-import-sort/exports": "warn",
         "react/react-in-jsx-scope": "off",
         "react/prop-types": "off",
-        "no-unused-vars": [
-            "warn",
-            {
-                "varsIgnorePattern": "^_",
-                "argsIgnorePattern": "^_"
-            }
-        ],
-        "semi": [
-            "error",
-            "always"
-        ],
         "no-restricted-imports": [
             "error",
             {
-                "patterns": [
-                    ".*"
-                ]
+                "patterns": [".*"]
             }
-        ]
+        ],
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": [
+            "warn",
+            {
+                "argsIgnorePattern": "^_",
+                "varsIgnorePattern": "^_",
+                "caughtErrorsIgnorePattern": "^_"
+            }
+        ],
+        "@typescript-eslint/explicit-function-return-type": "error"
     },
     "parserOptions": {
         "sourceType": "module",

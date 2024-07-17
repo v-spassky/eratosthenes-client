@@ -15,3 +15,13 @@ npm install -g serve
 ```bash
 npm run build && serve -s build
 ```
+
+#### QA
+
+```bash
+npx prettier . [--write]
+```
+
+```bash
+npx eslint . [--fix]
+```
