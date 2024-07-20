@@ -1,43 +1,53 @@
 import { Button, Tooltip } from "@nextui-org/react"
+import { revokeGuess, submitGuess } from "api/http"
 import {
     getMapHeight,
     getMapWidth,
     setMapHeight as setMapHeightInStorage,
     setMapWidth as setMapWidthInStorage,
 } from "localStorage/storage"
+import { RoomStatusType } from "models/all"
 import GoogleMap from "pages/playScreen/components/GoogleMap"
-import React, { MouseEvent, MutableRefObject, ReactElement, useEffect, useState } from "react"
+import React, { MouseEvent, ReactElement, useContext, useEffect, useState } from "react"
 import { FaArrowRightArrowLeft } from "react-icons/fa6"
 import { FaCheck } from "react-icons/fa6"
 import { FaArrowRotateLeft } from "react-icons/fa6"
-
-interface MapProps {
-    mapRef: MutableRefObject<google.maps.Map | null>
-    roomStatusRef: MutableRefObject<string>
-    userGuessRef: MutableRefObject<google.maps.Marker | null>
-    handleConfirmAnswer: () => void
-    handleRevokeAnswer: () => void
-    submittedGuessRef: MutableRefObject<boolean>
-}
+import { useParams } from "react-router-dom"
+import { RoomStatusRefContext, SubmittedGuessRefContext, UserGuessRefContext } from "state/map"
 
 const maxMapWidth = 1200
 const maxMapHeight = 800
 const minMapWidth = 200
 const minMapHeight = 150
 
-export default function Map({
-    mapRef,
-    roomStatusRef,
-    userGuessRef,
-    handleConfirmAnswer,
-    handleRevokeAnswer,
-    submittedGuessRef,
-}: MapProps): ReactElement {
+export default function Map(): ReactElement {
+    const { id } = useParams()
+    const userGuessRef = useContext(UserGuessRefContext)!
+    const submittedGuessRef = useContext(SubmittedGuessRefContext)!
+    const roomStatusRef = useContext(RoomStatusRefContext)!
     const [resizing, setResizing] = useState(false)
     const [initialX, setInitialX] = useState(0)
     const [initialY, setInitialY] = useState(0)
     const [mapWidth, setMapWidth] = useState(getMapWidth())
     const [mapHeight, setMapHeight] = useState(getMapHeight())
+
+    function handleConfirmAnswer(): void {
+        if (userGuessRef.current === null) {
+            console.error("[map]: user marker not found.")
+            return
+        }
+        // @ts-expect-error: figure out why TS says property `.position` isn't present
+        const lat = userGuessRef.current.position.lat()
+        // @ts-expect-error: figure out why TS says property `.position` isn't present
+        const lng = userGuessRef.current.position.lng()
+        submitGuess(lat, lng, id!)
+        submittedGuessRef.current = true
+    }
+
+    function handleRevokeAnswer(): void {
+        revokeGuess(id!)
+        submittedGuessRef.current = false
+    }
 
     const handleMouseDown = (event: MouseEvent): void => {
         setResizing(true)
@@ -128,13 +138,8 @@ export default function Map({
                 overflow: "hidden",
             }}
         >
-            <GoogleMap
-                mapRef={mapRef}
-                roomStatusRef={roomStatusRef}
-                userGuessRef={userGuessRef}
-                submittedGuessRef={submittedGuessRef}
-            />
-            {roomStatusRef.current === "playing" && confirmGuessBtn()}
+            <GoogleMap />
+            {roomStatusRef.current === RoomStatusType.Playing && confirmGuessBtn()}
             <div
                 style={{
                     position: "absolute",

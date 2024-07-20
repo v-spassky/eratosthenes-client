@@ -1,49 +1,50 @@
 import { Button, Modal, ModalContent, ModalFooter, ModalHeader, Snippet, useDisclosure } from "@nextui-org/react"
+import { SocketMessage, SocketMessageType } from "api/messageTypes"
+import { RoomSocketContext } from "api/ws"
 import { getLastVisitedRoomId, setLastVisitedRoomId } from "localStorage/storage"
+import { RoomStatusType } from "models/all"
 import CountdownBar from "pages/playScreen/components/CountdownBar"
 import GoogleMapsWrapper from "pages/playScreen/components/GoogleMapsWrapper"
 import GoogleStreetView from "pages/playScreen/components/GoogleStreetView"
 import Map from "pages/playScreen/components/Map"
-import React, { MutableRefObject, ReactElement, useEffect } from "react"
+import React, { ReactElement, useContext, useEffect } from "react"
 import { FaArrowRightFromBracket } from "react-icons/fa6"
 import { useNavigate, useParams } from "react-router-dom"
 import AccordionWithResponsiveBackground from "sharedComponents/AccordionWithInteractiveBackground"
 import PreferencesButton from "sharedComponents/preferencesButton"
+import { RoomStatusRefContext, SubmittedGuessRefContext } from "state/map"
+import { RoomMetaInfoActionType, RoomMetaInfoContext, RoomMetaInfoDispatchContext } from "state/roomMetaInfo"
+import { playRoundStartedNotification } from "utils/sounds"
 
-interface StreetViewWindowProps {
-    prevApiKeyRef: MutableRefObject<string>
-    showStartGameButton: boolean
-    handleStartGame: () => void
-    progress: number
-    mapRef: MutableRefObject<google.maps.Map | null>
-    roomStatusRef: MutableRefObject<string>
-    streetViewRef: MutableRefObject<google.maps.StreetViewPanorama | null>
-    userGuessRef: MutableRefObject<google.maps.Marker | null>
-    handleConfirmAnswer: () => void
-    handleRevokeAnswer: () => void
-    submittedGuessRef: MutableRefObject<boolean>
-}
-
-export default function StreetViewWindow({
-    prevApiKeyRef,
-    showStartGameButton,
-    handleStartGame,
-    progress,
-    mapRef,
-    roomStatusRef,
-    streetViewRef,
-    userGuessRef,
-    handleConfirmAnswer,
-    handleRevokeAnswer,
-    submittedGuessRef,
-}: StreetViewWindowProps): ReactElement {
+export default function StreetViewWindow(): ReactElement {
     const leaveGameModal = useDisclosure()
     const newlyConnectedModal = useDisclosure()
     const navigate = useNavigate()
     const { id } = useParams()
+    const { roomStatus, showStartGameButton } = useContext(RoomMetaInfoContext)
+    const dispatchRoomMetaInfoAction = useContext(RoomMetaInfoDispatchContext)
+    const roomStatusRef = useContext(RoomStatusRefContext)!
+    const submittedGuessRef = useContext(SubmittedGuessRefContext)!
+    const { sendMessage } = useContext(RoomSocketContext)!
 
     function handleRoomExit(): void {
         navigate("/")
+    }
+
+    function handleStartGame(): void {
+        if (roomStatus === RoomStatusType.Playing) {
+            return
+        }
+        submittedGuessRef.current = false
+        dispatchRoomMetaInfoAction({
+            type: RoomMetaInfoActionType.SetRoomStatus,
+            status: RoomStatusType.Playing,
+        })
+        roomStatusRef.current = RoomStatusType.Playing
+        dispatchRoomMetaInfoAction({ type: RoomMetaInfoActionType.SetProgressToMax })
+        const payload: SocketMessage = { type: SocketMessageType.RoundStarted, payload: null }
+        sendMessage(payload)
+        playRoundStartedNotification()
     }
 
     useEffect(() => {
@@ -56,16 +57,9 @@ export default function StreetViewWindow({
 
     return (
         <div id="streetViewWindow" style={{ height: "100%", flexGrow: 1, position: "relative" }}>
-            <GoogleMapsWrapper prevApiKeyRef={prevApiKeyRef}>
-                <GoogleStreetView streetViewRef={streetViewRef} />
-                <Map
-                    mapRef={mapRef}
-                    roomStatusRef={roomStatusRef}
-                    userGuessRef={userGuessRef}
-                    handleConfirmAnswer={handleConfirmAnswer}
-                    handleRevokeAnswer={handleRevokeAnswer}
-                    submittedGuessRef={submittedGuessRef}
-                />
+            <GoogleMapsWrapper>
+                <GoogleStreetView />
+                <Map />
                 <div
                     style={{
                         position: "absolute",
@@ -101,10 +95,9 @@ export default function StreetViewWindow({
                 <div
                     style={{ position: "absolute", top: "10px", left: "50%", transform: "translateX(-50%)", zIndex: 1 }}
                 >
-                    <CountdownBar progress={progress} />
+                    <CountdownBar />
                 </div>
             </GoogleMapsWrapper>
-
             <Modal size={"sm"} isOpen={leaveGameModal.isOpen} onOpenChange={leaveGameModal.onOpenChange}>
                 <ModalContent>
                     {(onClose) => (
@@ -122,7 +115,6 @@ export default function StreetViewWindow({
                     )}
                 </ModalContent>
             </Modal>
-
             <Modal size={"2xl"} isOpen={newlyConnectedModal.isOpen} onOpenChange={newlyConnectedModal.onOpenChange}>
                 <ModalContent style={{ padding: "24px" }}>
                     {(onClose) => (

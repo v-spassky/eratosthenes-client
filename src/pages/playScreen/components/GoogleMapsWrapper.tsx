@@ -1,14 +1,14 @@
 import { Wrapper } from "@googlemaps/react-wrapper"
-import React, { MutableRefObject, ReactElement, ReactNode } from "react"
+import React, { ReactElement, ReactNode, useContext } from "react"
+import { PrevApiKeyRefContext } from "state/map"
 import getMapsApiKey from "utils/getMapsApiKey"
-
 interface GoogleMapsWrapperProps {
     children: ReactNode
-    prevApiKeyRef: MutableRefObject<string | null>
 }
 
-export default function GoogleMapsWrapper({ children, prevApiKeyRef }: GoogleMapsWrapperProps): ReactElement {
+export default function GoogleMapsWrapper({ children }: GoogleMapsWrapperProps): ReactElement {
     const apiKey = getMapsApiKey()
+    const prevApiKeyRef = useContext(PrevApiKeyRefContext)!
 
     if (prevApiKeyRef.current === "UNSET") {
         console.log(`[API key]: API key is unset. Setting it to "${apiKey}".`)

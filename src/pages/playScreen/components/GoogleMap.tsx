@@ -1,27 +1,22 @@
 import mapMarkSvg from "constants/mapMarkSvg"
 import { getSelectedEmoji, getUsername } from "localStorage/storage"
-import React, { MutableRefObject, ReactElement, useEffect, useRef } from "react"
-
-interface GoogleMapProps {
-    mapRef: MutableRefObject<google.maps.Map | null>
-    roomStatusRef: MutableRefObject<string>
-    userGuessRef: MutableRefObject<google.maps.Marker | null>
-    submittedGuessRef: MutableRefObject<boolean>
-}
+import { RoomStatusType } from "models/all"
+import React, { ReactElement, useContext, useEffect, useRef } from "react"
+import { MapRefContext } from "state/map"
+import { RoomStatusRefContext, SubmittedGuessRefContext, UserGuessRefContext } from "state/map"
 
 const mapDefaultCenter = { lat: 0.0, lng: 0.0 }
 const mapDefaultZoom = 1
 
-export default function GoogleMap({
-    mapRef,
-    roomStatusRef,
-    userGuessRef,
-    submittedGuessRef,
-}: GoogleMapProps): ReactElement {
+export default function GoogleMap(): ReactElement {
     const mapContainerRef = useRef(null)
+    const mapRef = useContext(MapRefContext)!
+    const userGuessRef = useContext(UserGuessRefContext)!
+    const submittedGuessRef = useContext(SubmittedGuessRefContext)!
+    const roomStatusRef = useContext(RoomStatusRefContext)!
 
     function setUserMarker(location: google.maps.LatLng | google.maps.LatLngLiteral): void {
-        if (roomStatusRef.current !== "playing") {
+        if (roomStatusRef.current !== RoomStatusType.Playing) {
             return
         }
         if (submittedGuessRef.current) {
