@@ -2,11 +2,16 @@ import { canConnectToRoom, getUsersOfRoom, submitGuess } from "api/http"
 import { SocketMessage, SocketMessageType } from "api/messageTypes"
 import socketConnWaitRetryPeriodMs from "constants/socketConnWaitRetryPeriod"
 import { getSelectedEmoji, getUserIds, getUsername } from "localStorage/storage"
-import { ChatMessage, RoomStatusType, User } from "models/all"
+import { RoomStatusType } from "models/all"
 import { showBannedFromRoomNotification } from "notifications/all"
 import { showFailedRoomConnectionNotification, showUnsetUsernameErrorNotification } from "notifications/all"
-import { Dispatch, MutableRefObject, SetStateAction, useEffect, useRef, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
+import { createContext } from "react"
 import { useNavigate } from "react-router-dom"
+import { RoomStatusRefContext, SubmittedGuessRefContext, UserGuessRefContext } from "state/map"
+import { MessagesActionType, MessagesDispatchContext } from "state/messages"
+import { RoomMetaInfoActionType, RoomMetaInfoDispatchContext } from "state/roomMetaInfo"
+import { UsersActionType, UsersDispatchContext } from "state/users"
 import {
     playNewMessageNotification,
     playRoundFinishedNotification,
@@ -18,15 +23,6 @@ import {
 interface RoomSocketProps {
     roomId: string
     refreshRoomUsersAndStatus: (retryCount: number) => void
-    setMessages: Dispatch<SetStateAction<ChatMessage[]>>
-    setUsers: Dispatch<SetStateAction<User[]>>
-    setRoomStatus: Dispatch<SetStateAction<RoomStatusType>>
-    setProgress: Dispatch<SetStateAction<number>>
-    setShowLastRoundScore: Dispatch<SetStateAction<boolean>>
-    userGuessRef: MutableRefObject<google.maps.Marker | null>
-    roomStatusRef: MutableRefObject<RoomStatusType>
-    submittedGuessRef: MutableRefObject<boolean>
-    intervalRef: MutableRefObject<NodeJS.Timeout | null>
     openGameFinishedModal: () => void
 }
 
@@ -49,20 +45,17 @@ function waitForSocketConnection(socket: WebSocket | null, onSuccessfulConnectio
 export default function useRoomSocket({
     roomId,
     refreshRoomUsersAndStatus,
-    setMessages,
-    setUsers,
-    setRoomStatus,
-    setProgress,
-    setShowLastRoundScore,
-    userGuessRef,
-    roomStatusRef,
-    submittedGuessRef,
-    intervalRef,
     openGameFinishedModal,
 }: RoomSocketProps): RoomSocketControl {
     const socketRef = useRef<WebSocket | null>(null)
     const [connectionIsOk, setConnectionIsOk] = useState(false)
     const navigate = useNavigate()
+    const dispatchUsersAction = useContext(UsersDispatchContext)
+    const dispatchMessagesAction = useContext(MessagesDispatchContext)
+    const dispatchRoomMetaInfoAction = useContext(RoomMetaInfoDispatchContext)
+    const roomStatusRef = useContext(RoomStatusRefContext)!
+    const submittedGuessRef = useContext(SubmittedGuessRefContext)!
+    const userGuessRef = useContext(UserGuessRefContext)!
 
     async function fetchAndSetUsers(roomId: string): Promise<void> {
         const usersResp = await getUsersOfRoom(roomId)
@@ -70,22 +63,7 @@ export default function useRoomSocket({
             console.error("[HTTP]: failed to load users of the room")
             return
         }
-        setUsers(
-            usersResp.users.map((user) => {
-                return {
-                    publicId: user.publicId,
-                    name: user.name,
-                    avatarEmoji: user.avatarEmoji,
-                    score: user.score,
-                    isHost: user.isHost,
-                    description: user.description,
-                    lastGuess: user.lastGuess,
-                    submittedGuess: user.submittedGuess,
-                    lastRoundScore: user.lastRoundScore,
-                    isMuted: user.isMuted,
-                }
-            })
-        )
+        dispatchUsersAction({ type: UsersActionType.SetUsers, users: usersResp.users })
     }
 
     useEffect(() => {
@@ -186,15 +164,10 @@ export default function useRoomSocket({
                     if (!message.payload.isFromBot) {
                         playNewMessageNotification()
                     }
-                    setMessages((messages) => [
-                        ...messages,
-                        {
-                            id: message.payload.id,
-                            authorName: message.payload.from,
-                            content: message.payload.content,
-                            isFromBot: message.payload.isFromBot,
-                        },
-                    ])
+                    dispatchMessagesAction({
+                        type: MessagesActionType.AddMessage,
+                        message: { authorName: message.payload.from, ...message.payload },
+                    })
                     break
                 }
                 case "userConnected": {
@@ -208,36 +181,14 @@ export default function useRoomSocket({
                     break
                 }
                 case "roundStarted": {
-                    setRoomStatus(RoomStatusType.Playing)
+                    dispatchRoomMetaInfoAction({
+                        type: RoomMetaInfoActionType.SetRoomStatus,
+                        status: RoomStatusType.Playing,
+                    })
                     roomStatusRef.current = RoomStatusType.Playing
                     submittedGuessRef.current = false
-                    setProgress(100)
+                    dispatchRoomMetaInfoAction({ type: RoomMetaInfoActionType.SetProgressToMax })
                     playRoundStartedNotification()
-                    intervalRef.current = setInterval(() => {
-                        setProgress((prevProgress) => {
-                            if (prevProgress === 1) {
-                                if (userGuessRef.current !== null) {
-                                    // @ts-expect-error: figure out why TS says property `.position` isn't present
-                                    const lat = userGuessRef.current.position.lat()
-                                    // @ts-expect-error: figure out why TS says property `.position` isn't present
-                                    const lng = userGuessRef.current.position.lng()
-                                    submitGuess(lat, lng, roomId)
-                                } else {
-                                    console.error("[map]: user marker not found.")
-                                    // TODO: show error
-                                }
-                            }
-                            if (prevProgress === 0) {
-                                if (intervalRef.current !== null) {
-                                    clearInterval(intervalRef.current)
-                                }
-                                setRoomStatus(RoomStatusType.Waiting)
-                                roomStatusRef.current = RoomStatusType.Waiting
-                                return 0
-                            }
-                            return prevProgress - 1
-                        })
-                    }, 1000)
                     break
                 }
                 case "gameFinished": {
@@ -246,17 +197,25 @@ export default function useRoomSocket({
                 // `gameFinished` event is the same as `roundFinished` event plus some extra logic
                 // eslint-disable-next-line no-fallthrough
                 case "roundFinished": {
-                    if (intervalRef.current !== null) {
-                        clearInterval(intervalRef.current)
-                    }
-                    setRoomStatus(RoomStatusType.Waiting)
+                    dispatchRoomMetaInfoAction({
+                        type: RoomMetaInfoActionType.SetRoomStatus,
+                        status: RoomStatusType.Waiting,
+                    })
                     roomStatusRef.current = RoomStatusType.Waiting
                     submittedGuessRef.current = false
-                    setProgress(0)
+                    dispatchRoomMetaInfoAction({ type: RoomMetaInfoActionType.ResetProgress })
                     playRoundFinishedNotification()
                     refreshRoomUsersAndStatus(20)
-                    setShowLastRoundScore(true)
-                    setTimeout(() => setShowLastRoundScore(false), 10000)
+                    dispatchRoomMetaInfoAction({
+                        type: RoomMetaInfoActionType.SetShowLastRoundScore,
+                        showLastRoundScore: true,
+                    })
+                    setTimeout(() => {
+                        dispatchRoomMetaInfoAction({
+                            type: RoomMetaInfoActionType.SetShowLastRoundScore,
+                            showLastRoundScore: false,
+                        })
+                    }, 10000)
                     break
                 }
                 case "guessSubmitted": {
@@ -293,7 +252,7 @@ export default function useRoomSocket({
                 case "pong":
                     break
                 case "tick":
-                    setProgress(message.payload)
+                    dispatchRoomMetaInfoAction({ type: RoomMetaInfoActionType.SetProgress, progress: message.payload })
                     if (message.payload === 1) {
                         if (userGuessRef.current !== null) {
                             // @ts-expect-error: figure out why TS says property `.position` isn't present
@@ -340,3 +299,5 @@ export default function useRoomSocket({
 
     return { connectionIsOk, sendMessage, closeSocket }
 }
+
+export const RoomSocketContext = createContext<RoomSocketControl | null>(null)

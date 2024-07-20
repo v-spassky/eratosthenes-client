@@ -1,13 +1,11 @@
 import { Progress } from "@nextui-org/react"
 import { useTheme } from "next-themes"
-import React, { ReactElement } from "react"
+import React, { ReactElement, useContext } from "react"
+import { RoomMetaInfoContext } from "state/roomMetaInfo"
 
-interface CountdownBarProps {
-    progress: number
-}
-
-export default function CountdownBar({ progress }: CountdownBarProps): ReactElement {
+export default function CountdownBar(): ReactElement {
     const { theme } = useTheme()
+    const { progress } = useContext(RoomMetaInfoContext)
 
     const backgroundColor = theme === "light" ? "white" : "black"
 
@@ -29,7 +27,7 @@ export default function CountdownBar({ progress }: CountdownBarProps): ReactElem
                 visibility: progressBarVisibility(),
             }}
         >
-            <Progress aria-label="Seconds left until round end" value={progress} style={{ padding: "10px" }} />
+            <Progress aria-label="seconds-left-until-round-end" value={progress} style={{ padding: "10px" }} />
         </div>
     )
 }

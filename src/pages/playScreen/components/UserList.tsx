@@ -25,16 +25,12 @@ import { banUser, changeUserScore, muteUser, unmuteUser } from "api/http"
 import { UnmuteUserResponse } from "api/responses"
 import { User } from "models/all"
 import { useTheme } from "next-themes"
-import React, { ReactElement, useState } from "react"
+import React, { ReactElement, useContext, useState } from "react"
 import { FaCoins, FaEllipsisVertical, FaSkullCrossbones } from "react-icons/fa6"
 import { GiSpeaker, GiSpeakerOff } from "react-icons/gi"
 import { useParams } from "react-router-dom"
-
-interface UserListProps {
-    users: User[]
-    showLastRoundScore: boolean
-    iAmHost: boolean
-}
+import { RoomMetaInfoContext } from "state/roomMetaInfo"
+import { UsersContext } from "state/users"
 
 function medalOfIndex(index: number): string {
     switch (index) {
@@ -49,15 +45,17 @@ function medalOfIndex(index: number): string {
     }
 }
 
-export default function UserList({ users, showLastRoundScore, iAmHost }: UserListProps): ReactElement {
+export default function UserList(): ReactElement {
     const { id } = useParams()
     const { theme } = useTheme()
+    const users = useContext(UsersContext)
     const banUserModal = useDisclosure()
     const changeUserScoreModal = useDisclosure()
     const [usernameToEdit, setUsernameToEdit] = useState("")
     const [publicIdWhoseCreditsToChange, setPublicIdWhoseCreditsToChange] = useState("")
     const [changeUserCreditsAmount, setChangeUserCreditsAmount] = useState(0)
     const chipBackground = theme === "light" ? "rgb(242, 244, 245)" : "rgb(75 85 99)"
+    const { iAmHost, showLastRoundScore } = useContext(RoomMetaInfoContext)
 
     function getUserAvatarCell(user: User): ReactElement {
         let avatar = <Avatar name={user.avatarEmoji} style={{ fontSize: "35px" }} />

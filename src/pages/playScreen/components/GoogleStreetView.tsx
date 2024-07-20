@@ -1,11 +1,9 @@
 import defaultStreetViewPosition from "constants/defaultStreetViewPosition"
-import React, { MutableRefObject, ReactElement, useEffect, useRef } from "react"
+import React, { ReactElement, useContext, useEffect, useRef } from "react"
+import { StreetViewRefContext } from "state/map"
 
-interface GoogleStreetViewProps {
-    streetViewRef: MutableRefObject<google.maps.StreetViewPanorama | null>
-}
-
-export default function GoogleStreetView({ streetViewRef }: GoogleStreetViewProps): ReactElement {
+export default function GoogleStreetView(): ReactElement {
+    const streetViewRef = useContext(StreetViewRefContext)!
     const streetViewContainerRef = useRef(null)
 
     useEffect(() => {

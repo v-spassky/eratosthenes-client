@@ -1,29 +1,27 @@
 import { Textarea } from "@nextui-org/react"
 import { SocketMessage, SocketMessageType } from "api/messageTypes"
+import { RoomSocketContext } from "api/ws"
 import maxMessageLength from "constants/maxMessageLength"
 import { getUsername } from "localStorage/storage"
-import { ChatMessage } from "models/all"
 import { useTheme } from "next-themes"
-import React, { Dispatch, KeyboardEvent, ReactElement, SetStateAction, useEffect, useRef, useState } from "react"
+import React, { KeyboardEvent, ReactElement, useContext, useEffect, useRef, useState } from "react"
 import { FaWifi } from "react-icons/fa6"
+import { MessagesActionType, MessagesContext, MessagesDispatchContext } from "state/messages"
 import randomChatPrompt from "utils/randomChatPrompt"
-
-interface ChatProps {
-    sendMessage: (message: SocketMessage) => void
-    messages: ChatMessage[]
-    setMessages: Dispatch<SetStateAction<ChatMessage[]>>
-    connectionIsOk: boolean
-}
 
 const scrollUpThreshold = 40
 const scrollBottomPadding = 4
 
-export default function Chat({ sendMessage, messages, setMessages, connectionIsOk }: ChatProps): ReactElement {
+export default function Chat(): ReactElement {
+    const { theme } = useTheme()
+    const messages = useContext(MessagesContext)
+    const dispatchMessagesAction = useContext(MessagesDispatchContext)
+    const { connectionIsOk, sendMessage } = useContext(RoomSocketContext)!
     const [message, setMessage] = useState("")
     const [chatPrompt, setPrompt] = useState(randomChatPrompt())
     const textInputIsFocused = useRef(false)
     const chatContainerRef = useRef<HTMLDivElement>(null)
-    const { theme } = useTheme()
+
     const statusBarText = connectionIsOk ? "Соединение работает нормально." : "Соединение потеряно."
     const messageLengthIsValid = message.length <= maxMessageLength
 
@@ -77,7 +75,10 @@ export default function Chat({ sendMessage, messages, setMessages, connectionIsO
             },
         }
         sendMessage(payload)
-        setMessages([...messages, { id: 1, authorName: "я", content: message, isFromBot: false }])
+        dispatchMessagesAction({
+            type: MessagesActionType.AddMessage,
+            message: { id: 1, authorName: "я", content: message, isFromBot: false },
+        })
         setMessage("")
         setPrompt(randomChatPrompt())
     }
