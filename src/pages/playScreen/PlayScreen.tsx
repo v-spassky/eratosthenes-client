@@ -1,6 +1,6 @@
 import { Button, Modal, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@nextui-org/react"
 import { canConnectToRoom, getMessagesOfRoom, getUsersOfRoom, userIsHost } from "api/http"
-import { SocketMessage, SocketMessageType } from "api/messageTypes"
+import { ClientSentSocketMessage, ClientSentSocketMessageType } from "api/messageTypes"
 import { isRoomStatusPlaying, isRoomStatusWaiting } from "api/responses"
 import useRoomSocket, { RoomSocketContext } from "api/ws"
 import defaultStreetViewPosition from "constants/defaultStreetViewPosition"
@@ -101,15 +101,12 @@ export default function PlayScreen(): ReactElement {
         console.log("[navigation]: tab is closing...")
         const username = getUsername()
         if (username === null) {
-            console.log("[storage]: could't get username from local storage")
+            console.error("[storage]: could't get username from local storage")
             return
         }
-        const payload: SocketMessage = {
-            type: SocketMessageType.UserDisconnected,
-            payload: {
-                username,
-                avatarEmoji: getSelectedEmoji() || "",
-            },
+        const payload: ClientSentSocketMessage = {
+            type: ClientSentSocketMessageType.UserDisconnected,
+            payload: { username, avatarEmoji: getSelectedEmoji() || "" },
         }
         sendMessage(payload)
         closeSocket()

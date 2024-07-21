@@ -1,5 +1,5 @@
 import { canConnectToRoom, getUsersOfRoom, submitGuess } from "api/http"
-import { SocketMessage, SocketMessageType } from "api/messageTypes"
+import { ClientSentSocketMessage, ClientSentSocketMessageType, ServerSentSocketMessage, ServerSentSocketMessageType } from "api/messageTypes"
 import socketConnWaitRetryPeriodMs from "constants/socketConnWaitRetryPeriod"
 import { getSelectedEmoji, getUserIds, getUsername } from "localStorage/storage"
 import { RoomStatusType } from "models/all"
@@ -28,7 +28,7 @@ interface RoomSocketProps {
 
 interface RoomSocketControl {
     connectionIsOk: boolean
-    sendMessage: (message: SocketMessage) => void
+    sendMessage: (message: ClientSentSocketMessage) => void
     closeSocket: () => void
 }
 
@@ -87,11 +87,11 @@ export default function useRoomSocket({
         setTimeout(() => {
             const username = getUsername()
             if (username === null) {
-                console.log("[storage]: could't get username from local storage")
+                console.error("[storage]: could't get username from local storage")
                 return
             }
-            const payload: SocketMessage = {
-                type: SocketMessageType.UserConnected,
+            const payload: ClientSentSocketMessage = {
+                type: ClientSentSocketMessageType.UserConnected,
                 payload: { username, avatarEmoji: getSelectedEmoji() || "" },
             }
             waitForSocketConnection(socketRef.current, () => {
@@ -103,11 +103,11 @@ export default function useRoomSocket({
         return (): void => {
             const username = getUsername()
             if (username === null) {
-                console.log("[storage]: could't get username from local storage")
+                console.error("[storage]: could't get username from local storage")
                 return
             }
-            const payload: SocketMessage = {
-                type: SocketMessageType.UserDisconnected,
+            const payload: ClientSentSocketMessage = {
+                type: ClientSentSocketMessageType.UserDisconnected,
                 payload: { username, avatarEmoji: getSelectedEmoji() || "" },
             }
             sendMessage(payload)
@@ -128,11 +128,11 @@ export default function useRoomSocket({
             if (isReconnect) {
                 const username = getUsername()
                 if (username === null) {
-                    console.log("[storage]: could't get username from local storage")
+                    console.error("[storage]: could't get username from local storage")
                     return
                 }
-                const payload: SocketMessage = {
-                    type: SocketMessageType.UserReConnected,
+                const payload: ClientSentSocketMessage = {
+                    type: ClientSentSocketMessageType.UserReConnected,
                     payload: { username, avatarEmoji: getSelectedEmoji() || "" },
                 }
                 sendMessage(payload)
@@ -158,9 +158,9 @@ export default function useRoomSocket({
             }
         }
         socketRef.current.onmessage = async (event): Promise<void> => {
-            const message: SocketMessage = JSON.parse(event.data)
+            const message: ServerSentSocketMessage = JSON.parse(event.data)
             switch (message.type) {
-                case "chatMessage": {
+                case ServerSentSocketMessageType.ChatMessage: {
                     if (!message.payload.isFromBot) {
                         playNewMessageNotification()
                     }
@@ -170,17 +170,17 @@ export default function useRoomSocket({
                     })
                     break
                 }
-                case "userConnected": {
+                case ServerSentSocketMessageType.UserConnected: {
                     playUserConnectedNotification()
                     await fetchAndSetUsers(roomId)
                     break
                 }
-                case "userDisconnected": {
+                case ServerSentSocketMessageType.UserDisconnected: {
                     playUserDisconnectedNotification()
                     await fetchAndSetUsers(roomId)
                     break
                 }
-                case "roundStarted": {
+                case ServerSentSocketMessageType.RoundStarted: {
                     dispatchRoomMetaInfoAction({
                         type: RoomMetaInfoActionType.SetRoomStatus,
                         status: RoomStatusType.Playing,
@@ -191,12 +191,12 @@ export default function useRoomSocket({
                     playRoundStartedNotification()
                     break
                 }
-                case "gameFinished": {
+                case ServerSentSocketMessageType.GameFinished: {
                     openGameFinishedModal()
                 }
                 // `gameFinished` event is the same as `roundFinished` event plus some extra logic
                 // eslint-disable-next-line no-fallthrough
-                case "roundFinished": {
+                case ServerSentSocketMessageType.RoundFinished: {
                     dispatchRoomMetaInfoAction({
                         type: RoomMetaInfoActionType.SetRoomStatus,
                         status: RoomStatusType.Waiting,
@@ -218,23 +218,23 @@ export default function useRoomSocket({
                     }, 10000)
                     break
                 }
-                case "guessSubmitted": {
+                case ServerSentSocketMessageType.GuessSubmitted: {
                     await fetchAndSetUsers(roomId)
                     break
                 }
-                case "guessRevoked": {
+                case ServerSentSocketMessageType.GuessRevoked: {
                     await fetchAndSetUsers(roomId)
                     break
                 }
-                case "userMuted": {
+                case ServerSentSocketMessageType.UserMuted: {
                     await fetchAndSetUsers(roomId)
                     break
                 }
-                case "userUnmuted": {
+                case ServerSentSocketMessageType.UserUnmuted: {
                     await fetchAndSetUsers(roomId)
                     break
                 }
-                case "userBanned": {
+                case ServerSentSocketMessageType.UserBanned: {
                     const [publicId, _privateId] = getUserIds()
                     if (message.payload.publicId === publicId) {
                         showBannedFromRoomNotification()
@@ -243,15 +243,13 @@ export default function useRoomSocket({
                     await fetchAndSetUsers(roomId)
                     break
                 }
-                case "userScoreChanged": {
+                case ServerSentSocketMessageType.UserScoreChanged: {
                     await fetchAndSetUsers(roomId)
                     break
                 }
-                case "ping":
+                case ServerSentSocketMessageType.Pong:
                     break
-                case "pong":
-                    break
-                case "tick":
+                case ServerSentSocketMessageType.Tick:
                     dispatchRoomMetaInfoAction({ type: RoomMetaInfoActionType.SetProgress, progress: message.payload })
                     if (message.payload === 1) {
                         if (userGuessRef.current !== null) {
@@ -267,15 +265,15 @@ export default function useRoomSocket({
                     }
                     break
                 default:
-                    console.error(`[WS]: unknown or unexpected message type: ${message.type}`)
+                    console.error(`[WS]: unknown or unexpected message type: ${JSON.stringify(message)}`)
             }
         }
         return setInterval(() => {
-            sendMessage({ type: SocketMessageType.Ping, payload: null })
+            sendMessage({ type: ClientSentSocketMessageType.Ping })
         }, 5 * 1000)
     }
 
-    function sendMessage(message: SocketMessage): void {
+    function sendMessage(message: ClientSentSocketMessage): void {
         const messageAsStr = JSON.stringify(message)
         if (socketRef.current === null) {
             console.error(`[WS]: tried to send message ${messageAsStr} while socketRef.current === null`)

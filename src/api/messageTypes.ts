@@ -1,23 +1,59 @@
-export enum SocketMessageType {
-    ChatMessage = "chatMessage",
-    UserConnected = "userConnected",
-    UserReConnected = "userReConnected",
-    UserDisconnected = "userDisconnected",
-    RoundStarted = "roundStarted",
-    GameFinished = "gameFinished",
-    RoundFinished = "roundFinished",
-    GuessSubmitted = "guessSubmitted",
-    GuessRevoked = "guessRevoked",
-    UserMuted = "userMuted",
-    UserUnmuted = "userUnmuted",
-    UserBanned = "userBanned",
-    UserScoreChanged = "userScoreChanged",
-    Ping = "ping",
-    Pong = "pong",
-    Tick = "tick",
+export type ClientSentSocketMessage =
+    | { type: ClientSentSocketMessageType.ChatMessage; payload: OutgoingChatMessagePayload }
+    | { type: ClientSentSocketMessageType.UserConnected; payload: BriefUserInfoPayload }
+    | { type: ClientSentSocketMessageType.UserReConnected; payload: BriefUserInfoPayload }
+    | { type: ClientSentSocketMessageType.UserDisconnected; payload: BriefUserInfoPayload }
+    | { type: ClientSentSocketMessageType.RoundStarted }
+    | { type: ClientSentSocketMessageType.Ping }
+
+export enum ClientSentSocketMessageType {
+    ChatMessage = "ChatMessage",
+    UserConnected = "UserConnected",
+    UserDisconnected = "UserDisconnected",
+    UserReConnected = "UserReConnected",
+    RoundStarted = "RoundStarted",
+    Ping = "Ping",
 }
 
-interface ChatMessagePayload {
+export type ServerSentSocketMessage =
+    | { type: ServerSentSocketMessageType.ChatMessage; payload: IncomingChatMessagePayload }
+    | { type: ServerSentSocketMessageType.UserConnected; payload: BriefUserInfoPayload }
+    | { type: ServerSentSocketMessageType.UserDisconnected; payload: BriefUserInfoPayload }
+    | { type: ServerSentSocketMessageType.RoundStarted }
+    | { type: ServerSentSocketMessageType.GameFinished }
+    | { type: ServerSentSocketMessageType.RoundFinished }
+    | { type: ServerSentSocketMessageType.GuessSubmitted }
+    | { type: ServerSentSocketMessageType.GuessRevoked }
+    | { type: ServerSentSocketMessageType.UserMuted }
+    | { type: ServerSentSocketMessageType.UserUnmuted }
+    | { type: ServerSentSocketMessageType.UserBanned; payload: UserPubIdInfoPayload }
+    | { type: ServerSentSocketMessageType.UserScoreChanged }
+    | { type: ServerSentSocketMessageType.Pong }
+    | { type: ServerSentSocketMessageType.Tick; payload: number }
+
+export enum ServerSentSocketMessageType {
+    ChatMessage = "ChatMessage",
+    UserConnected = "UserConnected",
+    UserDisconnected = "UserDisconnected",
+    RoundStarted = "RoundStarted",
+    GameFinished = "GameFinished",
+    RoundFinished = "RoundFinished",
+    GuessSubmitted = "GuessSubmitted",
+    GuessRevoked = "GuessRevoked",
+    UserMuted = "UserMuted",
+    UserUnmuted = "UserUnmuted",
+    UserBanned = "UserBanned",
+    UserScoreChanged = "UserScoreChanged",
+    Pong = "Pong",
+    Tick = "Tick",
+}
+
+interface OutgoingChatMessagePayload {
+    from: string // TODO: remove this, get username on the server
+    content: string
+}
+
+interface IncomingChatMessagePayload {
     id: number
     from: string
     content: string
@@ -32,21 +68,3 @@ interface BriefUserInfoPayload {
 interface UserPubIdInfoPayload {
     publicId: string
 }
-
-export type SocketMessage =
-    | { type: SocketMessageType.ChatMessage; payload: ChatMessagePayload }
-    | { type: SocketMessageType.UserConnected; payload: BriefUserInfoPayload }
-    | { type: SocketMessageType.UserReConnected; payload: BriefUserInfoPayload }
-    | { type: SocketMessageType.UserDisconnected; payload: BriefUserInfoPayload }
-    | { type: SocketMessageType.RoundStarted; payload: null }
-    | { type: SocketMessageType.GameFinished; payload: null }
-    | { type: SocketMessageType.RoundFinished; payload: null }
-    | { type: SocketMessageType.GuessSubmitted; payload: null }
-    | { type: SocketMessageType.GuessRevoked; payload: null }
-    | { type: SocketMessageType.UserMuted; payload: null }
-    | { type: SocketMessageType.UserUnmuted; payload: null }
-    | { type: SocketMessageType.UserBanned; payload: UserPubIdInfoPayload }
-    | { type: SocketMessageType.UserScoreChanged; payload: null }
-    | { type: SocketMessageType.Ping; payload: null }
-    | { type: SocketMessageType.Pong; payload: null }
-    | { type: SocketMessageType.Tick; payload: number }

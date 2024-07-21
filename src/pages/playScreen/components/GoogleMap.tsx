@@ -24,7 +24,7 @@ export default function GoogleMap(): ReactElement {
         }
         const username = getUsername()
         if (username === null) {
-            console.log("[storage]: could't get username from local storage")
+            console.error("[storage]: could't get username from local storage")
             return
         }
         if (userGuessRef.current !== null) {

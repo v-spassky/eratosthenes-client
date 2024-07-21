@@ -21,7 +21,7 @@ export function messagesReducer(messages: ChatMessage[], action: MessagesAction)
         case MessagesActionType.SetMessages: {
             return action.messages.map((message) => {
                 return {
-                    id: 1,
+                    id: message.id,
                     authorName: message.authorName === getUsername() ? "я" : message.authorName,
                     content: message.content,
                     isFromBot: message.isFromBot,
