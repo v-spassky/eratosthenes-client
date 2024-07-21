@@ -1,5 +1,5 @@
 import { Textarea } from "@nextui-org/react"
-import { SocketMessage, SocketMessageType } from "api/messageTypes"
+import { ClientSentSocketMessage, ClientSentSocketMessageType } from "api/messageTypes"
 import { RoomSocketContext } from "api/ws"
 import maxMessageLength from "constants/maxMessageLength"
 import { getUsername } from "localStorage/storage"
@@ -65,14 +65,9 @@ export default function Chat(): ReactElement {
         if (username === null) {
             return
         }
-        const payload: SocketMessage = {
-            type: SocketMessageType.ChatMessage,
-            payload: {
-                id: 1, // TODO: refactor this once I separate server-sent and client-sent message types
-                from: username,
-                content: message.replace(/\n/g, "\\n"),
-                isFromBot: false, // TODO: remove this (every message that comes from client is not from bot)
-            },
+        const payload: ClientSentSocketMessage = {
+            type: ClientSentSocketMessageType.ChatMessage,
+            payload: { from: username, content: message.replace(/\n/g, "\\n") },
         }
         sendMessage(payload)
         dispatchMessagesAction({

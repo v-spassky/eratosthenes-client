@@ -1,5 +1,5 @@
 import { Button, Modal, ModalContent, ModalFooter, ModalHeader, Snippet, useDisclosure } from "@nextui-org/react"
-import { SocketMessage, SocketMessageType } from "api/messageTypes"
+import { ClientSentSocketMessage, ClientSentSocketMessageType } from "api/messageTypes"
 import { RoomSocketContext } from "api/ws"
 import { getLastVisitedRoomId, setLastVisitedRoomId } from "localStorage/storage"
 import { RoomStatusType } from "models/all"
@@ -42,7 +42,7 @@ export default function StreetViewWindow(): ReactElement {
         })
         roomStatusRef.current = RoomStatusType.Playing
         dispatchRoomMetaInfoAction({ type: RoomMetaInfoActionType.SetProgressToMax })
-        const payload: SocketMessage = { type: SocketMessageType.RoundStarted, payload: null }
+        const payload: ClientSentSocketMessage = { type: ClientSentSocketMessageType.RoundStarted }
         sendMessage(payload)
         playRoundStartedNotification()
     }
