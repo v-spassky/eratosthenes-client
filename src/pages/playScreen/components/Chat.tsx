@@ -1,4 +1,4 @@
-import { Textarea } from "@nextui-org/react"
+import { Card, Textarea } from "@nextui-org/react"
 import { ClientSentSocketMessage, ClientSentSocketMessageType } from "api/messageTypes"
 import { RoomSocketContext } from "api/ws"
 import maxMessageLength from "constants/maxMessageLength"
@@ -7,6 +7,8 @@ import { useTheme } from "next-themes"
 import React, { KeyboardEvent, ReactElement, useContext, useEffect, useRef, useState } from "react"
 import { FaWifi } from "react-icons/fa6"
 import { MessagesActionType, MessagesContext, MessagesDispatchContext } from "state/messages"
+import { UsersContext } from "state/users"
+import getCaretCoordinates from "textarea-caret"
 import randomChatPrompt from "utils/randomChatPrompt"
 
 const scrollUpThreshold = 40
@@ -15,15 +17,26 @@ const scrollBottomPadding = 4
 export default function Chat(): ReactElement {
     const { theme } = useTheme()
     const messages = useContext(MessagesContext)
+    const users = useContext(UsersContext)
     const dispatchMessagesAction = useContext(MessagesDispatchContext)
     const { connectionIsOk, sendMessage } = useContext(RoomSocketContext)!
     const [message, setMessage] = useState("")
     const [chatPrompt, setPrompt] = useState(randomChatPrompt())
     const textInputIsFocused = useRef(false)
     const chatContainerRef = useRef<HTMLDivElement>(null)
+    const textAreaRef = useRef<HTMLTextAreaElement>(null)
+    const [showDropdown, setShowDropdown] = useState(false)
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 })
+    const dropdownRef = useRef<HTMLDivElement>(null)
+    const [dropdownHeight, setDropdownHeight] = useState(0)
+    const [highlightedIndex, setHighlightedIndex] = useState(-1)
 
     const statusBarText = connectionIsOk ? "Соединение работает нормально." : "Соединение потеряно."
     const messageLengthIsValid = message.length <= maxMessageLength
+    const userMentionBackgroundColor = theme === "light" ? "rgb(214, 216, 217)" : "rgb(52, 62, 75)"
+    const myMentionBackground =
+        theme === "light" ? "linear-gradient(to left, #ede574, #e1f5c4)" : "linear-gradient(to left, #4776e6, #8e54e9)"
+    const dropdownSelectionBackground = theme === "light" ? "rgb(242, 244, 245)" : "rgb(75 85 99)"
 
     useEffect(() => {
         if (chatContainerRef.current === null) {
@@ -41,6 +54,17 @@ export default function Chat(): ReactElement {
         }
         chat.scrollTop = chat.scrollHeight - chat.clientHeight
     }, [messages])
+
+    useEffect(() => {
+        if (showDropdown && dropdownRef.current) {
+            setDropdownHeight(dropdownRef.current.offsetHeight)
+        }
+    }, [showDropdown])
+
+    useEffect(() => {
+        setDropdownHeight(users.length * 32)
+        setDropdownPosition((prevPos) => ({ ...prevPos, top: prevPos.top + dropdownHeight - users.length * 32 }))
+    }, [users])
 
     function statusBarBgColor(): string {
         let statusBarColor
@@ -79,9 +103,87 @@ export default function Chat(): ReactElement {
     }
 
     function handleKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
-        if (event.key === "Enter" && textInputIsFocused.current && message.trim() !== "" && messageLengthIsValid) {
+        if (dropdownHeight === 0 && dropdownRef.current !== null) {
+            setDropdownHeight(dropdownRef.current.offsetHeight)
+        }
+        if (showDropdown) {
+            if (event.key === "ArrowDown") {
+                event.preventDefault()
+                setHighlightedIndex((prevIndex) => (prevIndex + 1) % users.length)
+            } else if (event.key === "ArrowUp") {
+                event.preventDefault()
+                setHighlightedIndex((prevIndex) => (prevIndex - 1 + users.length) % users.length)
+            } else if (event.key === "Enter" && highlightedIndex >= 0) {
+                event.preventDefault()
+                selectUser(users[highlightedIndex].name)
+            } else if (event.key === "Escape") {
+                setShowDropdown(false)
+                setHighlightedIndex(-1)
+            }
+        } else if (
+            event.key === "Enter" &&
+            textInputIsFocused.current &&
+            message.trim() !== "" &&
+            messageLengthIsValid
+        ) {
             handleSendMessage(event)
         }
+    }
+
+    function selectUser(username: string): void {
+        setMessage((prevMessage) => prevMessage + username + " ")
+        setShowDropdown(false)
+        setHighlightedIndex(-1)
+    }
+
+    function handleTextareaChange(event: React.ChangeEvent<HTMLInputElement>): void {
+        setMessage(event.target.value)
+        const caretPos = getCaretCoordinates(event.target, event.target.selectionEnd!)
+        if (event.target.value[event.target.selectionStart! - 1] === "@") {
+            const cursorCoord = {
+                top: caretPos.top + 25 - dropdownHeight,
+                left: caretPos.left + 25,
+            }
+            setDropdownPosition(cursorCoord)
+            setShowDropdown(true)
+        } else {
+            setShowDropdown(false)
+            setHighlightedIndex(-1)
+        }
+    }
+
+    function highlightTags(text: string): ReactElement {
+        const parts = text.split(/(@[\w\u0400-\u04FF]+(?:\s[\w\u0400-\u04FF]+)*)/gu)
+        return (
+            <>
+                {parts.map((part, index) => {
+                    if (part.startsWith("@")) {
+                        const mentionedUser = users.find((user) => `@${user.name}` === part)
+                        const iAmMentionedUser = mentionedUser?.name === getUsername()!
+                        if (mentionedUser) {
+                            const userSpecificMentionStyles = iAmMentionedUser
+                                ? { background: myMentionBackground }
+                                : { backgroundColor: userMentionBackgroundColor }
+                            return (
+                                <span
+                                    key={index}
+                                    style={{
+                                        borderRadius: "999px",
+                                        padding: "0.5px",
+                                        paddingLeft: "4px",
+                                        paddingRight: "4px",
+                                        ...userSpecificMentionStyles,
+                                    }}
+                                >
+                                    {part}
+                                </span>
+                            )
+                        }
+                    }
+                    return part
+                })}
+            </>
+        )
     }
 
     const messageLengthErrorMsg = (
@@ -118,21 +220,23 @@ export default function Chat(): ReactElement {
                 {messages.map((message) =>
                     message.isFromBot ? (
                         <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word", fontStyle: "italic" }}>
-                            {message.content}
+                            {highlightTags(message.content)}
                         </div>
                     ) : (
                         <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word" }}>
-                            <span style={{ fontWeight: "bold" }}>{message.authorName}:</span> {message.content}
+                            <span style={{ fontWeight: "bold" }}>{message.authorName}:</span>{" "}
+                            {highlightTags(message.content)}
                         </div>
                     )
                 )}
             </div>
-            <div style={{ padding: "10px", paddingTop: "0px", paddingBottom: "0px" }}>
+            <div style={{ position: "relative", padding: "10px", paddingTop: "0px", paddingBottom: "0px" }}>
                 <Textarea
+                    ref={textAreaRef}
                     aria-label="Chat message text"
                     name="message"
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={handleTextareaChange}
                     placeholder={chatPrompt}
                     style={{ height: "100px" }}
                     onKeyDown={handleKeyDown}
@@ -141,6 +245,33 @@ export default function Chat(): ReactElement {
                     isInvalid={!messageLengthIsValid}
                     errorMessage={messageLengthErrorMsg}
                 />
+                <Card
+                    ref={dropdownRef}
+                    style={{
+                        position: "absolute",
+                        top: dropdownPosition.top,
+                        left: dropdownPosition.left,
+                        borderRadius: "8px",
+                        zIndex: 10,
+                        display: showDropdown ? "inherit" : "none",
+                    }}
+                >
+                    {users.map((user, idx) => (
+                        <div
+                            key={user.publicId}
+                            style={{
+                                padding: "4px",
+                                backgroundColor: highlightedIndex === idx ? dropdownSelectionBackground : "inherit",
+                                cursor: "pointer",
+                            }}
+                            onMouseDown={() => selectUser(user.name)}
+                            onMouseEnter={() => setHighlightedIndex(idx)}
+                        >
+                            <span style={{ display: "inline-block", width: "16px" }}>{user.avatarEmoji || ""}</span>{" "}
+                            {user.name}
+                        </div>
+                    ))}
+                </Card>
             </div>
             <div
                 style={{
