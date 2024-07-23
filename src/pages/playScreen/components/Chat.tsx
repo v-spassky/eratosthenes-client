@@ -59,6 +59,14 @@ export default function Chat(): ReactElement {
         if (showDropdown && dropdownRef.current) {
             setDropdownHeight(dropdownRef.current.offsetHeight)
         }
+        const dropdownRightEdgeLeftCoord =
+            textAreaRef.current!.getBoundingClientRect().left +
+            dropdownPosition.left +
+            dropdownRef.current!.clientWidth!
+        const dropdownOverflow = dropdownRightEdgeLeftCoord - window.innerWidth
+        if (dropdownOverflow >= 0) {
+            setDropdownPosition((prevPos) => ({ ...prevPos, left: prevPos.left - dropdownOverflow }))
+        }
     }, [showDropdown])
 
     useEffect(() => {
@@ -254,6 +262,7 @@ export default function Chat(): ReactElement {
                         borderRadius: "8px",
                         zIndex: 10,
                         display: showDropdown ? "inherit" : "none",
+                        whiteSpace: "nowrap",
                     }}
                 >
                     {users.map((user, idx) => (
