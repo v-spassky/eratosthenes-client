@@ -52,6 +52,7 @@ export default function UserList(): ReactElement {
     const banUserModal = useDisclosure()
     const changeUserScoreModal = useDisclosure()
     const [usernameToEdit, setUsernameToEdit] = useState("")
+    const [userIdToBan, setUserIdToBan] = useState("")
     const [publicIdWhoseCreditsToChange, setPublicIdWhoseCreditsToChange] = useState("")
     const [changeUserCreditsAmount, setChangeUserCreditsAmount] = useState(0)
     const chipBackground = theme === "light" ? "rgb(242, 244, 245)" : "rgb(75 85 99)"
@@ -147,6 +148,7 @@ export default function UserList(): ReactElement {
                     startContent={<FaSkullCrossbones />}
                     onClick={() => {
                         setUsernameToEdit(user.name)
+                        setUserIdToBan(user.publicId)
                         banUserModal.onOpen()
                     }}
                 >
@@ -168,7 +170,10 @@ export default function UserList(): ReactElement {
                     size={"lg"}
                     isOpen={banUserModal.isOpen}
                     onOpenChange={banUserModal.onOpenChange}
-                    onClose={() => setUsernameToEdit("")}
+                    onClose={() => {
+                        setUsernameToEdit("")
+                        setUserIdToBan("")
+                    }}
                 >
                     <ModalContent>
                         {(onClose) => (
@@ -182,7 +187,8 @@ export default function UserList(): ReactElement {
                                         color="danger"
                                         onPress={() => {
                                             setUsernameToEdit("")
-                                            banUser(id!, user.publicId)
+                                            setUserIdToBan("")
+                                            banUser(id!, userIdToBan)
                                             onClose()
                                         }}
                                     >
