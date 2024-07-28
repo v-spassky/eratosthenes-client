@@ -2,7 +2,7 @@ import { apiIsHealthy } from "api/http"
 import { useEffect, useState } from "react"
 
 export default function useHealth(): [boolean, boolean] {
-    const [healthy, setHealthy] = useState(false)
+    const [healthy, setHealthy] = useState(true)
     const [checking, setChecking] = useState(false)
 
     useEffect(() => {

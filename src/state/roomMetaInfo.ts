@@ -40,7 +40,7 @@ export type RoomMetaInfoAction =
     | { type: RoomMetaInfoActionType.SetShowLastRoundScore; showLastRoundScore: boolean }
     | { type: RoomMetaInfoActionType.SetShowStartGameButton; showStartGameButton: boolean }
     | { type: RoomMetaInfoActionType.SetProgressToMax }
-    | { type: RoomMetaInfoActionType.SetProgress, progress: number }
+    | { type: RoomMetaInfoActionType.SetProgress; progress: number }
     | { type: RoomMetaInfoActionType.ResetProgress }
 
 export function roomMetaInfoReducer(roomMetaInfo: RoomMetaInfo, action: RoomMetaInfoAction): RoomMetaInfo {

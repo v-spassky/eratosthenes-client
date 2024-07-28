@@ -2,6 +2,7 @@ import { Wrapper } from "@googlemaps/react-wrapper"
 import React, { ReactElement, ReactNode, useContext } from "react"
 import { PrevApiKeyRefContext } from "state/map"
 import getMapsApiKey from "utils/getMapsApiKey"
+
 interface GoogleMapsWrapperProps {
     children: ReactNode
 }

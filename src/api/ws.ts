@@ -1,5 +1,10 @@
 import { canConnectToRoom, getUsersOfRoom, submitGuess } from "api/http"
-import { ClientSentSocketMessage, ClientSentSocketMessageType, ServerSentSocketMessage, ServerSentSocketMessageType } from "api/messageTypes"
+import {
+    ClientSentSocketMessage,
+    ClientSentSocketMessageType,
+    ServerSentSocketMessage,
+    ServerSentSocketMessageType,
+} from "api/messageTypes"
 import socketConnWaitRetryPeriodMs from "constants/socketConnWaitRetryPeriod"
 import { getSelectedEmoji, getUserIds, getUsername } from "localStorage/storage"
 import { RoomStatusType } from "models/all"
