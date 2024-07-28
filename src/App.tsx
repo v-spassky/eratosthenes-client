@@ -10,7 +10,7 @@ import { ToastContainer } from "react-toastify"
 export default function App(): ReactElement {
     return (
         <NextUIProvider>
-            <NextThemesProvider attribute="class" defaultTheme="light">
+            <NextThemesProvider attribute="class" enableSystem defaultTheme="system">
                 <Routes>
                     <Route path="/" element={<HomeScreen />} />
                     <Route path="/room/:id" element={<PlayScreenWithContext />} />
