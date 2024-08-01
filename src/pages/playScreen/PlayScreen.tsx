@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react"
 import { Button, Modal, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@nextui-org/react"
 import { canConnectToRoom, getMessagesOfRoom, getUsersOfRoom, userIsHost } from "api/http"
 import { ClientSentSocketMessage, ClientSentSocketMessageType } from "api/messageTypes"
@@ -32,6 +33,7 @@ import { UsersActionType, UsersContext, UsersDispatchContext } from "state/users
 export default function PlayScreen(): ReactElement {
     const { id } = useParams()
     const navigate = useNavigate()
+    const strings = useLingui()
     const gameFinishedModal = useDisclosure()
 
     const users = useContext(UsersContext)
@@ -261,7 +263,11 @@ export default function PlayScreen(): ReactElement {
                 console.error("[API]: could not fetch room messages")
                 return
             }
-            dispatchMessagesAction({ type: MessagesActionType.SetMessages, messages: messagesResp.messages })
+            dispatchMessagesAction({
+                type: MessagesActionType.SetMessages,
+                messages: messagesResp.messages,
+                strings,
+            })
         }
         fetchData()
     }, [navigate, id])
@@ -283,7 +289,7 @@ export default function PlayScreen(): ReactElement {
                         {(onClose) => (
                             <>
                                 <ModalHeader style={{ padding: "0px", paddingBottom: "12px" }}>
-                                    Игра завершена! Победитель это...
+                                    {strings.i18n._("gameFinishedTheWinnerIs")}
                                 </ModalHeader>
                                 <div style={{ textAlign: "center" }}>
                                     <p style={{ fontSize: "80px" }}>{users[0].avatarEmoji}</p>
@@ -291,7 +297,7 @@ export default function PlayScreen(): ReactElement {
                                 </div>
                                 <ModalFooter style={{ padding: "0px", paddingTop: "12px" }}>
                                     <Button color="primary" onPress={onClose}>
-                                        Круто!
+                                        {strings.i18n._("cool")}
                                     </Button>
                                 </ModalFooter>
                             </>

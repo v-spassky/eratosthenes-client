@@ -88,3 +88,11 @@ export function getMapHeight(): number {
 export function setMapHeight(height: number): void {
     localStorage.setItem("mapHeight", height.toString())
 }
+
+export function getSelectedLanguage(): string {
+    return localStorage.getItem("selectedLanguage") || "ru"
+}
+
+export function setSelectedLanguage(language: string): void {
+    localStorage.setItem("selectedLanguage", language)
+}

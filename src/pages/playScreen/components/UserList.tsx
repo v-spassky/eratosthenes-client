@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react"
 import {
     Avatar,
     Badge,
@@ -31,6 +32,7 @@ import { GiSpeaker, GiSpeakerOff } from "react-icons/gi"
 import { useParams } from "react-router-dom"
 import { RoomMetaInfoContext } from "state/roomMetaInfo"
 import { UsersContext } from "state/users"
+import randomUserDescription from "utils/randomUserDescription"
 
 function medalOfIndex(index: number): string {
     switch (index) {
@@ -48,6 +50,7 @@ function medalOfIndex(index: number): string {
 export default function UserList(): ReactElement {
     const { id } = useParams()
     const { theme } = useTheme()
+    const strings = useLingui()
     const users = useContext(UsersContext)
     const banUserModal = useDisclosure()
     const changeUserScoreModal = useDisclosure()
@@ -83,7 +86,7 @@ export default function UserList(): ReactElement {
         }
         if (user.isHost) {
             avatar = (
-                <Badge content="хост" color="danger" size="sm">
+                <Badge content={strings.i18n._("host")} color="danger" size="sm">
                     {avatar}
                 </Badge>
             )
@@ -111,7 +114,7 @@ export default function UserList(): ReactElement {
                         changeUserScoreModal.onOpen()
                     }}
                 >
-                    Изменить очки
+                    {strings.i18n._("changeScore")}
                 </DropdownItem>
             </DropdownMenu>
         ) : (
@@ -126,7 +129,7 @@ export default function UserList(): ReactElement {
                         changeUserScoreModal.onOpen()
                     }}
                 >
-                    Изменить очки
+                    {strings.i18n._("changeScore")}
                 </DropdownItem>
 
                 <DropdownItem
@@ -139,7 +142,7 @@ export default function UserList(): ReactElement {
                             : (): Promise<UnmuteUserResponse> => muteUser(id!, user.publicId)
                     }
                 >
-                    {user.isMuted ? "Размьютить" : "Замьютить"}
+                    {user.isMuted ? strings.i18n._("unmute") : strings.i18n._("mute")}
                 </DropdownItem>
 
                 <DropdownItem
@@ -152,7 +155,7 @@ export default function UserList(): ReactElement {
                         banUserModal.onOpen()
                     }}
                 >
-                    Забанить
+                    {strings.i18n._("ban")}
                 </DropdownItem>
             </DropdownMenu>
         )
@@ -178,10 +181,12 @@ export default function UserList(): ReactElement {
                     <ModalContent>
                         {(onClose) => (
                             <>
-                                <ModalHeader>Точно хочешь забанить {usernameToEdit}?</ModalHeader>
+                                <ModalHeader>
+                                    {strings.i18n._("doYouReallyWantToBan")} {usernameToEdit}?
+                                </ModalHeader>
                                 <ModalFooter>
                                     <Button color="primary" onPress={onClose}>
-                                        Ой, нет...
+                                        {strings.i18n._("oopsNo")}
                                     </Button>
                                     <Button
                                         color="danger"
@@ -192,7 +197,7 @@ export default function UserList(): ReactElement {
                                             onClose()
                                         }}
                                     >
-                                        Да!
+                                        {strings.i18n._("strongYes")}
                                     </Button>
                                 </ModalFooter>
                             </>
@@ -212,7 +217,9 @@ export default function UserList(): ReactElement {
                     <ModalContent>
                         {(_onClose) => (
                             <>
-                                <ModalHeader>Изменение количество очков {usernameToEdit}</ModalHeader>
+                                <ModalHeader>
+                                    {strings.i18n._("changingUserScore")} {usernameToEdit}
+                                </ModalHeader>
                                 <ModalBody>
                                     <Input
                                         type="number"
@@ -230,7 +237,7 @@ export default function UserList(): ReactElement {
                                             changeUserScoreModal.onClose()
                                         }}
                                     >
-                                        Назад, я передумал
+                                        {strings.i18n._("backIChangedMyMind")}
                                     </Button>
                                     <Button
                                         color="primary"
@@ -242,7 +249,7 @@ export default function UserList(): ReactElement {
                                             changeUserScoreModal.onClose()
                                         }}
                                     >
-                                        Вперёд!
+                                        {strings.i18n._("goAhead")}
                                     </Button>
                                 </ModalFooter>
                             </>
@@ -282,7 +289,7 @@ export default function UserList(): ReactElement {
                                     <Chip style={{ background: chipBackground }}>{medalOfIndex(index)}</Chip>
                                 )}
                             </TableCell>
-                            <TableCell>{user.description}</TableCell>
+                            <TableCell>{randomUserDescription(user.descriptionIndex, strings)}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
@@ -320,7 +327,7 @@ export default function UserList(): ReactElement {
                                     <Chip style={{ background: chipBackground }}>{medalOfIndex(index)}</Chip>
                                 )}
                             </TableCell>
-                            <TableCell>{user.description}</TableCell>
+                            <TableCell>{randomUserDescription(user.descriptionIndex, strings)}</TableCell>
                             {getUserOptionsCell(user)}
                         </TableRow>
                     ))}

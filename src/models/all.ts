@@ -4,7 +4,7 @@ export type User = {
     avatarEmoji: string
     score: number
     isHost: boolean
-    description: string
+    descriptionIndex: number
     lastGuess: LatLng
     // TODO: rename so that it sounds more like a `boolean` (maybe `hasSubmittedGuess`)
     submittedGuess: boolean
@@ -17,12 +17,27 @@ export enum RoomStatusType {
     Waiting = "waiting",
 }
 
-export type ChatMessage = {
-    id: number
-    authorName: string
-    content: string
-    isFromBot: boolean
+export enum ChatMessageType {
+    FromPlayerChatMessage = "FromPlayerChatMessage",
+    FromBotChatMessage = "FromBotChatMessage",
 }
+
+export type ChatMessage =
+    | { type: ChatMessageType.FromPlayerChatMessage; id: number; authorName: string; content: string }
+    | { type: ChatMessageType.FromBotChatMessage; id: number; content: BotMessagePayload }
+
+export enum BotMessagePayloadType {
+    RoundStartedBotMsg = "RoundStartedBotMsg",
+    RoundEndedBotMsg = "RoundEndedBotMsg",
+    UserConnectedBotMsg = "UserConnectedBotMsg",
+    UserDisconnectedBotMsg = "UserDisconnectedBotMsg",
+}
+
+export type BotMessagePayload =
+    | { type: BotMessagePayloadType.RoundStartedBotMsg; payload: { round_number: number; rounds_per_game: number } }
+    | { type: BotMessagePayloadType.RoundEndedBotMsg; payload: { round_number: number; rounds_per_game: number } }
+    | { type: BotMessagePayloadType.UserConnectedBotMsg; payload: { username: string } }
+    | { type: BotMessagePayloadType.UserDisconnectedBotMsg; payload: { username: string } }
 
 export type LatLng = {
     lat: number

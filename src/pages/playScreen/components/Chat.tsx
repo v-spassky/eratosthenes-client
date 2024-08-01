@@ -1,8 +1,11 @@
+import { useLingui } from "@lingui/react"
 import { Card, Textarea } from "@nextui-org/react"
 import { ClientSentSocketMessage, ClientSentSocketMessageType } from "api/messageTypes"
 import { RoomSocketContext } from "api/ws"
 import maxMessageLength from "constants/maxMessageLength"
+import { SupportedLocale } from "localization/all"
 import { getUsername } from "localStorage/storage"
+import { BotMessagePayload, BotMessagePayloadType, ChatMessageType } from "models/all"
 import { useTheme } from "next-themes"
 import React, { KeyboardEvent, ReactElement, useContext, useEffect, useRef, useState } from "react"
 import { FaWifi } from "react-icons/fa6"
@@ -16,12 +19,13 @@ const scrollBottomPadding = 4
 
 export default function Chat(): ReactElement {
     const { theme } = useTheme()
+    const strings = useLingui()
     const messages = useContext(MessagesContext)
     const users = useContext(UsersContext)
     const dispatchMessagesAction = useContext(MessagesDispatchContext)
     const { connectionIsOk, sendMessage } = useContext(RoomSocketContext)!
     const [message, setMessage] = useState("")
-    const [chatPrompt, setPrompt] = useState(randomChatPrompt())
+    const [chatPrompt, setPrompt] = useState("")
     const textInputIsFocused = useRef(false)
     const chatContainerRef = useRef<HTMLDivElement>(null)
     const textAreaRef = useRef<HTMLTextAreaElement>(null)
@@ -31,7 +35,7 @@ export default function Chat(): ReactElement {
     const [dropdownHeight, setDropdownHeight] = useState(0)
     const [highlightedIndex, setHighlightedIndex] = useState(-1)
 
-    const statusBarText = connectionIsOk ? "Соединение работает нормально." : "Соединение потеряно."
+    const statusBarText = connectionIsOk ? strings.i18n._("connectionWorksWell") : strings.i18n._("connectionLost")
     const messageLengthIsValid = message.length <= maxMessageLength
     const userMentionBackgroundColor = theme === "light" ? "rgb(214, 216, 217)" : "rgb(52, 62, 75)"
     const myMentionBackground =
@@ -74,6 +78,11 @@ export default function Chat(): ReactElement {
         setDropdownPosition((prevPos) => ({ ...prevPos, top: prevPos.top + dropdownHeight - users.length * 32 }))
     }, [users])
 
+    useEffect(() => {
+        setPrompt(randomChatPrompt(strings))
+        dispatchMessagesAction({ type: MessagesActionType.TranslateMeInMessages, strings })
+    }, [strings.i18n.locale])
+
     function statusBarBgColor(): string {
         let statusBarColor
         if (!connectionIsOk && theme === "light") {
@@ -104,10 +113,15 @@ export default function Chat(): ReactElement {
         sendMessage(payload)
         dispatchMessagesAction({
             type: MessagesActionType.AddMessage,
-            message: { id: 1, authorName: "я", content: message, isFromBot: false },
+            message: {
+                type: ChatMessageType.FromPlayerChatMessage,
+                id: 1,
+                authorName: strings.i18n._("me"),
+                content: message,
+            },
         })
         setMessage("")
-        setPrompt(randomChatPrompt())
+        setPrompt(randomChatPrompt(strings))
     }
 
     function handleKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
@@ -157,6 +171,45 @@ export default function Chat(): ReactElement {
         } else {
             setShowDropdown(false)
             setHighlightedIndex(-1)
+        }
+    }
+
+    function formatBotMessage(botMessage: BotMessagePayload): string {
+        switch (strings.i18n.locale as SupportedLocale) {
+            case "en": {
+                switch (botMessage.type) {
+                    case BotMessagePayloadType.RoundStartedBotMsg: {
+                        return `Round ${botMessage.payload.round_number}/${botMessage.payload.rounds_per_game} has started.`
+                    }
+                    case BotMessagePayloadType.RoundEndedBotMsg: {
+                        return `Round ${botMessage.payload.round_number}/${botMessage.payload.rounds_per_game} has ended.`
+                    }
+                    case BotMessagePayloadType.UserConnectedBotMsg: {
+                        return `${botMessage.payload.username} has joined us!`
+                    }
+                    case BotMessagePayloadType.UserDisconnectedBotMsg: {
+                        return `${botMessage.payload.username} has disconnected.`
+                    }
+                }
+                break
+            }
+            case "ru": {
+                switch (botMessage.type) {
+                    case BotMessagePayloadType.RoundStartedBotMsg: {
+                        return `Раунд ${botMessage.payload.round_number}/${botMessage.payload.rounds_per_game} начался.`
+                    }
+                    case BotMessagePayloadType.RoundEndedBotMsg: {
+                        return `Раунд ${botMessage.payload.round_number}/${botMessage.payload.rounds_per_game} закончился.`
+                    }
+                    case BotMessagePayloadType.UserConnectedBotMsg: {
+                        return `К нам присоединился ${botMessage.payload.username}!`
+                    }
+                    case BotMessagePayloadType.UserDisconnectedBotMsg: {
+                        return `${botMessage.payload.username} отключился.`
+                    }
+                }
+                break
+            }
         }
     }
 
@@ -226,9 +279,9 @@ export default function Chat(): ReactElement {
                 style={{ padding: "10px", flex: "1 1 auto", overflowY: "auto" }}
             >
                 {messages.map((message) =>
-                    message.isFromBot ? (
+                    message.type === ChatMessageType.FromBotChatMessage ? (
                         <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word", fontStyle: "italic" }}>
-                            {highlightTags(message.content)}
+                            {highlightTags(formatBotMessage(message.content))}
                         </div>
                     ) : (
                         <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word" }}>

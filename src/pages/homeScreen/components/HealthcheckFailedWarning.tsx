@@ -1,7 +1,9 @@
+import { useLingui } from "@lingui/react"
 import useHealth from "hooks/apiHealth"
 import React, { ReactElement } from "react"
 
 export default function HealthcheckFailedWarning(): ReactElement {
+    const strings = useLingui()
     const [healthy, _checkingHealth] = useHealth()
 
     if (healthy) {
@@ -22,7 +24,7 @@ export default function HealthcheckFailedWarning(): ReactElement {
                 alignItems: "center",
             }}
         >
-            Сервер недоступен, пока что поиграть не получится.
+            {strings.i18n._("serverIsUnreachable")}
         </div>
     )
 }

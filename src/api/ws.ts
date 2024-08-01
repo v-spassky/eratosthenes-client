@@ -7,7 +7,7 @@ import {
 } from "api/messageTypes"
 import socketConnWaitRetryPeriodMs from "constants/socketConnWaitRetryPeriod"
 import { getSelectedEmoji, getUserIds, getUsername } from "localStorage/storage"
-import { RoomStatusType } from "models/all"
+import { ChatMessageType, RoomStatusType } from "models/all"
 import { showBannedFromRoomNotification } from "notifications/all"
 import { showFailedRoomConnectionNotification, showUnsetUsernameErrorNotification } from "notifications/all"
 import { useContext, useEffect, useRef, useState } from "react"
@@ -166,12 +166,26 @@ export default function useRoomSocket({
             const message: ServerSentSocketMessage = JSON.parse(event.data)
             switch (message.type) {
                 case ServerSentSocketMessageType.ChatMessage: {
-                    if (!message.payload.isFromBot) {
-                        playNewMessageNotification()
-                    }
+                    playNewMessageNotification()
                     dispatchMessagesAction({
                         type: MessagesActionType.AddMessage,
-                        message: { authorName: message.payload.from, ...message.payload },
+                        message: {
+                            type: ChatMessageType.FromPlayerChatMessage,
+                            id: message.payload.id,
+                            authorName: message.payload.from,
+                            content: message.payload.content,
+                        },
+                    })
+                    break
+                }
+                case ServerSentSocketMessageType.BotMessage: {
+                    dispatchMessagesAction({
+                        type: MessagesActionType.AddMessage,
+                        message: {
+                            type: ChatMessageType.FromBotChatMessage,
+                            id: message.id,
+                            content: message.payload,
+                        },
                     })
                     break
                 }

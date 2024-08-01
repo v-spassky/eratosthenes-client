@@ -1,3 +1,5 @@
+import { BotMessagePayload } from "models/all"
+
 export type ClientSentSocketMessage =
     | { type: ClientSentSocketMessageType.ChatMessage; payload: OutgoingChatMessagePayload }
     | { type: ClientSentSocketMessageType.UserConnected; payload: BriefUserInfoPayload }
@@ -17,6 +19,7 @@ export enum ClientSentSocketMessageType {
 
 export type ServerSentSocketMessage =
     | { type: ServerSentSocketMessageType.ChatMessage; payload: IncomingChatMessagePayload }
+    | { type: ServerSentSocketMessageType.BotMessage; id: number; payload: BotMessagePayload }
     | { type: ServerSentSocketMessageType.UserConnected; payload: BriefUserInfoPayload }
     | { type: ServerSentSocketMessageType.UserDisconnected; payload: BriefUserInfoPayload }
     | { type: ServerSentSocketMessageType.RoundStarted }
@@ -33,6 +36,7 @@ export type ServerSentSocketMessage =
 
 export enum ServerSentSocketMessageType {
     ChatMessage = "ChatMessage",
+    BotMessage = "BotMessage",
     UserConnected = "UserConnected",
     UserDisconnected = "UserDisconnected",
     RoundStarted = "RoundStarted",
