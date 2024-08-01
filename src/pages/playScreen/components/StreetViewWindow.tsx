@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react"
 import { Button, Modal, ModalContent, ModalFooter, ModalHeader, Snippet, useDisclosure } from "@nextui-org/react"
 import { ClientSentSocketMessage, ClientSentSocketMessageType } from "api/messageTypes"
 import { RoomSocketContext } from "api/ws"
@@ -17,6 +18,7 @@ import { RoomMetaInfoActionType, RoomMetaInfoContext, RoomMetaInfoDispatchContex
 import { playRoundStartedNotification } from "utils/sounds"
 
 export default function StreetViewWindow(): ReactElement {
+    const strings = useLingui()
     const leaveGameModal = useDisclosure()
     const newlyConnectedModal = useDisclosure()
     const navigate = useNavigate()
@@ -89,7 +91,7 @@ export default function StreetViewWindow(): ReactElement {
                             zIndex: 1,
                         }}
                     >
-                        Начать раунд
+                        {strings.i18n._("startRound")}
                     </Button>
                 )}
                 <div
@@ -102,13 +104,13 @@ export default function StreetViewWindow(): ReactElement {
                 <ModalContent>
                     {(onClose) => (
                         <>
-                            <ModalHeader>Точно хочешь выйти из комнаты?</ModalHeader>
+                            <ModalHeader>{strings.i18n._("doYouREallyWannaExitTheRoom")}</ModalHeader>
                             <ModalFooter>
                                 <Button color="primary" onPress={onClose}>
-                                    Нет...
+                                    {strings.i18n._("shyNo")}
                                 </Button>
                                 <Button color="danger" onPress={handleRoomExit}>
-                                    Да, и поскорее!
+                                    {strings.i18n._("yesPlease")}
                                 </Button>
                             </ModalFooter>
                         </>
@@ -120,21 +122,16 @@ export default function StreetViewWindow(): ReactElement {
                     {(onClose) => (
                         <>
                             <ModalHeader style={{ padding: "0px", paddingBottom: "12px" }}>Привет!</ModalHeader>
-                            <p style={{ paddingBottom: "4px" }}>
-                                Вот ссылка по которой сюда можно кого-нибудь пригласить:
-                            </p>
-                            <Snippet symbol="" tooltipProps={{ content: "Копировать" }}>
+                            <p style={{ paddingBottom: "4px" }}>{strings.i18n._("hereIsAnInvitationLink")}</p>
+                            <Snippet symbol="" tooltipProps={{ content: strings.i18n._("copy") }}>
                                 {window.location.href}
                             </Snippet>
-                            <AccordionWithResponsiveBackground title="А как играть?">
-                                Когда хозяин комнаты начинает игру, на экране появляется стрит вью панорама и таймер
-                                обратного отсчёта. До конца таймера нужно поставить метку на карте внизу справа. После
-                                конца таймера раунд заканчивается и игрокам начисляются очки пропорционально близости их
-                                метки к реальному положению панорамы. И так по кругу.
+                            <AccordionWithResponsiveBackground title={strings.i18n._("howToPlayQuestion")}>
+                                {strings.i18n._("howToPlay")}
                             </AccordionWithResponsiveBackground>
                             <ModalFooter style={{ padding: "0px", paddingTop: "12px" }}>
                                 <Button color="primary" onPress={onClose}>
-                                    Понятно.
+                                    {strings.i18n._("gotIt")}
                                 </Button>
                             </ModalFooter>
                         </>

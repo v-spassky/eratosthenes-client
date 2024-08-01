@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react"
 import {
     Avatar,
     Button,
@@ -37,6 +38,7 @@ import PreferencesButton from "sharedComponents/preferencesButton"
 export default function HomeScreen(): ReactElement {
     const navigate = useNavigate()
     const location = useLocation()
+    const strings = useLingui()
     const roomIdFromChat = location.state && location.state.roomId
     const [selectedEmoji, setSelectedEmoji] = useState(getSelectedEmoji() || "")
     const [username, setUsername] = useState(getUsername() || "")
@@ -50,10 +52,10 @@ export default function HomeScreen(): ReactElement {
 
     function checkUsername(): [boolean, string | null] {
         if (username.trim() === "") {
-            return [false, "Юзернейм не может быть пустым."]
+            return [false, strings.i18n._("usernameCannotBeEmpty")]
         }
         if (username.length >= maxUsernameLength) {
-            return [false, "Юзернейм слишком длинный."]
+            return [false, strings.i18n._("usernameIsTooLong")]
         }
         return [true, null]
     }
@@ -93,14 +95,14 @@ export default function HomeScreen(): ReactElement {
     function apiKeyStrategyDisplay(strategyKey: ApiKeyStrategy): ReactElement {
         switch (strategyKey) {
             case ApiKeyStrategy.UseMyOwn:
-                return <p>Используем свой</p>
+                return <p>{strings.i18n._("useOwnApiKey")}</p>
             case ApiKeyStrategy.DoNotUse:
-                return <p>Не используем вообще</p>
+                return <p>{strings.i18n._("doNotUseApiKey")}</p>
             case ApiKeyStrategy.UseDefault:
-                return <p>Используем дефолтный</p>
+                return <p>{strings.i18n._("useDefaultApiKey")}</p>
             default:
                 console.error(`[API key]: unknown API key strategy: ${strategyKey}`)
-                return <p>Случилось что-то не то... попробуй перезагрузить страницу.</p>
+                return <p>{strings.i18n._("tryToReloadThePage")}</p>
         }
     }
 
@@ -108,32 +110,49 @@ export default function HomeScreen(): ReactElement {
         switch (strategyKey) {
             case ApiKeyStrategy.UseMyOwn:
                 return (
-                    <p style={{ fontStyle: "italic", fontSize: "small", color: "gray" }}>
-                        Создай свой ключ в консоли разработчика гугла как описано
-                        <br />
-                        ниже в разделе «Про АПИ ключ» и используй его.
+                    <p
+                        style={{
+                            fontStyle: "italic",
+                            fontSize: "small",
+                            color: "gray",
+                            whiteSpace: "initial",
+                            wordWrap: "initial",
+                        }}
+                    >
+                        {strings.i18n._("useOwnApiKeyDescription")}
                     </p>
                 )
             case ApiKeyStrategy.DoNotUse:
                 return (
-                    <p style={{ fontStyle: "italic", fontSize: "small", color: "gray" }}>
-                        Карта будет с инвертированными цветами, зато не нужно
-                        <br />
-                        создавать ключ и квота использования ключа разработчика
-                        <br />
-                        этого замечательного сайта тоже не будет тратиться.
+                    <p
+                        style={{
+                            fontStyle: "italic",
+                            fontSize: "small",
+                            color: "gray",
+                            whiteSpace: "initial",
+                            wordWrap: "initial",
+                        }}
+                    >
+                        {strings.i18n._("doNotUseApiKeyDescription")}
                     </p>
                 )
             case ApiKeyStrategy.UseDefault:
                 return (
-                    <p style={{ fontStyle: "italic", fontSize: "small", color: "gray" }}>
-                        Если у тебя совсем нет возможности создать свой ключ,
-                        <br />а поиграть хочется, то не стесняйся использовать эту опцию.
+                    <p
+                        style={{
+                            fontStyle: "italic",
+                            fontSize: "small",
+                            color: "gray",
+                            whiteSpace: "initial",
+                            wordWrap: "initial",
+                        }}
+                    >
+                        {strings.i18n._("useDefaultApiKeyDescription")}
                     </p>
                 )
             default:
                 console.error(`[API key]: unknown API key strategy: ${strategyKey}`)
-                return <p>Нет-нет, это что-то не то!</p>
+                return <p>{strings.i18n._("oopsSomethingIsWrongWithApiKeyStrategy")}</p>
         }
     }
 
@@ -166,7 +185,7 @@ export default function HomeScreen(): ReactElement {
             }}
         >
             <div style={{ width: "600px", display: "flex", flexDirection: "column", gap: "10px" }}>
-                <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>Настройки пользователя</h1>
+                <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>{strings.i18n._("userSettings")}</h1>
                 <div style={{ display: "flex", flexDirection: "row", gap: "10px" }}>
                     <div>
                         <Avatar
@@ -177,13 +196,12 @@ export default function HomeScreen(): ReactElement {
                             onClick={onOpen}
                         />
                     </div>
-
                     <Input
                         isRequired
                         isInvalid={!usernameIsValid}
                         errorMessage={usernameErrorMsgDecorator()}
-                        label="Юзернейм"
-                        placeholder="Как к тебе обращаться?"
+                        label={strings.i18n._("username")}
+                        placeholder={strings.i18n._("howToCallYou")}
                         value={username}
                         onChange={(e) => {
                             setUsernameInStorage(e.target.value)
@@ -192,7 +210,7 @@ export default function HomeScreen(): ReactElement {
                     />
                 </div>
                 <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "16px" }}>
-                    <p>Что делаем с АПИ ключом?</p>
+                    <p>{strings.i18n._("whatDoWeDoWithTheApiKey")}</p>
                     <Dropdown>
                         <DropdownTrigger>
                             <Button variant="bordered" size="sm" style={{ width: "190px" }}>
@@ -211,15 +229,15 @@ export default function HomeScreen(): ReactElement {
                                 setApiKeyStrategy(newStrategy)
                             }}
                         >
-                            <DropdownItem key={ApiKeyStrategy.UseMyOwn}>
+                            <DropdownItem key={ApiKeyStrategy.UseMyOwn} style={{ width: "500px" }}>
                                 {apiKeyStrategyDisplay(ApiKeyStrategy.UseMyOwn)}
                                 {apiKeyStrategyDescriptionDisplay(ApiKeyStrategy.UseMyOwn)}
                             </DropdownItem>
-                            <DropdownItem key={ApiKeyStrategy.DoNotUse}>
+                            <DropdownItem key={ApiKeyStrategy.DoNotUse} style={{ width: "500px" }}>
                                 {apiKeyStrategyDisplay(ApiKeyStrategy.DoNotUse)}
                                 {apiKeyStrategyDescriptionDisplay(ApiKeyStrategy.DoNotUse)}
                             </DropdownItem>
-                            <DropdownItem key={ApiKeyStrategy.UseDefault}>
+                            <DropdownItem key={ApiKeyStrategy.UseDefault} style={{ width: "500px" }}>
                                 {apiKeyStrategyDisplay(ApiKeyStrategy.UseDefault)}
                                 {apiKeyStrategyDescriptionDisplay(ApiKeyStrategy.UseDefault)}
                             </DropdownItem>
@@ -230,8 +248,8 @@ export default function HomeScreen(): ReactElement {
                     (apiKeyIsValid ? (
                         <Input
                             isRequired
-                            label="АПИ ключ"
-                            placeholder="Ключик от Google Maps JS API"
+                            label={strings.i18n._("apiKey")}
+                            placeholder={strings.i18n._("apiKeyInputPlaceholder")}
                             value={apiKey}
                             onChange={(e) => {
                                 setApiKeyInStorage(e.target.value)
@@ -242,8 +260,8 @@ export default function HomeScreen(): ReactElement {
                         <Input
                             isRequired
                             isInvalid
-                            label="АПИ ключ"
-                            placeholder="Ключик от Google Maps JS API"
+                            label={strings.i18n._("apiKey")}
+                            placeholder={strings.i18n._("apiKeyInputPlaceholder")}
                             value={apiKey}
                             onChange={(e) => {
                                 setApiKeyInStorage(e.target.value)
@@ -251,52 +269,50 @@ export default function HomeScreen(): ReactElement {
                             }}
                         />
                     ))}
-                <AccordionWithResponsiveBackground title="Про АПИ ключ">
-                    АПИ ключ не обязателен, но если у тебя есть возможность, то используй, пожалуйста, свой ключ. Вот{" "}
+                <AccordionWithResponsiveBackground title={strings.i18n._("aboutApiKeyTitle")}>
+                    {strings.i18n._("aboutApiKeyBeforeInstruction")}
                     <a
                         href="https://www.geohub.gg/custom-key-instructions.pdf"
                         target="blank"
                         style={{ color: "blue", fontStyle: "italic", textDecoration: "underline" }}
                     >
-                        инструкция
-                    </a>{" "}
-                    по созданию и настройке ключа от разработчиков Geohub (требуется гугл аккаунт с подключённой картой
-                    в консоли разработчика).
+                        {strings.i18n._("aboutApiKeyInstruction")}
+                    </a>
+                    {strings.i18n._("aboutApiKeyAfterInstruction1")}
                     <br />
                     <br />
-                    Если хочется просто осмотреться, то есть опция не использовать ключ вообще. В этом случае карта
-                    будет с инвертированными цветами.
+                    {strings.i18n._("aboutApiKeyAfterInstruction2")}
                     <br />
                     <br />
-                    АПИ ключ сохраняется только на клиенте и не передаётся на сервер, честное слово. Спасибо!
+                    {strings.i18n._("aboutApiKeyAfterInstruction3")}
                 </AccordionWithResponsiveBackground>
                 <Divider />
-                <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>Подключиться к существующей комнате</h1>
+                <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>{strings.i18n._("connectToExistingRoom")}</h1>
                 <Input
                     isRequired
                     value={targetRoomID}
                     onChange={(e) => setTargetRoomID(e.target.value)}
-                    label="Айди комнаты"
-                    placeholder="Идентификатор комнаты"
+                    label={strings.i18n._("roomId")}
+                    placeholder={strings.i18n._("roomIdPlaceholder")}
                 />
                 {canJoinToRoom() ? (
                     <Button onPress={handleConnectToRoom} color="primary" style={{ width: "120px" }}>
-                        Подключиться
+                        {strings.i18n._("connect")}
                     </Button>
                 ) : (
                     <Button isDisabled color="primary" style={{ width: "120px" }}>
-                        Подключиться
+                        {strings.i18n._("connect")}
                     </Button>
                 )}
                 <Divider />
-                <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>Создать новую комнату</h1>
+                <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>{strings.i18n._("createNewRoom")}</h1>
                 {canCreateRoom() ? (
                     <Button onPress={handleCreateRoom} color="primary" style={{ width: "120px" }}>
-                        Создать
+                        {strings.i18n._("create")}
                     </Button>
                 ) : (
                     <Button isDisabled color="primary" style={{ width: "120px" }}>
-                        Создать
+                        {strings.i18n._("create")}
                     </Button>
                 )}
             </div>
@@ -315,7 +331,7 @@ export default function HomeScreen(): ReactElement {
                 <ModalContent>
                     {(onClose) => (
                         <>
-                            <ModalHeader>Выбери себе аватарку</ModalHeader>
+                            <ModalHeader>{strings.i18n._("chooseYourAvatar")}</ModalHeader>
                             <ModalBody>
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                                     {avatarEmojis.map((emoji) => (

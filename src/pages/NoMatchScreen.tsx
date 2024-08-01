@@ -1,9 +1,11 @@
+import { useLingui } from "@lingui/react"
 import { Button } from "@nextui-org/react"
 import React, { ReactElement } from "react"
 import { useNavigate } from "react-router-dom"
 
 export default function NoMatchScreen(): ReactElement {
     const navigate = useNavigate()
+    const strings = useLingui()
 
     return (
         <div
@@ -19,9 +21,9 @@ export default function NoMatchScreen(): ReactElement {
             }}
         >
             <div style={{ width: "500px", display: "flex", flexDirection: "column", gap: "16px" }}>
-                <h1>Ой-ой, произошло что-то нехорошее!</h1>
+                <h1>{strings.i18n._("somethingBadHappened")}</h1>
                 <Button color="primary" style={{ width: "160px" }} onPress={() => navigate("/")}>
-                    Вернуться домой
+                    {strings.i18n._("returnHome")}
                 </Button>
             </div>
         </div>

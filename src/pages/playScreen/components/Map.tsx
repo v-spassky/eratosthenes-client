@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react"
 import { Button, Tooltip } from "@nextui-org/react"
 import { revokeGuess, submitGuess } from "api/http"
 import {
@@ -22,6 +23,7 @@ const minMapHeight = 150
 
 export default function Map(): ReactElement {
     const { id } = useParams()
+    const strings = useLingui()
     const userGuessRef = useContext(UserGuessRefContext)!
     const submittedGuessRef = useContext(SubmittedGuessRefContext)!
     const roomStatusRef = useContext(RoomStatusRefContext)!
@@ -92,7 +94,7 @@ export default function Map(): ReactElement {
     const confirmGuessBtn = (): ReactElement => {
         if (userGuessRef.current === null) {
             return (
-                <Tooltip content="Подтвердить ответ">
+                <Tooltip content={strings.i18n._("submitGuess")}>
                     <Button
                         aria-label="Submit guess"
                         isDisabled
@@ -107,7 +109,7 @@ export default function Map(): ReactElement {
             )
         }
         const btnIcon = submittedGuessRef.current ? <FaArrowRotateLeft /> : <FaCheck />
-        const btnTooltip = submittedGuessRef.current ? "Отменить ответ" : "Подтвердить ответ"
+        const btnTooltip = submittedGuessRef.current ? strings.i18n._("revokeGuess") : strings.i18n._("submitGuess")
         const btnOnClick = submittedGuessRef.current ? handleRevokeAnswer : handleConfirmAnswer
         return (
             <Tooltip content={btnTooltip}>
