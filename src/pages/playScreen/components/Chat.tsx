@@ -7,7 +7,7 @@ import { SupportedLocale } from "localization/all"
 import { getUsername } from "localStorage/storage"
 import { BotMessagePayload, BotMessagePayloadType, ChatMessageType } from "models/all"
 import { useTheme } from "next-themes"
-import React, { KeyboardEvent, ReactElement, useContext, useEffect, useRef, useState } from "react"
+import React, { Fragment, KeyboardEvent, ReactElement, useContext, useEffect, useRef, useState } from "react"
 import { FaWifi } from "react-icons/fa6"
 import { MessagesActionType, MessagesContext, MessagesDispatchContext } from "state/messages"
 import { UsersContext } from "state/users"
@@ -213,35 +213,36 @@ export default function Chat(): ReactElement {
         }
     }
 
-    function highlightTags(text: string): ReactElement {
-        const parts = text.split(/(@[\w\u0400-\u04FF]+(?:\s[\w\u0400-\u04FF]+)*)/gu)
+    function highlightUserMentions(text: string): ReactElement {
+        if (!text.includes("@")) {
+            return <>{text}</>
+        }
+        const usernames = users.map((user) => user.name)
+        const mentionRegex = new RegExp(`@(${usernames.join("|")})`, "g")
+        const parts = text.split(mentionRegex)
         return (
             <>
                 {parts.map((part, index) => {
-                    if (part.startsWith("@")) {
-                        const mentionedUser = users.find((user) => `@${user.name}` === part)
-                        const iAmMentionedUser = mentionedUser?.name === getUsername()!
-                        if (mentionedUser) {
-                            const userSpecificMentionStyles = iAmMentionedUser
-                                ? { background: myMentionBackground }
-                                : { backgroundColor: userMentionBackgroundColor }
-                            return (
-                                <span
-                                    key={index}
-                                    style={{
-                                        borderRadius: "999px",
-                                        padding: "0.5px",
-                                        paddingLeft: "4px",
-                                        paddingRight: "4px",
-                                        ...userSpecificMentionStyles,
-                                    }}
-                                >
-                                    {part}
-                                </span>
-                            )
-                        }
-                    }
-                    return part
+                    const userSpecificMentionStyles =
+                        part === getUsername()!
+                            ? { background: myMentionBackground }
+                            : { backgroundColor: userMentionBackgroundColor }
+                    return usernames.includes(part) ? (
+                        <span
+                            key={index}
+                            style={{
+                                borderRadius: "999px",
+                                padding: "0.5px",
+                                paddingLeft: "4px",
+                                paddingRight: "4px",
+                                ...userSpecificMentionStyles,
+                            }}
+                        >
+                            @{part}
+                        </span>
+                    ) : (
+                        <Fragment key={index}>{part}</Fragment>
+                    )
                 })}
             </>
         )
@@ -281,12 +282,12 @@ export default function Chat(): ReactElement {
                 {messages.map((message) =>
                     message.type === ChatMessageType.FromBotChatMessage ? (
                         <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word", fontStyle: "italic" }}>
-                            {highlightTags(formatBotMessage(message.content))}
+                            {highlightUserMentions(formatBotMessage(message.content))}
                         </div>
                     ) : (
                         <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word" }}>
                             <span style={{ fontWeight: "bold" }}>{message.authorName}:</span>{" "}
-                            {highlightTags(message.content)}
+                            {highlightUserMentions(message.content)}
                         </div>
                     )
                 )}
