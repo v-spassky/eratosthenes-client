@@ -153,9 +153,15 @@ export default function Chat(): ReactElement {
     }
 
     function selectUser(username: string): void {
-        setMessage((prevMessage) => prevMessage + username + " ")
+        const caretIndex = textAreaRef.current!.selectionStart
+        setMessage((prevMessage) => prevMessage.substring(0, caretIndex) + username + prevMessage.substring(caretIndex))
         setShowDropdown(false)
         setHighlightedIndex(-1)
+        const newCaretIndex = caretIndex + username.length
+        setTimeout(() => {
+            textAreaRef.current!.setSelectionRange(newCaretIndex, newCaretIndex)
+            textAreaRef.current!.focus()
+        }, 0)
     }
 
     function handleTextareaChange(event: React.ChangeEvent<HTMLInputElement>): void {
