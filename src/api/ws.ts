@@ -289,7 +289,7 @@ export default function useRoomSocket({
         }
         return setInterval(() => {
             sendMessage({ type: ClientSentSocketMessageType.Ping })
-        }, 5 * 1000)
+        }, 15 * 1000)
     }
 
     function sendMessage(message: ClientSentSocketMessage): void {
