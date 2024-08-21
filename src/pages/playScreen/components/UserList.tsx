@@ -24,11 +24,13 @@ import {
 } from "@nextui-org/react"
 import { banUser, changeUserScore, muteUser, unmuteUser } from "api/http"
 import { UnmuteUserResponse } from "api/responses"
+import { chatEventBus, ChatEventType } from "events/chat"
 import { User } from "models/all"
 import { useTheme } from "next-themes"
 import React, { ReactElement, useContext, useState } from "react"
 import { FaCoins, FaEllipsisVertical, FaSkullCrossbones } from "react-icons/fa6"
 import { GiSpeaker, GiSpeakerOff } from "react-icons/gi"
+import { HiOutlineAtSymbol } from "react-icons/hi"
 import { useParams } from "react-router-dom"
 import { RoomMetaInfoContext } from "state/roomMetaInfo"
 import { UsersContext } from "state/users"
@@ -95,70 +97,95 @@ export default function UserList(): ReactElement {
     }
 
     function getUserOptionsCell(user: User): ReactElement {
+        let dropdownMenu
         if (!iAmHost) {
-            return (
-                <TableCell>
-                    <></>
-                </TableCell>
+            dropdownMenu = (
+                <DropdownMenu>
+                    <DropdownItem
+                        key="tagInTheChat"
+                        color="default"
+                        startContent={<HiOutlineAtSymbol />}
+                        onClick={() => chatEventBus.emit({type: ChatEventType.UserMentioned, username: user.name})}
+                    >
+                        {strings.i18n._("tagInTheChat")}
+                    </DropdownItem>
+                </DropdownMenu>
+            )
+        } else {
+            dropdownMenu = user.isHost ? (
+                <DropdownMenu>
+                    <DropdownItem
+                        key="tagInTheChat"
+                        color="default"
+                        startContent={<HiOutlineAtSymbol />}
+                        onClick={() => chatEventBus.emit({type: ChatEventType.UserMentioned, username: user.name})}
+                    >
+                        {strings.i18n._("tagInTheChat")}
+                    </DropdownItem>
+                    <DropdownItem
+                        key="changeScore"
+                        color="default"
+                        startContent={<FaCoins />}
+                        onClick={() => {
+                            setPublicIdWhoseCreditsToChange(user.publicId)
+                            setUsernameToEdit(user.name)
+                            changeUserScoreModal.onOpen()
+                        }}
+                    >
+                        {strings.i18n._("changeScore")}
+                    </DropdownItem>
+                </DropdownMenu>
+            ) : (
+                <DropdownMenu>
+                    <DropdownItem
+                        key="tagInTheChat"
+                        color="default"
+                        startContent={<HiOutlineAtSymbol />}
+                        onClick={() => chatEventBus.emit({type: ChatEventType.UserMentioned, username: user.name})}
+                    >
+                        {strings.i18n._("tagInTheChat")}
+                    </DropdownItem>
+                    <DropdownItem
+                        key="changeScore"
+                        color="default"
+                        startContent={<FaCoins />}
+                        onClick={() => {
+                            setPublicIdWhoseCreditsToChange(user.publicId)
+                            setUsernameToEdit(user.name)
+                            changeUserScoreModal.onOpen()
+                        }}
+                    >
+                        {strings.i18n._("changeScore")}
+                    </DropdownItem>
+
+                    <DropdownItem
+                        key="mute"
+                        color={user.isMuted ? "default" : "warning"}
+                        startContent={user.isMuted ? <GiSpeaker /> : <GiSpeakerOff />}
+                        onClick={
+                            user.isMuted
+                                ? (): Promise<UnmuteUserResponse> => unmuteUser(id!, user.publicId)
+                                : (): Promise<UnmuteUserResponse> => muteUser(id!, user.publicId)
+                        }
+                    >
+                        {user.isMuted ? strings.i18n._("unmute") : strings.i18n._("mute")}
+                    </DropdownItem>
+
+                    <DropdownItem
+                        key="ban"
+                        color="danger"
+                        startContent={<FaSkullCrossbones />}
+                        onClick={() => {
+                            setUsernameToEdit(user.name)
+                            setUserIdToBan(user.publicId)
+                            banUserModal.onOpen()
+                        }}
+                    >
+                        {strings.i18n._("ban")}
+                    </DropdownItem>
+                </DropdownMenu>
             )
         }
-        const dropdownMenu = user.isHost ? (
-            <DropdownMenu>
-                <DropdownItem
-                    key="changeScore"
-                    color="default"
-                    startContent={<FaCoins />}
-                    onClick={() => {
-                        setPublicIdWhoseCreditsToChange(user.publicId)
-                        setUsernameToEdit(user.name)
-                        changeUserScoreModal.onOpen()
-                    }}
-                >
-                    {strings.i18n._("changeScore")}
-                </DropdownItem>
-            </DropdownMenu>
-        ) : (
-            <DropdownMenu>
-                <DropdownItem
-                    key="changeScore"
-                    color="default"
-                    startContent={<FaCoins />}
-                    onClick={() => {
-                        setPublicIdWhoseCreditsToChange(user.publicId)
-                        setUsernameToEdit(user.name)
-                        changeUserScoreModal.onOpen()
-                    }}
-                >
-                    {strings.i18n._("changeScore")}
-                </DropdownItem>
-
-                <DropdownItem
-                    key="mute"
-                    color={user.isMuted ? "default" : "warning"}
-                    startContent={user.isMuted ? <GiSpeaker /> : <GiSpeakerOff />}
-                    onClick={
-                        user.isMuted
-                            ? (): Promise<UnmuteUserResponse> => unmuteUser(id!, user.publicId)
-                            : (): Promise<UnmuteUserResponse> => muteUser(id!, user.publicId)
-                    }
-                >
-                    {user.isMuted ? strings.i18n._("unmute") : strings.i18n._("mute")}
-                </DropdownItem>
-
-                <DropdownItem
-                    key="ban"
-                    color="danger"
-                    startContent={<FaSkullCrossbones />}
-                    onClick={() => {
-                        setUsernameToEdit(user.name)
-                        setUserIdToBan(user.publicId)
-                        banUserModal.onOpen()
-                    }}
-                >
-                    {strings.i18n._("ban")}
-                </DropdownItem>
-            </DropdownMenu>
-        )
         return (
             <TableCell>
                 <Dropdown placement="bottom">
@@ -260,44 +287,7 @@ export default function UserList(): ReactElement {
         )
     }
 
-    const regularUserList = (
-        <div id="userList" style={{ height: "100%", flexGrow: 1, overflowX: "hidden" }}>
-            <Table removeWrapper hideHeader aria-label="List of users in the room">
-                <TableHeader>
-                    <TableColumn>Avatar</TableColumn>
-                    <TableColumn>Name</TableColumn>
-                    <TableColumn>Score</TableColumn>
-                    <TableColumn>Description</TableColumn>
-                </TableHeader>
-                <TableBody>
-                    {users.map((user, index) => (
-                        <TableRow key={user.name}>
-                            {getUserAvatarCell(user)}
-                            <TableCell style={{ fontWeight: "bold", whiteSpace: "nowrap" }}>{user.name}</TableCell>
-                            <TableCell style={{ whiteSpace: "nowrap" }}>
-                                <Badge
-                                    content={`+${user.lastRoundScore}`}
-                                    color="primary"
-                                    size="md"
-                                    placement="bottom-right"
-                                    isInvisible={!(showLastRoundScore && user.lastRoundScore !== null)}
-                                >
-                                    <Chip style={{ background: chipBackground }}>{user.score}</Chip>
-                                </Badge>
-                                <span style={{ marginLeft: "3px" }}></span>
-                                {medalOfIndex(index) !== "" && (
-                                    <Chip style={{ background: chipBackground }}>{medalOfIndex(index)}</Chip>
-                                )}
-                            </TableCell>
-                            <TableCell>{randomUserDescription(user.descriptionIndex, strings)}</TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </div>
-    )
-
-    const hostUserList = (
+    return (
         <div id="userList" style={{ height: "100%", flexGrow: 1, overflowX: "hidden" }}>
             <Table removeWrapper hideHeader aria-label="List of users in the room">
                 <TableHeader>
@@ -335,6 +325,4 @@ export default function UserList(): ReactElement {
             </Table>
         </div>
     )
-
-    return iAmHost ? hostUserList : regularUserList
 }
