@@ -3,6 +3,7 @@ import { Card, Textarea } from "@nextui-org/react"
 import { ClientSentSocketMessage, ClientSentSocketMessageType } from "api/messageTypes"
 import { RoomSocketContext } from "api/ws"
 import maxMessageLength from "constants/maxMessageLength"
+import { ChatEvent, chatEventBus, ChatEventType } from "events/chat"
 import { SupportedLocale } from "localization/all"
 import { getUsername } from "localStorage/storage"
 import { BotMessagePayload, BotMessagePayloadType, ChatMessageType } from "models/all"
@@ -34,6 +35,7 @@ export default function Chat(): ReactElement {
     const dropdownRef = useRef<HTMLDivElement>(null)
     const [dropdownHeight, setDropdownHeight] = useState(0)
     const [highlightedIndex, setHighlightedIndex] = useState(-1)
+    const [caretPosition, setCaretPosition] = useState<number | null>(null)
 
     const statusBarText = connectionIsOk ? strings.i18n._("connectionWorksWell") : strings.i18n._("connectionLost")
     const messageLengthIsValid = message.length <= maxMessageLength
@@ -82,6 +84,19 @@ export default function Chat(): ReactElement {
         setPrompt(randomChatPrompt(strings))
         dispatchMessagesAction({ type: MessagesActionType.TranslateMeInMessages, strings })
     }, [strings.i18n.locale])
+
+    useEffect(() => {
+        const handleUserMentioned = (payload: ChatEvent): void => {
+            if (payload.type != ChatEventType.UserMentioned) {
+                return
+            }
+            selectUser(payload.username, caretPosition, true)
+        }
+        chatEventBus.register(ChatEventType.UserMentioned, handleUserMentioned)
+        return (): void => {
+            chatEventBus.unregister(ChatEventType.UserMentioned, handleUserMentioned)
+        }
+    }, [caretPosition])
 
     function statusBarBgColor(): string {
         let statusBarColor
@@ -137,7 +152,7 @@ export default function Chat(): ReactElement {
                 setHighlightedIndex((prevIndex) => (prevIndex - 1 + users.length) % users.length)
             } else if (event.key === "Enter" && highlightedIndex >= 0) {
                 event.preventDefault()
-                selectUser(users[highlightedIndex].name)
+                selectUser(users[highlightedIndex].name, caretPosition, false)
             } else if (event.key === "Escape") {
                 setShowDropdown(false)
                 setHighlightedIndex(-1)
@@ -152,20 +167,41 @@ export default function Chat(): ReactElement {
         }
     }
 
-    function selectUser(username: string): void {
-        const caretIndex = textAreaRef.current!.selectionStart
-        setMessage((prevMessage) => prevMessage.substring(0, caretIndex) + username + prevMessage.substring(caretIndex))
+    function handleTextareaFocus(): void {
+        textInputIsFocused.current = true
+        setCaretPosition(textAreaRef.current!.selectionStart)
+    }
+
+    function handleTextareaBlur(): void {
+        textInputIsFocused.current = false
+        setCaretPosition(textAreaRef.current!.selectionStart)
+    }
+
+    function selectUser(username: string, caretPos: number | null, insertAtSymbol: boolean): void {
+        const atSymbol = insertAtSymbol ? "@" : ""
+        if (caretPos !== null) {
+            setMessage((prevMessage) => {
+                const before = prevMessage.substring(0, caretPos)
+                const after = prevMessage.substring(caretPos)
+                return `${before}${atSymbol}${username}${after}`
+            })
+        } else {
+            setMessage((prevMessage) => `${prevMessage}${atSymbol}${username}`)
+        }
         setShowDropdown(false)
         setHighlightedIndex(-1)
-        const newCaretIndex = caretIndex + username.length
-        setTimeout(() => {
-            textAreaRef.current!.setSelectionRange(newCaretIndex, newCaretIndex)
-            textAreaRef.current!.focus()
-        }, 0)
+        if (caretPos !== null) {
+            setTimeout(() => {
+                const newCaretIndex = caretPos + username.length;
+                textAreaRef.current!.setSelectionRange(newCaretIndex, newCaretIndex)
+                textAreaRef.current!.focus()
+            }, 0)
+        }
     }
 
     function handleTextareaChange(event: React.ChangeEvent<HTMLInputElement>): void {
         setMessage(event.target.value)
+        setCaretPosition(textAreaRef.current!.selectionStart)
         const caretPos = getCaretCoordinates(event.target, event.target.selectionEnd!)
         if (event.target.value[event.target.selectionStart! - 1] === "@") {
             const cursorCoord = {
@@ -308,8 +344,8 @@ export default function Chat(): ReactElement {
                     placeholder={chatPrompt}
                     style={{ height: "100px" }}
                     onKeyDown={handleKeyDown}
-                    onFocus={() => (textInputIsFocused.current = true)}
-                    onBlur={() => (textInputIsFocused.current = false)}
+                    onFocus={handleTextareaFocus}
+                    onBlur={handleTextareaBlur}
                     isInvalid={!messageLengthIsValid}
                     errorMessage={messageLengthErrorMsg}
                 />
@@ -333,7 +369,7 @@ export default function Chat(): ReactElement {
                                 backgroundColor: highlightedIndex === idx ? dropdownSelectionBackground : "inherit",
                                 cursor: "pointer",
                             }}
-                            onMouseDown={() => selectUser(user.name)}
+                            onMouseDown={() => selectUser(user.name, caretPosition, false)}
                             onMouseEnter={() => setHighlightedIndex(idx)}
                         >
                             <span style={{ display: "inline-block", width: "16px" }}>{user.avatarEmoji || ""}</span>{" "}
