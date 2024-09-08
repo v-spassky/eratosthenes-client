@@ -121,7 +121,9 @@ export default function StreetViewWindow(): ReactElement {
                 <ModalContent style={{ padding: "24px" }}>
                     {(onClose) => (
                         <>
-                            <ModalHeader style={{ padding: "0px", paddingBottom: "12px" }}>Привет!</ModalHeader>
+                            <ModalHeader style={{ padding: "0px", paddingBottom: "12px" }}>
+                                {strings.i18n._("hello")}
+                            </ModalHeader>
                             <p style={{ paddingBottom: "4px" }}>{strings.i18n._("hereIsAnInvitationLink")}</p>
                             <Snippet symbol="" tooltipProps={{ content: strings.i18n._("copy") }}>
                                 {window.location.href}

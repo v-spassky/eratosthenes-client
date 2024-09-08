@@ -105,7 +105,7 @@ export default function UserList(): ReactElement {
                         key="tagInTheChat"
                         color="default"
                         startContent={<HiOutlineAtSymbol />}
-                        onClick={() => chatEventBus.emit({type: ChatEventType.UserMentioned, username: user.name})}
+                        onClick={() => chatEventBus.emit({ type: ChatEventType.UserMentioned, username: user.name })}
                     >
                         {strings.i18n._("tagInTheChat")}
                     </DropdownItem>
@@ -118,7 +118,7 @@ export default function UserList(): ReactElement {
                         key="tagInTheChat"
                         color="default"
                         startContent={<HiOutlineAtSymbol />}
-                        onClick={() => chatEventBus.emit({type: ChatEventType.UserMentioned, username: user.name})}
+                        onClick={() => chatEventBus.emit({ type: ChatEventType.UserMentioned, username: user.name })}
                     >
                         {strings.i18n._("tagInTheChat")}
                     </DropdownItem>
@@ -141,7 +141,7 @@ export default function UserList(): ReactElement {
                         key="tagInTheChat"
                         color="default"
                         startContent={<HiOutlineAtSymbol />}
-                        onClick={() => chatEventBus.emit({type: ChatEventType.UserMentioned, username: user.name})}
+                        onClick={() => chatEventBus.emit({ type: ChatEventType.UserMentioned, username: user.name })}
                     >
                         {strings.i18n._("tagInTheChat")}
                     </DropdownItem>
@@ -308,7 +308,13 @@ export default function UserList(): ReactElement {
                                     color="primary"
                                     size="md"
                                     placement="bottom-right"
-                                    isInvisible={!(showLastRoundScore && user.lastRoundScore !== null)}
+                                    isInvisible={
+                                        !(
+                                            showLastRoundScore &&
+                                            user.lastRoundScore !== null &&
+                                            user.lastRoundScore > 0
+                                        )
+                                    }
                                 >
                                     <Chip style={{ background: chipBackground }}>{user.score}</Chip>
                                 </Badge>

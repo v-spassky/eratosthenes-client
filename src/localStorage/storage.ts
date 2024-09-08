@@ -1,7 +1,6 @@
-import { acquireUserIds as acquireUserIds } from "api/http"
+import { SupportedLocale } from "localization/all"
 import { ApiKeyStrategy } from "models/all"
 
-// TODO: resolve cyclic dependency between `storage.js` and `http.js`
 // TODO: refactor into object-oriented API
 
 export function getUsername(): string | null {
@@ -12,6 +11,14 @@ export function setUsername(username: string): void {
     localStorage.setItem("username", username)
 }
 
+export function getPasscode(): string {
+    return localStorage.getItem("passcode") || ""
+}
+
+export function setPasscode(passcode: string): void {
+    localStorage.setItem("passcode", passcode)
+}
+
 export function getSelectedEmoji(): string | null {
     return localStorage.getItem("selectedEmoji")
 }
@@ -20,16 +27,15 @@ export function setSelectedEmoji(emoji: string): void {
     localStorage.setItem("selectedEmoji", emoji)
 }
 
-export function getUserIds(): [string, string] {
-    if (localStorage.getItem("publicUserId") === null || localStorage.getItem("privateUserId") === null) {
-        acquireUserIds()
+export function getPublicUserId(): string {
+    if (localStorage.getItem("publicUserId") === null) {
+        console.error("Public user ID is missing!")
     }
-    return [localStorage.getItem("publicUserId")!, localStorage.getItem("privateUserId")!]
+    return localStorage.getItem("publicUserId") || ""
 }
 
-export function setUserIds(publicUserId: string, privateUserId: string): void {
+export function setPublicUserId(publicUserId: string): void {
     localStorage.setItem("publicUserId", publicUserId)
-    localStorage.setItem("privateUserId", privateUserId)
 }
 
 export function getApiKeyStrategy(): ApiKeyStrategy {
@@ -89,8 +95,16 @@ export function setMapHeight(height: number): void {
     localStorage.setItem("mapHeight", height.toString())
 }
 
-export function getSelectedLanguage(): string {
-    return localStorage.getItem("selectedLanguage") || "ru"
+export function getSelectedLanguage(): SupportedLocale {
+    const selectedLanguage = localStorage.getItem("selectedLanguage")
+    if (selectedLanguage) {
+        return selectedLanguage as SupportedLocale
+    }
+    const userLocale = navigator.language || navigator.languages?.[0] || "unknown"
+    if (userLocale.startsWith("ru")) {
+        return "ru"
+    }
+    return "en"
 }
 
 export function setSelectedLanguage(language: string): void {

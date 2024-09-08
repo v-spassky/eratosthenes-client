@@ -1,4 +1,5 @@
-import { canConnectToRoom, getUsersOfRoom, submitGuess } from "api/http"
+import { useLingui } from "@lingui/react"
+import { canConnectToRoom, getUsersOfRoom, saveGuess, submitGuess } from "api/http"
 import {
     ClientSentSocketMessage,
     ClientSentSocketMessageType,
@@ -6,7 +7,7 @@ import {
     ServerSentSocketMessageType,
 } from "api/messageTypes"
 import socketConnWaitRetryPeriodMs from "constants/socketConnWaitRetryPeriod"
-import { getSelectedEmoji, getUserIds, getUsername } from "localStorage/storage"
+import { getPasscode, getPublicUserId, getSelectedEmoji, getUsername } from "localStorage/storage"
 import { ChatMessageType, RoomStatusType } from "models/all"
 import { showBannedFromRoomNotification } from "notifications/all"
 import { showFailedRoomConnectionNotification, showUnsetUsernameErrorNotification } from "notifications/all"
@@ -52,6 +53,7 @@ export default function useRoomSocket({
     refreshRoomUsersAndStatus,
     openGameFinishedModal,
 }: RoomSocketProps): RoomSocketControl {
+    const strings = useLingui()
     const socketRef = useRef<WebSocket | null>(null)
     const [connectionIsOk, setConnectionIsOk] = useState(false)
     const navigate = useNavigate()
@@ -73,14 +75,14 @@ export default function useRoomSocket({
 
     useEffect(() => {
         if (!getUsername()) {
-            showUnsetUsernameErrorNotification()
+            showUnsetUsernameErrorNotification(strings)
             navigate("/", { state: { roomId: roomId } })
             return
         }
         const checkIfCanConnect = async (): Promise<void> => {
             const canConnectResp = await canConnectToRoom(roomId)
             if (!canConnectResp.canConnect) {
-                showFailedRoomConnectionNotification(canConnectResp.errorCode)
+                showFailedRoomConnectionNotification(strings, canConnectResp.errorCode)
                 navigate("/")
                 return
             }
@@ -123,9 +125,8 @@ export default function useRoomSocket({
     }, [])
 
     function connectToSocket(isReconnect: boolean): NodeJS.Timeout {
-        const [publicId, privateId] = getUserIds()
         socketRef.current = new WebSocket(
-            `${process.env.REACT_APP_WS_SERVER_ORIGIN}/rooms/${roomId}?public_id=${publicId}&private_id=${privateId}`
+            `${process.env.REACT_APP_WS_SERVER_ORIGIN}/rooms/${roomId}?passcode=${getPasscode()}`
         )
         socketRef.current.onopen = (): void => {
             console.log("[WS]: websocket connection established.")
@@ -254,9 +255,8 @@ export default function useRoomSocket({
                     break
                 }
                 case ServerSentSocketMessageType.UserBanned: {
-                    const [publicId, _privateId] = getUserIds()
-                    if (message.payload.publicId === publicId) {
-                        showBannedFromRoomNotification()
+                    if (message.payload.publicId === getPublicUserId()) {
+                        showBannedFromRoomNotification(strings)
                         navigate("/")
                     }
                     await fetchAndSetUsers(roomId)
@@ -270,6 +270,17 @@ export default function useRoomSocket({
                     break
                 case ServerSentSocketMessageType.Tick:
                     dispatchRoomMetaInfoAction({ type: RoomMetaInfoActionType.SetProgress, progress: message.payload })
+                    if ([3, 5, 10].includes(message.payload)) {
+                        if (userGuessRef.current !== null) {
+                            // @ts-expect-error: figure out why TS says property `.position` isn't present
+                            const lat = userGuessRef.current.position.lat().toString()
+                            // @ts-expect-error: figure out why TS says property `.position` isn't present
+                            const lng = userGuessRef.current.position.lng().toString()
+                            saveGuess(lat, lng, roomId)
+                        } else {
+                            console.error("[map]: user marker not found.")
+                        }
+                    }
                     if (message.payload === 1) {
                         if (userGuessRef.current !== null) {
                             // @ts-expect-error: figure out why TS says property `.position` isn't present
@@ -279,7 +290,6 @@ export default function useRoomSocket({
                             submitGuess(lat, lng, roomId)
                         } else {
                             console.error("[map]: user marker not found.")
-                            // TODO: show error
                         }
                     }
                     break
@@ -292,14 +302,19 @@ export default function useRoomSocket({
         }, 15 * 1000)
     }
 
-    function sendMessage(message: ClientSentSocketMessage): void {
+    function sendMessage(message: ClientSentSocketMessage, retriesLeft: number = 3): void {
         const messageAsStr = JSON.stringify(message)
-        if (socketRef.current === null) {
-            console.error(`[WS]: tried to send message ${messageAsStr} while socketRef.current === null`)
-            return
-        }
-        if (socketRef.current.readyState !== 1) {
-            console.error(`[WS]: tried to send message ${messageAsStr} while socketRef.current.readyState !== 1`)
+        if (socketRef.current === null || socketRef.current.readyState !== 1) {
+            console.error(`[WS]: tried to send message ${messageAsStr} while socketRef is null or not in ready state`)
+            if (message.type !== ClientSentSocketMessageType.ChatMessage) {
+                return
+            }
+            if (retriesLeft > 0) {
+                console.log("[WS]: retrying sending the message...")
+                setTimeout(() => sendMessage(message, retriesLeft - 1), 1000)
+            } else {
+                console.error("[WS]: failed to send the message even after 3 attempts")
+            }
             return
         }
         socketRef.current.send(messageAsStr)

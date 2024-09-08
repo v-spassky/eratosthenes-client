@@ -1,12 +1,13 @@
+import { I18nContext } from "@lingui/react"
 import { Slide, toast } from "react-toastify"
 
 let unsetUsernameErrorFired = false
 
-export function showUnsetUsernameErrorNotification(): void {
+export function showUnsetUsernameErrorNotification(strings: I18nContext): void {
     if (unsetUsernameErrorFired) {
         return
     }
-    toast.error("Установи юзернейм чтобы подключиться к комнате", {
+    toast.error(strings.i18n._("setUsernameToConnect"), {
         position: "bottom-left",
         autoClose: 2000,
         hideProgressBar: true,
@@ -23,8 +24,8 @@ export function showUnsetUsernameErrorNotification(): void {
     }, 2000)
 }
 
-export function showUnsetRoomIdErrorNotification(): void {
-    toast.error("Введи айди комнаты", {
+export function showUnsetRoomIdErrorNotification(strings: I18nContext): void {
+    toast.error(strings.i18n._("enterRoomId"), {
         position: "bottom-left",
         autoClose: 2000,
         hideProgressBar: true,
@@ -45,26 +46,26 @@ const failedRoomConnectionErrorFired = new Map<string, boolean>([
     ["userBanned", false],
 ])
 
-export function showFailedRoomConnectionNotification(roomConnectionErrorCode: string): void {
+export function showFailedRoomConnectionNotification(strings: I18nContext, roomConnectionErrorCode: string): void {
     if (failedRoomConnectionErrorFired.get(roomConnectionErrorCode)) {
         return
     }
     let errMsg = ""
     switch (roomConnectionErrorCode) {
         case "roomNotFound":
-            errMsg = "Такая комната не найдена"
+            errMsg = strings.i18n._("suchRoomWasNotFound")
             break
         case "userAlreadyInRoom":
-            errMsg = "Кто-то с таким именем уже есть в комнате"
+            errMsg = strings.i18n._("someoneWithSuchNameOrPasscodeAlreadyInRoom")
             break
         case "usernameTooLong":
-            errMsg = "Говорят что твой юзернейм слишком длинный, попробуй покороче."
+            errMsg = strings.i18n._("rejectedBcOfUsernameIsTooLong")
             break
         case "userBanned":
-            errMsg = "Ты забанен в этой комнате."
+            errMsg = strings.i18n._("youAreBannedInTheRoom")
             break
         default:
-            errMsg = "Ой, почему-то не получилось подключиться к комнате"
+            errMsg = strings.i18n._("couldNotConnectToTheRoom")
     }
     toast.error(errMsg, {
         position: "bottom-left",
@@ -83,8 +84,8 @@ export function showFailedRoomConnectionNotification(roomConnectionErrorCode: st
     }, 2000)
 }
 
-export function showThanksForUsingOwnApiKeyNotification(): void {
-    toast("Спасибо за использование собственного АПИ ключа! ❤️ ", {
+export function showThanksForUsingOwnApiKeyNotification(strings: I18nContext): void {
+    toast(strings.i18n._("thxForUsingYourOwnApiKey"), {
         position: "bottom-left",
         autoClose: 4000,
         hideProgressBar: true,
@@ -97,8 +98,8 @@ export function showThanksForUsingOwnApiKeyNotification(): void {
     })
 }
 
-export function showBannedFromRoomNotification(): void {
-    toast.error("Тебя забанили в этой комнате", {
+export function showBannedFromRoomNotification(strings: I18nContext): void {
+    toast.error(strings.i18n._("youWereBannedInTheRoom"), {
         position: "bottom-left",
         autoClose: 4000,
         hideProgressBar: true,
