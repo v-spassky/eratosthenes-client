@@ -2,19 +2,17 @@ import { ChatMessage, LatLng, User } from "models/all"
 
 // TODO: enums for error codes
 
-interface AcquireIdSuccessfulResponse {
+interface DecodePasscodeSuccessfulResponse {
     error: false
     publicId: string
-    privateId: string
 }
 
-interface AcquireIdErrorResponse {
+interface DecodePasscodeErrorResponse {
     error: true
     publicId?: never
-    privateId?: never
 }
 
-export type AcquireIdResponse = AcquireIdSuccessfulResponse | AcquireIdErrorResponse
+export type DecodePasscodeResponse = DecodePasscodeSuccessfulResponse | DecodePasscodeErrorResponse
 
 interface CanConnectToRoomSuccessfulResponse {
     canConnect: true

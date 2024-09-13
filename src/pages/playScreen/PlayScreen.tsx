@@ -125,7 +125,7 @@ export default function PlayScreen(): ReactElement {
         if (getApiKey() === "") {
             return
         }
-        showThanksForUsingOwnApiKeyNotification()
+        showThanksForUsingOwnApiKeyNotification(strings)
         return (): void => {
             // TODO: is this OK that we don't return this in guards?
             window.removeEventListener("unload", handleTabClosing)
@@ -210,14 +210,14 @@ export default function PlayScreen(): ReactElement {
 
     useEffect(() => {
         if (!getUsername()) {
-            showUnsetUsernameErrorNotification()
+            showUnsetUsernameErrorNotification(strings)
             navigate("/", { state: { roomId: id } })
             return
         }
         const checkIfCanConnect = async (): Promise<void> => {
             const canConnectResp = await canConnectToRoom(id!)
             if (!canConnectResp.canConnect) {
-                showFailedRoomConnectionNotification(canConnectResp.errorCode)
+                showFailedRoomConnectionNotification(strings, canConnectResp.errorCode)
                 navigate("/")
                 return
             }
@@ -247,14 +247,14 @@ export default function PlayScreen(): ReactElement {
 
     useEffect(() => {
         if (!getUsername()) {
-            showUnsetUsernameErrorNotification()
+            showUnsetUsernameErrorNotification(strings)
             navigate("/", { state: { roomId: id } })
             return
         }
         const fetchData = async (): Promise<void> => {
             const canConnectResp = await canConnectToRoom(id!)
             if (!canConnectResp.canConnect) {
-                showFailedRoomConnectionNotification(canConnectResp.errorCode)
+                showFailedRoomConnectionNotification(strings, canConnectResp.errorCode)
                 navigate("/")
                 return
             }

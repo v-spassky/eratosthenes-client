@@ -1,10 +1,12 @@
 import { useLingui } from "@lingui/react"
-import useHealth from "hooks/apiHealth"
 import React, { ReactElement } from "react"
 
-export default function HealthcheckFailedWarning(): ReactElement {
+interface HealthcheckFailedWarningProps {
+    healthy: boolean
+}
+
+export default function HealthcheckFailedWarning({ healthy }: HealthcheckFailedWarningProps): ReactElement {
     const strings = useLingui()
-    const [healthy, _checkingHealth] = useHealth()
 
     if (healthy) {
         return <></>

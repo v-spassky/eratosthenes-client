@@ -14,23 +14,27 @@ import {
     ModalHeader,
     useDisclosure,
 } from "@nextui-org/react"
-import { canConnectToRoom, createRoom } from "api/http"
+import { canConnectToRoom, createRoom, decodePasscode } from "api/http"
 import avatarEmojis from "constants/avatarEmojis"
 import maxUsernameLength from "constants/maxUsernameLength"
+import useHealth from "hooks/apiHealth"
 import {
     getApiKey,
     getApiKeyStrategy,
+    getPasscode,
     getSelectedEmoji,
     getUsername,
     setApiKey as setApiKeyInStorage,
     setApiKeyStrategy as setApiKeyStrategyInStorage,
+    setPasscode as setPasscodeInStorage,
+    setPublicUserId,
     setSelectedEmoji as setSelectedEmojiInStorage,
     setUsername as setUsernameInStorage,
 } from "localStorage/storage"
 import { ApiKeyStrategy } from "models/all"
 import { showFailedRoomConnectionNotification, showUnsetRoomIdErrorNotification } from "notifications/all"
 import HealthcheckFailedWarning from "pages/homeScreen/components/HealthcheckFailedWarning"
-import React, { ReactElement, useState } from "react"
+import React, { ReactElement, useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import AccordionWithResponsiveBackground from "sharedComponents/AccordionWithInteractiveBackground"
 import PreferencesButton from "sharedComponents/preferencesButton"
@@ -42,13 +46,32 @@ export default function HomeScreen(): ReactElement {
     const roomIdFromChat = location.state && location.state.roomId
     const [selectedEmoji, setSelectedEmoji] = useState(getSelectedEmoji() || "")
     const [username, setUsername] = useState(getUsername() || "")
+    const [passcode, setPasscode] = useState(getPasscode() || "")
+    const [passcodeDecodingFailed, setPasscodeDecodingFailed] = useState(false)
+    const [passcodeDecodingInProgress, setPasscodeDecodingInProgress] = useState(false)
     const [apiKeyStrategy, setApiKeyStrategy] = useState(getApiKeyStrategy())
     const [apiKey, setApiKey] = useState(getApiKey() || "")
     const [targetRoomID, setTargetRoomID] = useState(roomIdFromChat || "")
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
+    const [healthy, _checkingHealth] = useHealth()
 
     const apiKeyIsValid = apiKey.trim() !== ""
     const [usernameIsValid, usernameErrorMsg] = checkUsername()
+    const [passcodeIsValid, passcodeErrorMsg] = checkPasscode()
+
+    useEffect(() => {
+        const fetchDecodedIds = async (): Promise<void> => {
+            const decodeIdsResp = await decodePasscode()
+            if (decodeIdsResp === null) {
+                setPasscodeDecodingFailed(true)
+            }
+            else if (decodeIdsResp.error) {
+                setPasscodeDecodingFailed(true)
+            }
+            setPasscodeDecodingInProgress(false)
+        }
+        fetchDecodedIds()
+    }, [])
 
     function checkUsername(): [boolean, string | null] {
         if (username.trim() === "") {
@@ -60,13 +83,42 @@ export default function HomeScreen(): ReactElement {
         return [true, null]
     }
 
+    function checkPasscode(): [boolean, ReactElement | string | null] {
+        if (passcode.trim() === "") {
+            return [
+                false,
+                <p key="passcode-is-mandatory-msg">
+                    {strings.i18n._("passcodeIsMandatory")}
+                    <a
+                        href="https://discord.gg/k9upmmUCMg"
+                        target="blank"
+                        style={{ textDecoration: "underline" }}
+                    >
+                        {strings.i18n._("passcodeIsMandatory2")}
+                    </a>
+                    .
+                </p>,
+            ]
+        }
+        if (passcodeDecodingInProgress) {
+            return [false, strings.i18n._("passcodeCheckInProgress")]
+        }
+        if (!healthy) {
+            return [false, strings.i18n._("passcodeDecodingFailedBecauseServerIsDown")]
+        }
+        if (passcodeDecodingFailed) {
+            return [false, strings.i18n._("passcodeDecodingFailed")]
+        }
+        return [true, null]
+    }
+
     async function handleConnectToRoom(): Promise<void> {
         if (!targetRoomID.trim()) {
-            showUnsetRoomIdErrorNotification()
+            showUnsetRoomIdErrorNotification(strings)
         } else {
             const canConnectResp = await canConnectToRoom(targetRoomID)
             if (!canConnectResp.canConnect) {
-                showFailedRoomConnectionNotification(canConnectResp.errorCode)
+                showFailedRoomConnectionNotification(strings, canConnectResp.errorCode)
                 return
             }
             navigate(`/room/${targetRoomID}`)
@@ -85,11 +137,11 @@ export default function HomeScreen(): ReactElement {
     }
 
     function canCreateRoom(): boolean {
-        return username.trim() !== ""
+        return passcodeIsValid && usernameIsValid
     }
 
     function canJoinToRoom(): boolean {
-        return username.trim() !== "" && targetRoomID.trim() !== ""
+        return passcodeIsValid && usernameIsValid && targetRoomID.trim() !== ""
     }
 
     function apiKeyStrategyDisplay(strategyKey: ApiKeyStrategy): ReactElement {
@@ -173,6 +225,23 @@ export default function HomeScreen(): ReactElement {
         )
     }
 
+    function passcodeErrorMsgDecorator(): ReactElement {
+        return (
+            <div
+                style={{
+                    height: passcodeIsValid ? 0 : "20px",
+                    overflow: "hidden",
+                    transition: "height 0.3s ease",
+                    color: "red",
+                    fontSize: "12px",
+                    marginTop: "5px",
+                }}
+            >
+                {passcodeErrorMsg}
+            </div>
+        )
+    }
+
     return (
         <div
             id="homeScreen"
@@ -209,6 +278,33 @@ export default function HomeScreen(): ReactElement {
                         }}
                     />
                 </div>
+                <Input
+                    isRequired
+                    isInvalid={!passcodeIsValid}
+                    errorMessage={passcodeErrorMsgDecorator()}
+                    label={strings.i18n._("passcode")}
+                    placeholder={strings.i18n._("passcodePlaceholder")}
+                    value={passcode}
+                    onChange={(e) => {
+                        setPasscodeInStorage(e.target.value)
+                        setPasscode(e.target.value)
+                        setPasscodeDecodingInProgress(true)
+                        setTimeout(async () => {
+                            const decodeIdsResp = await decodePasscode()
+                            setPasscodeDecodingInProgress(false)
+                            if (decodeIdsResp === null) {
+                                setPasscodeDecodingFailed(true)
+                                return
+                            }
+                            if (decodeIdsResp.error) {
+                                setPasscodeDecodingFailed(true)
+                                return
+                            }
+                            setPasscodeDecodingFailed(false)
+                            setPublicUserId(decodeIdsResp.publicId)
+                        }, 0)
+                    }}
+                />
                 <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "16px" }}>
                     <p>{strings.i18n._("whatDoWeDoWithTheApiKey")}</p>
                     <Dropdown>
@@ -324,7 +420,7 @@ export default function HomeScreen(): ReactElement {
             <div
                 style={{ position: "absolute", bottom: "10px", left: "50%", transform: "translateX(-50%)", zIndex: 1 }}
             >
-                <HealthcheckFailedWarning />
+                <HealthcheckFailedWarning healthy={healthy}/>
             </div>
 
             <Modal size={"4xl"} isOpen={isOpen} onOpenChange={onOpenChange}>
