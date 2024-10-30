@@ -31,7 +31,9 @@ export async function decodePasscode(): Promise<DecodePasscodeResponse | null> {
                     headers: [["Passcode", getPasscode()]],
                 })
                 if (response.status !== 200) {
-                    console.error("Failed to decode the current passcode.");
+                    console.error("Failed to decode the current passcode.")
+                    resolve(null)
+                    return
                 }
                 resolve(await response.json())
             } catch (error) {
