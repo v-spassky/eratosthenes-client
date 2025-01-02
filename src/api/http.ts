@@ -85,9 +85,8 @@ export async function getMessagesOfRoom(roomId: string): Promise<RoomMessagesRes
     return responseBody
 }
 
-// TODO: figure out how to pass `lat` and `lng` to warp as floats
 export async function saveGuess(lat: number, lng: number, roomId: string): Promise<SubmitGuessResponse> {
-    const payload = { lat: lat.toString(), lng: lng.toString() }
+    const payload = { lat, lng }
     const response = await fetch(`${origin}/rooms/${roomId}/save-guess`, {
         method: "POST",
         headers: [
@@ -100,9 +99,8 @@ export async function saveGuess(lat: number, lng: number, roomId: string): Promi
     return responseBody
 }
 
-// TODO: figure out how to pass `lat` and `lng` to warp as floats
 export async function submitGuess(lat: number, lng: number, roomId: string): Promise<SubmitGuessResponse> {
-    const payload = { lat: lat.toString(), lng: lng.toString() }
+    const payload = { lat, lng }
     const response = await fetch(`${origin}/rooms/${roomId}/submit-guess`, {
         method: "POST",
         headers: [
@@ -157,13 +155,12 @@ export async function apiIsHealthy(): Promise<boolean> {
     return !responseBody.error
 }
 
-// TODO: figure out how to pass `amount` to Warp as int
 export async function changeUserScore(
     roomId: string,
     targetUserPublicId: string,
     amount: number
 ): Promise<ChangeScoreResponse> {
-    const payload = { amount: String(amount) }
+    const payload = { amount }
     const response = await fetch(`${origin}/rooms/${roomId}/users/${targetUserPublicId}/change-score`, {
         method: "POST",
         headers: [

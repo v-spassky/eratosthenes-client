@@ -126,7 +126,7 @@ export default function useRoomSocket({
 
     function connectToSocket(isReconnect: boolean): NodeJS.Timeout {
         socketRef.current = new WebSocket(
-            `${process.env.REACT_APP_WS_SERVER_ORIGIN}/rooms/${roomId}?passcode=${getPasscode()}`
+            `${process.env.REACT_APP_WS_SERVER_ORIGIN}/rooms/${roomId}/ws?passcode=${getPasscode()}`
         )
         socketRef.current.onopen = (): void => {
             console.log("[WS]: websocket connection established.")
