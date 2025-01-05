@@ -27,7 +27,7 @@ export async function decodePasscode(): Promise<DecodePasscodeResponse | null> {
     return new Promise<DecodePasscodeResponse | null>((resolve, _reject) => {
         debounceTimeout = setTimeout(async () => {
             try {
-                const response = await fetch(`${origin}/auth/decode-passcode`, {
+                const response = await fetch(`${origin}/auth/passcode/decode`, {
                     headers: [["Passcode", getPasscode()]],
                 })
                 if (response.status !== 200) {
