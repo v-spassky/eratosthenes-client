@@ -192,7 +192,7 @@ export default function Chat(): ReactElement {
         setHighlightedIndex(-1)
         if (caretPos !== null) {
             setTimeout(() => {
-                const newCaretIndex = caretPos + username.length;
+                const newCaretIndex = caretPos + username.length
                 textAreaRef.current!.setSelectionRange(newCaretIndex, newCaretIndex)
                 textAreaRef.current!.focus()
             }, 0)

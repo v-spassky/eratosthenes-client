@@ -64,8 +64,7 @@ export default function HomeScreen(): ReactElement {
             const decodeIdsResp = await decodePasscode()
             if (decodeIdsResp === null) {
                 setPasscodeDecodingFailed(true)
-            }
-            else if (decodeIdsResp.error) {
+            } else if (decodeIdsResp.error) {
                 setPasscodeDecodingFailed(true)
             }
             setPasscodeDecodingInProgress(false)
@@ -89,11 +88,7 @@ export default function HomeScreen(): ReactElement {
                 false,
                 <p key="passcode-is-mandatory-msg">
                     {strings.i18n._("passcodeIsMandatory")}
-                    <a
-                        href="https://discord.gg/k9upmmUCMg"
-                        target="blank"
-                        style={{ textDecoration: "underline" }}
-                    >
+                    <a href="https://discord.gg/k9upmmUCMg" target="blank" style={{ textDecoration: "underline" }}>
                         {strings.i18n._("passcodeIsMandatory2")}
                     </a>
                     .
@@ -420,7 +415,7 @@ export default function HomeScreen(): ReactElement {
             <div
                 style={{ position: "absolute", bottom: "10px", left: "50%", transform: "translateX(-50%)", zIndex: 1 }}
             >
-                <HealthcheckFailedWarning healthy={healthy}/>
+                <HealthcheckFailedWarning healthy={healthy} />
             </div>
 
             <Modal size={"4xl"} isOpen={isOpen} onOpenChange={onOpenChange}>

@@ -309,11 +309,7 @@ export default function UserList(): ReactElement {
                                     size="md"
                                     placement="bottom-right"
                                     isInvisible={
-                                        !(
-                                            showLastRoundScore &&
-                                            user.lastRoundScore !== null &&
-                                            user.lastRoundScore > 0
-                                        )
+                                        !(showLastRoundScore && user.lastRoundScore !== null && user.lastRoundScore > 0)
                                     }
                                 >
                                     <Chip style={{ background: chipBackground }}>{user.score}</Chip>
