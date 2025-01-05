@@ -21,9 +21,9 @@ npm run build && serve -s build
 #### QA
 
 ```bash
-npx prettier . [--write]
+npx prettier --check src/
 ```
 
 ```bash
-npx eslint . [--fix]
+npx eslint --fix src/
 ```
