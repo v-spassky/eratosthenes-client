@@ -390,7 +390,12 @@ export default function HomeScreen(): ReactElement {
                     placeholder={strings.i18n._("roomIdPlaceholder")}
                 />
                 {canJoinToRoom() ? (
-                    <Button id="connectToRoomButton" onPress={handleConnectToRoom} color="primary" style={{ width: "120px" }}>
+                    <Button
+                        id="connectToRoomButton"
+                        onPress={handleConnectToRoom}
+                        color="primary"
+                        style={{ width: "120px" }}
+                    >
                         {strings.i18n._("connect")}
                     </Button>
                 ) : (

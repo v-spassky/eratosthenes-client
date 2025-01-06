@@ -4,7 +4,6 @@ export type User = {
     avatarEmoji: string
     score: number
     isHost: boolean
-    descriptionIndex: number
     lastGuess: LatLng
     // TODO: rename so that it sounds more like a `boolean` (maybe `hasSubmittedGuess`)
     submittedGuess: boolean

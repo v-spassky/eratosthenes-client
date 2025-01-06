@@ -34,7 +34,6 @@ import { HiOutlineAtSymbol } from "react-icons/hi"
 import { useParams } from "react-router-dom"
 import { RoomMetaInfoContext } from "state/roomMetaInfo"
 import { UsersContext } from "state/users"
-import randomUserDescription from "utils/randomUserDescription"
 
 function medalOfIndex(index: number): string {
     switch (index) {
@@ -294,7 +293,6 @@ export default function UserList(): ReactElement {
                     <TableColumn>Avatar</TableColumn>
                     <TableColumn>Name</TableColumn>
                     <TableColumn>Score</TableColumn>
-                    <TableColumn>Description</TableColumn>
                     <TableColumn>Options</TableColumn>
                 </TableHeader>
                 <TableBody>
@@ -319,7 +317,6 @@ export default function UserList(): ReactElement {
                                     <Chip style={{ background: chipBackground }}>{medalOfIndex(index)}</Chip>
                                 )}
                             </TableCell>
-                            <TableCell>{randomUserDescription(user.descriptionIndex, strings)}</TableCell>
                             {getUserOptionsCell(user)}
                         </TableRow>
                     ))}
