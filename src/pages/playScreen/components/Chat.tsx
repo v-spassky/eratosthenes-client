@@ -336,6 +336,7 @@ export default function Chat(): ReactElement {
             </div>
             <div style={{ position: "relative", padding: "10px", paddingTop: "0px", paddingBottom: "0px" }}>
                 <Textarea
+                    id="chatTextInput"
                     ref={textAreaRef}
                     aria-label="Chat message text"
                     name="message"

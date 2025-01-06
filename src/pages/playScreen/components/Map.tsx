@@ -96,6 +96,7 @@ export default function Map(): ReactElement {
             return (
                 <Tooltip content={strings.i18n._("submitGuess")}>
                     <Button
+                        id="submitOrRevokeGuessButton"
                         aria-label="Submit guess"
                         isDisabled
                         onClick={handleConfirmAnswer}
@@ -114,6 +115,7 @@ export default function Map(): ReactElement {
         return (
             <Tooltip content={btnTooltip}>
                 <Button
+                    id="submitOrRevokeGuessButton"
                     aria-label="Submit or revoke guess"
                     onClick={btnOnClick}
                     isIconOnly

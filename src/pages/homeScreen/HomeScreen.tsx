@@ -262,6 +262,7 @@ export default function HomeScreen(): ReactElement {
                     </div>
                     <Input
                         isRequired
+                        id="usernameInput"
                         isInvalid={!usernameIsValid}
                         errorMessage={usernameErrorMsgDecorator()}
                         label={strings.i18n._("username")}
@@ -275,6 +276,7 @@ export default function HomeScreen(): ReactElement {
                 </div>
                 <Input
                     isRequired
+                    id="passcodeInput"
                     isInvalid={!passcodeIsValid}
                     errorMessage={passcodeErrorMsgDecorator()}
                     label={strings.i18n._("passcode")}
@@ -381,28 +383,29 @@ export default function HomeScreen(): ReactElement {
                 <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>{strings.i18n._("connectToExistingRoom")}</h1>
                 <Input
                     isRequired
+                    id="targetRoomIdInput"
                     value={targetRoomID}
                     onChange={(e) => setTargetRoomID(e.target.value)}
                     label={strings.i18n._("roomId")}
                     placeholder={strings.i18n._("roomIdPlaceholder")}
                 />
                 {canJoinToRoom() ? (
-                    <Button onPress={handleConnectToRoom} color="primary" style={{ width: "120px" }}>
+                    <Button id="connectToRoomButton" onPress={handleConnectToRoom} color="primary" style={{ width: "120px" }}>
                         {strings.i18n._("connect")}
                     </Button>
                 ) : (
-                    <Button isDisabled color="primary" style={{ width: "120px" }}>
+                    <Button id="connectToRoomButton" isDisabled color="primary" style={{ width: "120px" }}>
                         {strings.i18n._("connect")}
                     </Button>
                 )}
                 <Divider />
                 <h1 style={{ fontWeight: "bold", fontSize: "20px" }}>{strings.i18n._("createNewRoom")}</h1>
                 {canCreateRoom() ? (
-                    <Button onPress={handleCreateRoom} color="primary" style={{ width: "120px" }}>
+                    <Button id="createRoomButton" onPress={handleCreateRoom} color="primary" style={{ width: "120px" }}>
                         {strings.i18n._("create")}
                     </Button>
                 ) : (
-                    <Button isDisabled color="primary" style={{ width: "120px" }}>
+                    <Button id="createRoomButton" isDisabled color="primary" style={{ width: "120px" }}>
                         {strings.i18n._("create")}
                     </Button>
                 )}
@@ -424,7 +427,7 @@ export default function HomeScreen(): ReactElement {
                         <>
                             <ModalHeader>{strings.i18n._("chooseYourAvatar")}</ModalHeader>
                             <ModalBody>
-                                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                                <div id="avatarChoices" style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                                     {avatarEmojis.map((emoji) => (
                                         <span key={emoji} onClick={() => handleEmojiSelect(emoji, onClose)}>
                                             <Avatar

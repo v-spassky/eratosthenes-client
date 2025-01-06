@@ -80,6 +80,7 @@ export default function StreetViewWindow(): ReactElement {
                 </div>
                 {showStartGameButton && (
                     <Button
+                        id="startGameButton"
                         color="primary"
                         aria-label="Start game"
                         onClick={handleStartGame}
