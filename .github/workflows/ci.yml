@@ -18,3 +18,5 @@ jobs:
         run: npx eslint --fix src/
       - name: Check formatting
         run: npx prettier --check src/
+      - name: Check types
+        run: npx tsc --noEmit
