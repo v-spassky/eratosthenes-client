@@ -175,6 +175,7 @@ export default function useRoomSocket({
                             id: message.payload.id,
                             authorName: message.payload.from,
                             content: message.payload.content,
+                            attachmentIds: message.payload.attachmentIds,
                         },
                     })
                     break

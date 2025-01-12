@@ -1,5 +1,6 @@
 import { useLingui } from "@lingui/react"
 import { Card, Textarea } from "@nextui-org/react"
+import { uploadImages } from "api/http"
 import { ClientSentSocketMessage, ClientSentSocketMessageType } from "api/messageTypes"
 import { RoomSocketContext } from "api/ws"
 import maxMessageLength from "constants/maxMessageLength"
@@ -8,7 +9,18 @@ import { SupportedLocale } from "localization/all"
 import { getUsername } from "localStorage/storage"
 import { BotMessagePayload, BotMessagePayloadType, ChatMessageType } from "models/all"
 import { useTheme } from "next-themes"
-import React, { Fragment, KeyboardEvent, ReactElement, useContext, useEffect, useRef, useState } from "react"
+import { cannotPasteImageNotification } from "notifications/all"
+import ImageAttachment from "pages/playScreen/components/ImageAttachment"
+import React, {
+    ClipboardEvent,
+    Fragment,
+    KeyboardEvent,
+    ReactElement,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from "react"
 import { FaWifi } from "react-icons/fa6"
 import { MessagesActionType, MessagesContext, MessagesDispatchContext } from "state/messages"
 import { UsersContext } from "state/users"
@@ -36,6 +48,7 @@ export default function Chat(): ReactElement {
     const [dropdownHeight, setDropdownHeight] = useState(0)
     const [highlightedIndex, setHighlightedIndex] = useState(-1)
     const [caretPosition, setCaretPosition] = useState<number | null>(null)
+    const [pastedImages, setPastedImages] = useState<Array<{ id: string; url: string }>>([])
 
     const statusBarText = connectionIsOk ? strings.i18n._("connectionWorksWell") : strings.i18n._("connectionLost")
     const messageLengthIsValid = message.length <= maxMessageLength
@@ -121,9 +134,10 @@ export default function Chat(): ReactElement {
         if (username === null) {
             return
         }
+        const attachmentIds = pastedImages.map((img) => img.id)
         const payload: ClientSentSocketMessage = {
             type: ClientSentSocketMessageType.ChatMessage,
-            payload: { from: username, content: message.replace(/\n/g, "\\n") },
+            payload: { from: username, content: message.replace(/\n/g, "\\n"), attachmentIds: attachmentIds },
         }
         sendMessage(payload)
         dispatchMessagesAction({
@@ -133,8 +147,12 @@ export default function Chat(): ReactElement {
                 id: 1,
                 authorName: strings.i18n._("me"),
                 content: message,
+                attachmentIds: attachmentIds,
             },
         })
+        if (pastedImages.length !== 0) {
+            setPastedImages([])
+        }
         setMessage("")
         setPrompt(randomChatPrompt(strings))
     }
@@ -163,6 +181,9 @@ export default function Chat(): ReactElement {
             message.trim() !== "" &&
             messageLengthIsValid
         ) {
+            if (pastedImages.length !== 0) {
+                uploadImages(pastedImages)
+            }
             handleSendMessage(event)
         }
     }
@@ -215,6 +236,92 @@ export default function Chat(): ReactElement {
             setHighlightedIndex(-1)
         }
     }
+
+    function handlePaste(event: ClipboardEvent): void {
+        const items = event.clipboardData?.items
+        if (!items) return
+
+        for (const item of items) {
+            if (pastedImages.length >= 4) {
+                cannotPasteImageNotification(strings)
+                return
+            }
+            if (item.type.indexOf("image") === 0) {
+                const file = item.getAsFile()
+                if (!file) continue
+
+                const imageId = crypto.randomUUID()
+                const imageUrl = URL.createObjectURL(file)
+
+                setPastedImages((prev) => [...prev, { id: imageId, url: imageUrl }])
+            }
+        }
+    }
+
+    function removeImage(imageId: string): void {
+        setPastedImages((prev) => {
+            const newImages = prev.filter((img) => img.id !== imageId)
+            const imageToRemove = prev.find((img) => img.id === imageId)
+            if (imageToRemove) {
+                URL.revokeObjectURL(imageToRemove.url)
+            }
+            return newImages
+        })
+    }
+
+    const imagePreviewsJSX = (
+        <div
+            style={{
+                display: "flex",
+                gap: "8px",
+                flexWrap: "wrap",
+                marginBottom: pastedImages.length ? "8px" : "0",
+            }}
+        >
+            {pastedImages.map((img) => (
+                <div
+                    key={img.id}
+                    style={{
+                        position: "relative",
+                        width: "50px",
+                        height: "30px",
+                    }}
+                >
+                    <img
+                        src={img.url}
+                        alt="Pasted content"
+                        style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            borderRadius: "4px",
+                        }}
+                    />
+                    <button
+                        onClick={() => removeImage(img.id)}
+                        style={{
+                            position: "absolute",
+                            top: -8,
+                            right: -8,
+                            width: "20px",
+                            height: "20px",
+                            borderRadius: "50%",
+                            border: "none",
+                            background: "rgba(0, 0, 0, 0.5)",
+                            color: "white",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "14px",
+                        }}
+                    >
+                        x
+                    </button>
+                </div>
+            ))}
+        </div>
+    )
 
     function formatBotMessage(botMessage: BotMessagePayload): string {
         switch (strings.i18n.locale as SupportedLocale) {
@@ -330,11 +437,26 @@ export default function Chat(): ReactElement {
                         <div key={message.id} style={{ marginBottom: 4, wordWrap: "break-word" }}>
                             <span style={{ fontWeight: "bold" }}>{message.authorName}:</span>{" "}
                             {highlightUserMentions(message.content)}
+                            {message.attachmentIds.length > 0 && (
+                                <div
+                                    style={{
+                                        display: "grid",
+                                        gridTemplateColumns: "repeat(auto-fit, minmax(55px, 60px))",
+                                        gap: "8px",
+                                        marginTop: "8px",
+                                    }}
+                                >
+                                    {message.attachmentIds.map((id) => (
+                                        <ImageAttachment key={id} id={id} />
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )
                 )}
             </div>
             <div style={{ position: "relative", padding: "10px", paddingTop: "0px", paddingBottom: "0px" }}>
+                {imagePreviewsJSX}
                 <Textarea
                     id="chatTextInput"
                     ref={textAreaRef}
@@ -342,6 +464,7 @@ export default function Chat(): ReactElement {
                     name="message"
                     value={message}
                     onChange={handleTextareaChange}
+                    onPaste={handlePaste}
                     placeholder={chatPrompt}
                     style={{ height: "100px" }}
                     onKeyDown={handleKeyDown}

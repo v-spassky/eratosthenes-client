@@ -22,7 +22,13 @@ export enum ChatMessageType {
 }
 
 export type ChatMessage =
-    | { type: ChatMessageType.FromPlayerChatMessage; id: number; authorName: string; content: string }
+    | {
+          type: ChatMessageType.FromPlayerChatMessage
+          id: number
+          authorName: string
+          content: string
+          attachmentIds: string[]
+      }
     | { type: ChatMessageType.FromBotChatMessage; id: number; content: BotMessagePayload }
 
 export enum BotMessagePayloadType {

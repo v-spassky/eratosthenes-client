@@ -111,3 +111,15 @@ export function showBannedFromRoomNotification(strings: I18nContext): void {
         transition: Slide,
     })
 }
+
+export function cannotPasteImageNotification(strings: I18nContext): void {
+    toast.error(strings.i18n._("cannotPasteImage"), {
+        position: "bottom-left",
+        autoClose: 2000,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+        transition: Slide,
+    })
+}

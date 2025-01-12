@@ -172,3 +172,31 @@ export async function changeUserScore(
     const responseBody: ChangeScoreResponse = await response.json()
     return responseBody
 }
+
+export async function uploadImages(images: Array<{ id: string; url: string }>): Promise<void> {
+    const formData = new FormData()
+
+    for (const img of images) {
+        try {
+            const response = await fetch(img.url)
+            const blob = await response.blob()
+            formData.append(`image-${img.id}`, blob, `image-${img.id}.png`)
+        } catch (error) {
+            console.error(`[media]: Failed to fetch blob for image ${img.id}:`, error)
+        } finally {
+            URL.revokeObjectURL(img.url)
+        }
+    }
+
+    const response = await fetch(`${origin}/uploads/images`, {
+        method: "POST",
+        headers: {
+            Passcode: getPasscode(),
+        },
+        body: formData,
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to upload images")
+    }
+}

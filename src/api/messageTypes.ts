@@ -55,13 +55,14 @@ export enum ServerSentSocketMessageType {
 interface OutgoingChatMessagePayload {
     from: string // TODO: remove this, get username on the server
     content: string
+    attachmentIds: string[]
 }
 
 interface IncomingChatMessagePayload {
     id: number
     from: string
     content: string
-    isFromBot: boolean
+    attachmentIds: string[]
 }
 
 interface BriefUserInfoPayload {
