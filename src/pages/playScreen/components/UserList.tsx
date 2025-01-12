@@ -51,6 +51,8 @@ function medalOfIndex(index: number): string {
 export default function UserList(): ReactElement {
     const { id } = useParams()
     const { theme } = useTheme()
+    const systemThemeIsLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches
+    const actualTheme = theme === "system" ? (systemThemeIsLight ? "light" : "dark") : theme
     const strings = useLingui()
     const users = useContext(UsersContext)
     const banUserModal = useDisclosure()
@@ -59,7 +61,7 @@ export default function UserList(): ReactElement {
     const [userIdToBan, setUserIdToBan] = useState("")
     const [publicIdWhoseCreditsToChange, setPublicIdWhoseCreditsToChange] = useState("")
     const [changeUserCreditsAmount, setChangeUserCreditsAmount] = useState(0)
-    const chipBackground = theme === "light" ? "rgb(242, 244, 245)" : "rgb(75 85 99)"
+    const chipBackground = actualTheme === "light" ? "rgb(242, 244, 245)" : "rgb(75 85 99)"
     const { iAmHost, showLastRoundScore } = useContext(RoomMetaInfoContext)
 
     function getUserAvatarCell(user: User): ReactElement {

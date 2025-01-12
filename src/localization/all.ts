@@ -93,6 +93,9 @@ export default function initTranslations(): void {
         backIChangedMyMind: "Back, I changed my mind",
         goAhead: "Go ahead!",
         cannotPasteImage: "You can only attach up to 4 images.",
+        lightTheme: "Light",
+        darkTheme: "Dark",
+        systemTheme: "As in system",
     })
     i18n.load("ru", {
         setUsernameToConnect: "Установи юзернейм чтобы подключиться к комнате.",
@@ -184,5 +187,8 @@ export default function initTranslations(): void {
         backIChangedMyMind: "Назад, я передумал",
         goAhead: "Вперёд!",
         cannotPasteImage: "Нельзя прикрепить больше чем 4 картинки.",
+        lightTheme: "Светло",
+        darkTheme: "Темно",
+        systemTheme: "Как в системе",
     })
 }

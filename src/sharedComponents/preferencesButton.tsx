@@ -20,7 +20,6 @@ import { SupportedLocale } from "localization/all"
 import { setSelectedLanguage } from "localStorage/storage"
 import { useTheme } from "next-themes"
 import React, { ReactElement, useState } from "react"
-import { FaMoon, FaSun } from "react-icons/fa6"
 import { IoMdSettings } from "react-icons/io"
 import { VscMusic, VscMute } from "react-icons/vsc"
 import { soundsAreMuted, toggleMute } from "utils/sounds"
@@ -55,13 +54,28 @@ export default function PreferencesButton(): ReactElement {
                                 {strings.i18n._("lightOrDark")}
                             </TableCell>
                             <TableCell>
-                                <Switch
-                                    aria-label="Switch between themes"
-                                    startContent={<FaSun />}
-                                    endContent={<FaMoon />}
-                                    isSelected={theme === "dark"}
-                                    onValueChange={() => setTheme(theme === "dark" ? "light" : "dark")}
-                                ></Switch>
+                                <Dropdown>
+                                    <DropdownTrigger>
+                                        <Button variant="bordered" size="sm">
+                                            {strings.i18n._(`${theme}Theme`)}
+                                        </Button>
+                                    </DropdownTrigger>
+                                    <DropdownMenu
+                                        aria-label="Current theme"
+                                        variant="flat"
+                                        disallowEmptySelection
+                                        selectionMode="single"
+                                        selectedKeys={[theme || "system"]}
+                                        onSelectionChange={(selectedThemes) => {
+                                            const selectedTheme = [...selectedThemes][0]
+                                            setTheme(selectedTheme.toString())
+                                        }}
+                                    >
+                                        <DropdownItem key="light">{strings.i18n._("lightTheme")}</DropdownItem>
+                                        <DropdownItem key="dark">{strings.i18n._("darkTheme")}</DropdownItem>
+                                        <DropdownItem key="system">{strings.i18n._("systemTheme")}</DropdownItem>
+                                    </DropdownMenu>
+                                </Dropdown>
                             </TableCell>
                         </TableRow>
                         <TableRow>

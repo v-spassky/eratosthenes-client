@@ -113,13 +113,15 @@ export default function Chat(): ReactElement {
 
     function statusBarBgColor(): string {
         let statusBarColor
-        if (!connectionIsOk && theme === "light") {
+        const systemThemeIsLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches
+        const actualTheme = theme === "system" ? (systemThemeIsLight ? "light" : "dark") : theme
+        if (!connectionIsOk && actualTheme === "light") {
             statusBarColor = "rgb(252, 165, 165)"
-        } else if (!connectionIsOk && theme === "dark") {
+        } else if (!connectionIsOk && actualTheme === "dark") {
             statusBarColor = "rgb(220, 38, 38)"
-        } else if (connectionIsOk && theme === "light") {
+        } else if (connectionIsOk && actualTheme === "light") {
             statusBarColor = "#F4F4F5"
-        } else if (connectionIsOk && theme === "dark") {
+        } else if (connectionIsOk && actualTheme === "dark") {
             statusBarColor = "#27272A"
         } else {
             console.error("[chat]: could not figure out the correct `statusBarColor`")

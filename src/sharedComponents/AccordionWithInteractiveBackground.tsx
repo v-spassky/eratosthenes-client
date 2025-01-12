@@ -13,9 +13,11 @@ export default function AccordionWithResponsiveBackground({
 }: AccordionWithResponsiveBackgroundProps): ReactElement {
     const [headingBackgroundColor, setHeadingBackgroundColor] = useState("")
     const { theme } = useTheme()
+    const systemThemeIsLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches
+    const actualTheme = theme === "system" ? (systemThemeIsLight ? "light" : "dark") : theme
 
     function toggleHeadingBackgroundColor(): void {
-        const bgColor = theme === "light" ? "rgb(243, 244, 246)" : "rgb(63, 63, 70)"
+        const bgColor = actualTheme === "light" ? "rgb(243, 244, 246)" : "rgb(63, 63, 70)"
         setHeadingBackgroundColor(headingBackgroundColor === "" ? bgColor : "")
     }
 
