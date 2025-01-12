@@ -52,10 +52,14 @@ export default function Chat(): ReactElement {
 
     const statusBarText = connectionIsOk ? strings.i18n._("connectionWorksWell") : strings.i18n._("connectionLost")
     const messageLengthIsValid = message.length <= maxMessageLength
-    const userMentionBackgroundColor = theme === "light" ? "rgb(214, 216, 217)" : "rgb(52, 62, 75)"
+    const systemThemeIsLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches
+    const actualTheme = theme === "system" ? (systemThemeIsLight ? "light" : "dark") : theme
+    const userMentionBackgroundColor = actualTheme === "light" ? "rgb(214, 216, 217)" : "rgb(52, 62, 75)"
     const myMentionBackground =
-        theme === "light" ? "linear-gradient(to left, #ede574, #e1f5c4)" : "linear-gradient(to left, #4776e6, #8e54e9)"
-    const dropdownSelectionBackground = theme === "light" ? "rgb(242, 244, 245)" : "rgb(75 85 99)"
+        actualTheme === "light"
+            ? "linear-gradient(to left, #ede574, #e1f5c4)"
+            : "linear-gradient(to left, #4776e6, #8e54e9)"
+    const dropdownSelectionBackground = actualTheme === "light" ? "rgb(242, 244, 245)" : "rgb(75 85 99)"
 
     useEffect(() => {
         if (chatContainerRef.current === null) {
