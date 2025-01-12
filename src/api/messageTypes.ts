@@ -62,6 +62,7 @@ interface IncomingChatMessagePayload {
     id: number
     from: string
     content: string
+    isFromBot: boolean // TODO: legacy field
     attachmentIds: string[]
 }
 

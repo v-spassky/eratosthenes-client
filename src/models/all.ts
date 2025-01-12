@@ -38,6 +38,7 @@ export enum BotMessagePayloadType {
     UserDisconnectedBotMsg = "UserDisconnectedBotMsg",
 }
 
+// TODO: use camelCase.
 export type BotMessagePayload =
     | { type: BotMessagePayloadType.RoundStartedBotMsg; payload: { round_number: number; rounds_per_game: number } }
     | { type: BotMessagePayloadType.RoundEndedBotMsg; payload: { round_number: number; rounds_per_game: number } }

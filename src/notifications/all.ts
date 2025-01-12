@@ -15,6 +15,7 @@ export function showUnsetUsernameErrorNotification(strings: I18nContext): void {
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
+        // TODO: adjust theme based on current user setting
         theme: "light",
         transition: Slide,
     })

@@ -144,6 +144,7 @@ export default function Chat(): ReactElement {
             type: MessagesActionType.AddMessage,
             message: {
                 type: ChatMessageType.FromPlayerChatMessage,
+                // TODO: do something with the hardcoded ids
                 id: 1,
                 authorName: strings.i18n._("me"),
                 content: message,
