@@ -274,9 +274,9 @@ export default function useRoomSocket({
                     if ([3, 5, 10].includes(message.payload)) {
                         if (userGuessRef.current !== null) {
                             // @ts-expect-error: figure out why TS says property `.position` isn't present
-                            const lat = userGuessRef.current.position.lat().toString()
+                            const lat = userGuessRef.current.position.lat()
                             // @ts-expect-error: figure out why TS says property `.position` isn't present
-                            const lng = userGuessRef.current.position.lng().toString()
+                            const lng = userGuessRef.current.position.lng()
                             saveGuess(lat, lng, roomId)
                         } else {
                             console.error("[map]: user marker not found.")
@@ -285,9 +285,9 @@ export default function useRoomSocket({
                     if (message.payload === 1) {
                         if (userGuessRef.current !== null) {
                             // @ts-expect-error: figure out why TS says property `.position` isn't present
-                            const lat = userGuessRef.current.position.lat().toString()
+                            const lat = userGuessRef.current.position.lat()
                             // @ts-expect-error: figure out why TS says property `.position` isn't present
-                            const lng = userGuessRef.current.position.lng().toString()
+                            const lng = userGuessRef.current.position.lng()
                             submitGuess(lat, lng, roomId)
                         } else {
                             console.error("[map]: user marker not found.")
