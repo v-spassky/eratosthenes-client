@@ -150,7 +150,7 @@ export default function initTranslations(): void {
             " АПИ ключ сохраняется только в твоём браузере и не передаётся на сервер, честное слово. Спасибо!",
         connectToExistingRoom: "Подключиться к существующей комнате",
         roomId: "Айди комнаты",
-        roomIdPlaceholder: "9F79fsv5iO или что то похожее...",
+        roomIdPlaceholder: "9F79fsv5iO или что-то похожее...",
         connect: "Подключиться",
         createNewRoom: "Создать новую комнату",
         create: "Создать",
