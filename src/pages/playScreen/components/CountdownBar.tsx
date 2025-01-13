@@ -5,9 +5,11 @@ import { RoomMetaInfoContext } from "state/roomMetaInfo"
 
 export default function CountdownBar(): ReactElement {
     const { theme } = useTheme()
+    const systemThemeIsLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches
+    const actualTheme = theme === "system" ? (systemThemeIsLight ? "light" : "dark") : theme
     const { progress } = useContext(RoomMetaInfoContext)
 
-    const backgroundColor = theme === "light" ? "white" : "black"
+    const backgroundColor = actualTheme === "light" ? "white" : "black"
 
     function progressBarVisibility(): "visible" | "hidden" {
         return progress > 0 ? "visible" : "hidden"
