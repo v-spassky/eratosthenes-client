@@ -1,45 +1,8 @@
-import { I18nContext } from "@lingui/react"
+import { useLingui } from "@lingui/react"
+import { useTheme } from "next-themes"
 import { Slide, toast } from "react-toastify"
 
 let unsetUsernameErrorFired = false
-
-export function showUnsetUsernameErrorNotification(strings: I18nContext): void {
-    if (unsetUsernameErrorFired) {
-        return
-    }
-    toast.error(strings.i18n._("setUsernameToConnect"), {
-        position: "bottom-left",
-        autoClose: 2000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        // TODO: adjust theme based on current user setting
-        theme: "light",
-        transition: Slide,
-    })
-    unsetUsernameErrorFired = true
-    setTimeout(() => {
-        unsetUsernameErrorFired = false
-    }, 2000)
-}
-
-export function showUnsetRoomIdErrorNotification(strings: I18nContext): void {
-    toast.error(strings.i18n._("enterRoomId"), {
-        position: "bottom-left",
-        autoClose: 2000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Slide,
-    })
-}
-
-// TODO: add an enum for `roomConnectionErrorCode`
 const failedRoomConnectionErrorFired = new Map<string, boolean>([
     ["roomNotFound", false],
     ["userAlreadyInRoom", false],
@@ -47,80 +10,124 @@ const failedRoomConnectionErrorFired = new Map<string, boolean>([
     ["userBanned", false],
 ])
 
-export function showFailedRoomConnectionNotification(strings: I18nContext, roomConnectionErrorCode: string): void {
-    if (failedRoomConnectionErrorFired.get(roomConnectionErrorCode)) {
-        return
+export default function useNotifications(): {
+    showUnsetUsernameErrorNotification: () => void
+    showUnsetRoomIdErrorNotification: () => void
+    showFailedRoomConnectionNotification: (roomConnectionErrorCode: string) => void
+    showThanksForUsingOwnApiKeyNotification: () => void
+    showBannedFromRoomNotification: () => void
+    cannotPasteImageNotification: () => void
+} {
+    const { i18n } = useLingui()
+    const { theme } = useTheme()
+    const systemThemeIsLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches
+    const actualTheme = theme === "system" ? (systemThemeIsLight ? "light" : "dark") : theme
+
+    const showUnsetUsernameErrorNotification = (): void => {
+        if (unsetUsernameErrorFired) {
+            return
+        }
+        toast.error(i18n._("setUsernameToConnect"), {
+            position: "bottom-left",
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: actualTheme,
+            transition: Slide,
+        })
+        unsetUsernameErrorFired = true
+        setTimeout(() => {
+            unsetUsernameErrorFired = false
+        }, 2000)
     }
-    let errMsg = ""
-    switch (roomConnectionErrorCode) {
-        case "roomNotFound":
-            errMsg = strings.i18n._("suchRoomWasNotFound")
-            break
-        case "userAlreadyInRoom":
-            errMsg = strings.i18n._("someoneWithSuchNameOrPasscodeAlreadyInRoom")
-            break
-        case "usernameTooLong":
-            errMsg = strings.i18n._("rejectedBcOfUsernameIsTooLong")
-            break
-        case "userBanned":
-            errMsg = strings.i18n._("youAreBannedInTheRoom")
-            break
-        default:
-            errMsg = strings.i18n._("couldNotConnectToTheRoom")
+
+    const showUnsetRoomIdErrorNotification = (): void => {
+        toast.error(i18n._("enterRoomId"), {
+            position: "bottom-left",
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: actualTheme,
+            transition: Slide,
+        })
     }
-    toast.error(errMsg, {
-        position: "bottom-left",
-        autoClose: 2000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Slide,
-    })
-    failedRoomConnectionErrorFired.set(roomConnectionErrorCode, true)
-    setTimeout(() => {
-        failedRoomConnectionErrorFired.set(roomConnectionErrorCode, false)
-    }, 2000)
-}
 
-export function showThanksForUsingOwnApiKeyNotification(strings: I18nContext): void {
-    toast(strings.i18n._("thxForUsingYourOwnApiKey"), {
-        position: "bottom-left",
-        autoClose: 4000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Slide,
-    })
-}
+    const showFailedRoomConnectionNotification = (roomConnectionErrorCode: string): void => {
+        if (failedRoomConnectionErrorFired.get(roomConnectionErrorCode)) {
+            return
+        }
+        const errorMessages: Record<string, string> = {
+            roomNotFound: i18n._("suchRoomWasNotFound"),
+            userAlreadyInRoom: i18n._("someoneWithSuchNameOrPasscodeAlreadyInRoom"),
+            usernameTooLong: i18n._("rejectedBcOfUsernameIsTooLong"),
+            userBanned: i18n._("youAreBannedInTheRoom"),
+        }
 
-export function showBannedFromRoomNotification(strings: I18nContext): void {
-    toast.error(strings.i18n._("youWereBannedInTheRoom"), {
-        position: "bottom-left",
-        autoClose: 4000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Slide,
-    })
-}
+        const errMsg = errorMessages[roomConnectionErrorCode] ?? i18n._("couldNotConnectToTheRoom")
+        toast.error(errMsg, {
+            position: "bottom-left",
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: actualTheme,
+            transition: Slide,
+        })
+        failedRoomConnectionErrorFired.set(roomConnectionErrorCode, true)
+        setTimeout(() => {
+            failedRoomConnectionErrorFired.set(roomConnectionErrorCode, false)
+        }, 2000)
+    }
 
-export function cannotPasteImageNotification(strings: I18nContext): void {
-    toast.error(strings.i18n._("cannotPasteImage"), {
-        position: "bottom-left",
-        autoClose: 2000,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "light",
-        transition: Slide,
-    })
+    const showThanksForUsingOwnApiKeyNotification = (): void => {
+        toast(i18n._("thxForUsingYourOwnApiKey"), {
+            position: "bottom-left",
+            autoClose: 4000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: actualTheme,
+            transition: Slide,
+        })
+    }
+
+    const showBannedFromRoomNotification = (): void => {
+        toast.error(i18n._("youWereBannedInTheRoom"), {
+            position: "bottom-left",
+            autoClose: 4000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: actualTheme,
+            transition: Slide,
+        })
+    }
+
+    const cannotPasteImageNotification = (): void => {
+        toast.error(i18n._("cannotPasteImage"), {
+            position: "bottom-left",
+            autoClose: 2000,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: actualTheme,
+            transition: Slide,
+        })
+    }
+
+    return {
+        showUnsetUsernameErrorNotification,
+        showUnsetRoomIdErrorNotification,
+        showFailedRoomConnectionNotification,
+        showThanksForUsingOwnApiKeyNotification,
+        showBannedFromRoomNotification,
+        cannotPasteImageNotification,
+    }
 }

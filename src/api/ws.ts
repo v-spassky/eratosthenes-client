@@ -1,4 +1,3 @@
-import { useLingui } from "@lingui/react"
 import { canConnectToRoom, getUsersOfRoom, saveGuess, submitGuess } from "api/http"
 import {
     ClientSentSocketMessage,
@@ -9,8 +8,7 @@ import {
 import socketConnWaitRetryPeriodMs from "constants/socketConnWaitRetryPeriod"
 import { getPasscode, getPublicUserId, getSelectedEmoji, getUsername } from "localStorage/storage"
 import { ChatMessageType, RoomStatusType } from "models/all"
-import { showBannedFromRoomNotification } from "notifications/all"
-import { showFailedRoomConnectionNotification, showUnsetUsernameErrorNotification } from "notifications/all"
+import useNotifications from "notifications/all"
 import { useContext, useEffect, useRef, useState } from "react"
 import { createContext } from "react"
 import { useNavigate } from "react-router-dom"
@@ -53,10 +51,11 @@ export default function useRoomSocket({
     refreshRoomUsersAndStatus,
     openGameFinishedModal,
 }: RoomSocketProps): RoomSocketControl {
-    const strings = useLingui()
     const socketRef = useRef<WebSocket | null>(null)
     const [connectionIsOk, setConnectionIsOk] = useState(false)
     const navigate = useNavigate()
+    const { showUnsetUsernameErrorNotification, showFailedRoomConnectionNotification, showBannedFromRoomNotification } =
+        useNotifications()
     const dispatchUsersAction = useContext(UsersDispatchContext)
     const dispatchMessagesAction = useContext(MessagesDispatchContext)
     const dispatchRoomMetaInfoAction = useContext(RoomMetaInfoDispatchContext)
@@ -75,14 +74,14 @@ export default function useRoomSocket({
 
     useEffect(() => {
         if (!getUsername()) {
-            showUnsetUsernameErrorNotification(strings)
+            showUnsetUsernameErrorNotification()
             navigate("/", { state: { roomId: roomId } })
             return
         }
         const checkIfCanConnect = async (): Promise<void> => {
             const canConnectResp = await canConnectToRoom(roomId)
             if (!canConnectResp.canConnect) {
-                showFailedRoomConnectionNotification(strings, canConnectResp.errorCode)
+                showFailedRoomConnectionNotification(canConnectResp.errorCode)
                 navigate("/")
                 return
             }
@@ -257,7 +256,7 @@ export default function useRoomSocket({
                 }
                 case ServerSentSocketMessageType.UserBanned: {
                     if (message.payload.publicId === getPublicUserId()) {
-                        showBannedFromRoomNotification(strings)
+                        showBannedFromRoomNotification()
                         navigate("/")
                     }
                     await fetchAndSetUsers(roomId)

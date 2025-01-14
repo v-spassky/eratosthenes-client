@@ -8,11 +8,7 @@ import defaultStreetViewPosition from "constants/defaultStreetViewPosition"
 import mapMarkSvg from "constants/mapMarkSvg"
 import { getApiKey, getApiKeyStrategy, getSelectedEmoji, getUsername } from "localStorage/storage"
 import { ApiKeyStrategy, RoomStatusType } from "models/all"
-import {
-    showFailedRoomConnectionNotification,
-    showThanksForUsingOwnApiKeyNotification,
-    showUnsetUsernameErrorNotification,
-} from "notifications/all"
+import useNotifications from "notifications/all"
 import SidePane from "pages/playScreen/components/SidePane"
 import StreetViewWindow from "pages/playScreen/components/StreetViewWindow"
 import React, { ReactElement, useContext, useEffect, useRef, useState } from "react"
@@ -34,6 +30,11 @@ export default function PlayScreen(): ReactElement {
     const { id } = useParams()
     const navigate = useNavigate()
     const strings = useLingui()
+    const {
+        showThanksForUsingOwnApiKeyNotification,
+        showUnsetUsernameErrorNotification,
+        showFailedRoomConnectionNotification,
+    } = useNotifications()
     const gameFinishedModal = useDisclosure()
 
     const users = useContext(UsersContext)
@@ -125,7 +126,7 @@ export default function PlayScreen(): ReactElement {
         if (getApiKey() === "") {
             return
         }
-        showThanksForUsingOwnApiKeyNotification(strings)
+        showThanksForUsingOwnApiKeyNotification()
         return (): void => {
             // TODO: is this OK that we don't return this in guards?
             window.removeEventListener("unload", handleTabClosing)
@@ -210,14 +211,14 @@ export default function PlayScreen(): ReactElement {
 
     useEffect(() => {
         if (!getUsername()) {
-            showUnsetUsernameErrorNotification(strings)
+            showUnsetUsernameErrorNotification()
             navigate("/", { state: { roomId: id } })
             return
         }
         const checkIfCanConnect = async (): Promise<void> => {
             const canConnectResp = await canConnectToRoom(id!)
             if (!canConnectResp.canConnect) {
-                showFailedRoomConnectionNotification(strings, canConnectResp.errorCode)
+                showFailedRoomConnectionNotification(canConnectResp.errorCode)
                 navigate("/")
                 return
             }
@@ -247,14 +248,14 @@ export default function PlayScreen(): ReactElement {
 
     useEffect(() => {
         if (!getUsername()) {
-            showUnsetUsernameErrorNotification(strings)
+            showUnsetUsernameErrorNotification()
             navigate("/", { state: { roomId: id } })
             return
         }
         const fetchData = async (): Promise<void> => {
             const canConnectResp = await canConnectToRoom(id!)
             if (!canConnectResp.canConnect) {
-                showFailedRoomConnectionNotification(strings, canConnectResp.errorCode)
+                showFailedRoomConnectionNotification(canConnectResp.errorCode)
                 navigate("/")
                 return
             }

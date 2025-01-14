@@ -32,7 +32,7 @@ import {
     setUsername as setUsernameInStorage,
 } from "localStorage/storage"
 import { ApiKeyStrategy } from "models/all"
-import { showFailedRoomConnectionNotification, showUnsetRoomIdErrorNotification } from "notifications/all"
+import useNotifications from "notifications/all"
 import HealthcheckFailedWarning from "pages/homeScreen/components/HealthcheckFailedWarning"
 import React, { ReactElement, useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
@@ -43,6 +43,7 @@ export default function HomeScreen(): ReactElement {
     const navigate = useNavigate()
     const location = useLocation()
     const strings = useLingui()
+    const { showUnsetRoomIdErrorNotification, showFailedRoomConnectionNotification } = useNotifications()
     const roomIdFromChat = location.state && location.state.roomId
     const [selectedEmoji, setSelectedEmoji] = useState(getSelectedEmoji() || "")
     const [username, setUsername] = useState(getUsername() || "")
@@ -109,11 +110,11 @@ export default function HomeScreen(): ReactElement {
 
     async function handleConnectToRoom(): Promise<void> {
         if (!targetRoomID.trim()) {
-            showUnsetRoomIdErrorNotification(strings)
+            showUnsetRoomIdErrorNotification()
         } else {
             const canConnectResp = await canConnectToRoom(targetRoomID)
             if (!canConnectResp.canConnect) {
-                showFailedRoomConnectionNotification(strings, canConnectResp.errorCode)
+                showFailedRoomConnectionNotification(canConnectResp.errorCode)
                 return
             }
             navigate(`/room/${targetRoomID}`)

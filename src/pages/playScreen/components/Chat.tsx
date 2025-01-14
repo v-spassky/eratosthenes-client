@@ -9,7 +9,7 @@ import { SupportedLocale } from "localization/all"
 import { getUsername } from "localStorage/storage"
 import { BotMessagePayload, BotMessagePayloadType, ChatMessageType } from "models/all"
 import { useTheme } from "next-themes"
-import { cannotPasteImageNotification } from "notifications/all"
+import useNotifications from "notifications/all"
 import ImageAttachment from "pages/playScreen/components/ImageAttachment"
 import React, {
     ClipboardEvent,
@@ -33,6 +33,7 @@ const scrollBottomPadding = 4
 export default function Chat(): ReactElement {
     const { theme } = useTheme()
     const strings = useLingui()
+    const { cannotPasteImageNotification } = useNotifications()
     const messages = useContext(MessagesContext)
     const users = useContext(UsersContext)
     const dispatchMessagesAction = useContext(MessagesDispatchContext)
@@ -250,7 +251,7 @@ export default function Chat(): ReactElement {
 
         for (const item of items) {
             if (pastedImages.length >= 4) {
-                cannotPasteImageNotification(strings)
+                cannotPasteImageNotification()
                 return
             }
             if (item.type.indexOf("image") === 0) {
