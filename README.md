@@ -23,13 +23,5 @@ npm run build && serve -s build
 ### QA
 
 ```bash
-npx prettier --check src/
-```
-
-```bash
-npx eslint src/
-```
-
-```bash
-npx tsc --noEmit
+npm run pre-commit
 ```
