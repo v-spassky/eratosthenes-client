@@ -1,4 +1,5 @@
 import { Modal, ModalContent } from "@nextui-org/react"
+import { getTemporaryAttachmentLinks } from "api/http"
 import React, { ReactElement, useEffect, useRef, useState } from "react"
 
 const INITIAL_RETRY_DELAY = 1000
@@ -12,9 +13,8 @@ interface ImageAttachmentProps {
 export default function ImageAttachment({ id }: ImageAttachmentProps): ReactElement {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isLoaded, setIsLoaded] = useState(false)
-    const previewImageUrl = `${process.env.REACT_APP_S3_URL}/image-${id}-preview`
-    const fullImageUrl = `${process.env.REACT_APP_S3_URL}/image-${id}`
-    const [src, setSrc] = useState(previewImageUrl)
+    const [previewSrc, setPreviewSrc] = useState("/images/loading.gif")
+    const [fullSrc, setFullSrc] = useState<string | null>(null)
 
     const [retryCount, setRetryCount] = useState(0)
     const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -26,10 +26,21 @@ export default function ImageAttachment({ id }: ImageAttachmentProps): ReactElem
         }
     }, [])
 
+    async function scheduleImageFetchingRetry(): Promise<void> {
+        const delay = Math.min(INITIAL_RETRY_DELAY * Math.pow(2, retryCount), MAX_RETRY_DELAY)
+        retryTimeoutRef.current = setTimeout(async () => {
+            setRetryCount((prev) => prev + 1)
+            const imgLinks = await getTemporaryAttachmentLinks([id])
+            const imgLink = imgLinks[0]
+            setPreviewSrc(imgLink.preview)
+            setFullSrc(imgLink.full)
+        }, delay)
+    }
+
     return (
         <>
             <img
-                src={src}
+                src={previewSrc}
                 alt="Attached image preview"
                 style={{
                     width: "50px",
@@ -52,23 +63,20 @@ export default function ImageAttachment({ id }: ImageAttachmentProps): ReactElem
                     }
                 }}
                 onError={() => {
-                    setSrc("/images/loading.gif")
-                    const delay = Math.min(INITIAL_RETRY_DELAY * Math.pow(2, retryCount), MAX_RETRY_DELAY)
-                    // TODO: bail out after N retries
-                    retryTimeoutRef.current = setTimeout(() => {
-                        setRetryCount((prev) => prev + 1)
-                        setSrc(previewImageUrl)
-                    }, delay)
+                    setPreviewSrc("/images/loading.gif")
+                    scheduleImageFetchingRetry()
                 }}
                 onLoad={() => {
-                    if (src === previewImageUrl) {
+                    if (previewSrc !== "/images/loading.gif") {
                         setIsLoaded(true)
+                    } else {
+                        scheduleImageFetchingRetry()
                     }
                 }}
             />
             <Modal size="3xl" isOpen={isModalOpen} onOpenChange={(open) => setIsModalOpen(open)}>
                 <ModalContent>
-                    <img src={fullImageUrl} alt="Attached image" style={{ width: "100%", borderRadius: "8px" }} />
+                    <img src={fullSrc!} alt="Attached image" style={{ width: "100%", borderRadius: "8px" }} />
                 </ModalContent>
             </Modal>
         </>

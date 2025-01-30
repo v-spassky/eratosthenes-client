@@ -159,3 +159,18 @@ interface ChangeScoreErrorResponse {
 }
 
 export type ChangeScoreResponse = ChangeScoreSuccessfulResponse | ChangeScoreErrorResponse
+
+export interface UploadImageResponse {
+    error: boolean
+    imageIds: string[]
+}
+
+export interface AttachmentLinksResponse {
+    error: boolean
+    links: AttachmentLink[]
+}
+
+export interface AttachmentLink {
+    full: string
+    preview: string
+}

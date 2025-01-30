@@ -49,7 +49,7 @@ export default function Chat(): ReactElement {
     const [dropdownHeight, setDropdownHeight] = useState(0)
     const [highlightedIndex, setHighlightedIndex] = useState(-1)
     const [caretPosition, setCaretPosition] = useState<number | null>(null)
-    const [pastedImages, setPastedImages] = useState<Array<{ id: string; url: string }>>([])
+    const [pastedImages, setPastedImages] = useState<Array<{ url: string }>>([])
 
     const statusBarText = connectionIsOk ? strings.i18n._("connectionWorksWell") : strings.i18n._("connectionLost")
     const messageLengthIsValid = message.length <= maxMessageLength
@@ -135,16 +135,15 @@ export default function Chat(): ReactElement {
         return statusBarColor
     }
 
-    function handleSendMessage(event: KeyboardEvent<HTMLInputElement>): void {
+    function handleSendMessage(event: KeyboardEvent<HTMLInputElement>, imageIds: string[]): void {
         event.preventDefault()
         const username = getUsername()
         if (username === null) {
             return
         }
-        const attachmentIds = pastedImages.map((img) => img.id)
         const payload: ClientSentSocketMessage = {
             type: ClientSentSocketMessageType.ChatMessage,
-            payload: { from: username, content: message.replace(/\n/g, "\\n"), attachmentIds: attachmentIds },
+            payload: { from: username, content: message.replace(/\n/g, "\\n"), attachmentIds: imageIds },
         }
         sendMessage(payload)
         dispatchMessagesAction({
@@ -155,7 +154,7 @@ export default function Chat(): ReactElement {
                 id: 1,
                 authorName: strings.i18n._("me"),
                 content: message,
-                attachmentIds: attachmentIds,
+                attachmentIds: imageIds,
             },
         })
         if (pastedImages.length !== 0) {
@@ -165,7 +164,7 @@ export default function Chat(): ReactElement {
         setPrompt(randomChatPrompt(strings))
     }
 
-    function handleKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
+    async function handleKeyDown(event: KeyboardEvent<HTMLInputElement>): Promise<void> {
         if (dropdownHeight === 0 && dropdownRef.current !== null) {
             setDropdownHeight(dropdownRef.current.offsetHeight)
         }
@@ -189,10 +188,8 @@ export default function Chat(): ReactElement {
             message.trim() !== "" &&
             messageLengthIsValid
         ) {
-            if (pastedImages.length !== 0) {
-                uploadImages(pastedImages)
-            }
-            handleSendMessage(event)
+            const imageIds = pastedImages.length === 0 ? [] : await uploadImages(pastedImages)
+            handleSendMessage(event, imageIds)
         }
     }
 
@@ -266,10 +263,10 @@ export default function Chat(): ReactElement {
         }
     }
 
-    function removeImage(imageId: string): void {
+    function removeImage(imageUrl: string): void {
         setPastedImages((prev) => {
-            const newImages = prev.filter((img) => img.id !== imageId)
-            const imageToRemove = prev.find((img) => img.id === imageId)
+            const newImages = prev.filter((img) => img.url !== imageUrl)
+            const imageToRemove = prev.find((img) => img.url === imageUrl)
             if (imageToRemove) {
                 URL.revokeObjectURL(imageToRemove.url)
             }
@@ -288,7 +285,7 @@ export default function Chat(): ReactElement {
         >
             {pastedImages.map((img) => (
                 <div
-                    key={img.id}
+                    key={img.url}
                     style={{
                         position: "relative",
                         width: "50px",
@@ -306,7 +303,7 @@ export default function Chat(): ReactElement {
                         }}
                     />
                     <button
-                        onClick={() => removeImage(img.id)}
+                        onClick={() => removeImage(img.url)}
                         style={{
                             position: "absolute",
                             top: -8,

@@ -1,4 +1,6 @@
 import {
+    AttachmentLink,
+    AttachmentLinksResponse,
     BanUserResponse,
     CanConnectToRoomResponse,
     ChangeScoreResponse,
@@ -12,6 +14,7 @@ import {
     RoomUsersResponse,
     SubmitGuessResponse,
     UnmuteUserResponse,
+    UploadImageResponse,
 } from "api/responses"
 import { getPasscode, getUsername } from "localStorage/storage"
 
@@ -173,16 +176,18 @@ export async function changeUserScore(
     return responseBody
 }
 
-export async function uploadImages(images: Array<{ id: string; url: string }>): Promise<void> {
+export async function uploadImages(images: Array<{ url: string }>): Promise<string[]> {
     const formData = new FormData()
 
+    let imageNumber = 1
     for (const img of images) {
         try {
             const response = await fetch(img.url)
             const blob = await response.blob()
-            formData.append(`image-${img.id}`, blob, `image-${img.id}.png`)
+            formData.append(`image-${imageNumber}`, blob)
+            imageNumber++
         } catch (error) {
-            console.error(`[media]: Failed to fetch blob for image ${img.id}:`, error)
+            console.error(`[media]: Failed to fetch blob for image ${img.url}:`, error)
         } finally {
             URL.revokeObjectURL(img.url)
         }
@@ -199,4 +204,26 @@ export async function uploadImages(images: Array<{ id: string; url: string }>): 
     if (!response.ok) {
         throw new Error("Failed to upload images")
     }
+
+    const responseData: UploadImageResponse = await response.json()
+    return responseData.imageIds
+}
+
+export async function getTemporaryAttachmentLinks(attachmentIds: string[]): Promise<AttachmentLink[]> {
+    const payload = { attachmentIds }
+    const response = await fetch(`${origin}/uploads/attachment-links`, {
+        method: "POST",
+        headers: [
+            ["Passcode", getPasscode()],
+            ["Content-Type", "application/json"],
+        ],
+        body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to get temporary attachment links")
+    }
+
+    const responseData: AttachmentLinksResponse = await response.json()
+    return responseData.links
 }
